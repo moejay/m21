@@ -101,7 +101,11 @@ function normalizeCucumberResults(data) {
       if (element.type && element.type !== "scenario") continue;
       scenarios[element.name] = deriveScenarioStatus(element.steps);
     }
-    lookup[feature.name] = { name: feature.name, scenarios };
+    const entry = { name: feature.name, scenarios };
+    // Cucumber JSON identifies each feature by its source file; keep it so
+    // the merge can join on path and disambiguate same-named features.
+    if (feature.uri) entry.uri = feature.uri;
+    lookup[feature.name] = entry;
   }
   return lookup;
 }
@@ -241,12 +245,49 @@ function tally(statuses) {
  * @param {Object} lookup - output of normalizeResults / parseResultsFile
  * @returns {Array} the same specs array, annotated
  */
+/** Normalize a path for comparison: strip a leading "./" and any leading slashes. */
+function normalizePath(p) {
+  return String(p).replace(/^\.?\/+/, "");
+}
+
+/**
+ * Index results entries that carry a `uri` by normalized path, so a feature
+ * file can be joined to its result by source file rather than display name.
+ */
+function indexByPath(lookup) {
+  const byPath = {};
+  for (const entry of Object.values(lookup)) {
+    if (entry && entry.uri) byPath[normalizePath(entry.uri)] = entry;
+  }
+  return byPath;
+}
+
+/**
+ * Find the results entry for a parsed feature file. Prefers a match on the
+ * feature's source path (via the report's `uri`); a path match wins even when
+ * a differently-named entry shares the feature's name. Falls back to matching
+ * on feature name.
+ */
+function resultsForFeature(feature, lookup, byPath) {
+  if (feature.path) {
+    const norm = normalizePath(feature.path);
+    if (byPath[norm]) return byPath[norm];
+    // Also accept an absolute or longer uri that ends with the feature path.
+    for (const [uriPath, entry] of Object.entries(byPath)) {
+      if (uriPath.endsWith(norm) || norm.endsWith(uriPath)) return entry;
+    }
+  }
+  return lookup[feature.name] || null;
+}
+
 export function mergeResults(specs, lookup = {}) {
+  const byPath = indexByPath(lookup);
   for (const spec of specs) {
     const specStatuses = [];
 
     for (const feature of spec.featureFiles || []) {
-      const featureResults = lookup[feature.name]?.scenarios || {};
+      const featureResults =
+        resultsForFeature(feature, lookup, byPath)?.scenarios || {};
       const statuses = [];
 
       for (const scenario of feature.scenarios || []) {

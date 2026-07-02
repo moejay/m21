@@ -78,7 +78,7 @@ Any matched file is content-sniffed, so a Jest/vitest report works at any of the
 
 ### Merge semantics
 
-- Features join on **feature name** (kebab-case), scenarios join on exact **scenario name**.
+- Features join on **file path** when the report identifies each feature by its source file (Cucumber JSON carries this), falling back to **feature name** (kebab-case) otherwise. Matching by path disambiguates two features that share a name. Scenarios join on exact **scenario name**.
 - A scenario in a spec with no matching result gets a null status (no data).
 - Counts are `{ passed, failed, total }` where `total` counts only scenarios that have result data.
 - A feature or spec with zero matched results has a null status — the graph renders this as a neutral "no data" state, distinct from a real pass/fail.

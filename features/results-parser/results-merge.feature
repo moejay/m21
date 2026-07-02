@@ -7,6 +7,12 @@ Feature: results-merge
     When results are merged onto specs
     Then the scenario "Successful login" has status "passed"
 
+  Scenario: Match a feature to results by file path when names differ
+    Given a spec feature whose file path matches a result's file path but whose feature name differs
+    And another result whose name coincidentally matches the feature name
+    When results are merged onto specs
+    Then the scenario statuses come from the path-matched result, not the name-matched one
+
   Scenario: Scenario with no matching result gets null status
     Given a spec with a feature "user-login" containing scenario "Forgotten password"
     And a results lookup that has no entry for "Forgotten password"

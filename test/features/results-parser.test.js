@@ -229,6 +229,54 @@ describeFeature(merge, ({ Scenario }) => {
     });
   });
 
+  Scenario(
+    "Match a feature to results by file path when names differ",
+    ({ Given, And, When, Then }) => {
+      Given(
+        "a spec feature whose file path matches a result's file path but whose feature name differs",
+        () => {
+          specs = [
+            {
+              name: "demo",
+              featureFiles: [
+                {
+                  name: "login",
+                  path: "features/auth/login.feature",
+                  scenarios: [{ name: "Successful login", steps: [] }],
+                },
+              ],
+            },
+          ];
+        },
+      );
+      And("another result whose name coincidentally matches the feature name", () => {
+        lookup = {
+          // Name-collision: this entry shares the feature's name but is the
+          // wrong file, and marks the scenario failed.
+          login: {
+            name: "login",
+            scenarios: { "Successful login": "failed" },
+          },
+          // Correct file, keyed by its own feature name, carrying the uri.
+          "user-login": {
+            name: "user-login",
+            uri: "features/auth/login.feature",
+            scenarios: { "Successful login": "passed" },
+          },
+        };
+      });
+      When("results are merged onto specs", () => {
+        mergeResults(specs, lookup);
+      });
+      Then(
+        "the scenario statuses come from the path-matched result, not the name-matched one",
+        () => {
+          expect(specs[0].featureFiles[0].scenarios[0].status).toBe("passed");
+        },
+      );
+    },
+  );
+
   Scenario("Scenario with no matching result gets null status", ({ Given, And, When, Then }) => {
     Given('a spec with a feature "user-login" containing scenario "Forgotten password"', () => {
       specs = [specWith("user-login", ["Forgotten password"])];
