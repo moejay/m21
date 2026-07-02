@@ -4,10 +4,17 @@
   "description": "Spec-driven dependency graph visualizer with composable modules and feature tracking",
   "type": "module",
   "bin": {
-    "modspec": "./bin/modspec.js",
-    "@moejay/modspec": "./bin/modspec.js"
+    "modspec": "./bin/modspec.js"
   },
   "main": "./src/parser.js",
+  "exports": {
+    ".": "./src/parser.js",
+    "./server": "./src/server.js",
+    "./generator": "./src/generator.js",
+    "./results": "./src/results.js",
+    "./cycles": "./src/cycles.js",
+    "./package.json": "./package.json"
+  },
   "files": [
     "bin/",
     "src/",

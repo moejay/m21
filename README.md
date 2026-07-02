@@ -233,7 +233,35 @@ npm test
 npx . ./spec/     # the graph lights up green with each module's passed/total count
 ```
 
-Requires Node ≥ 20 for development (the `jsdom` test harness). The published CLI runs on Node ≥ 18.
+Requires Node ≥ 20.
+
+## Programmatic API
+
+modspec can be used as a library. Entry points are exposed through the package `exports` map:
+
+```js
+import { parseSpecDirectory } from "@moejay/modspec";           // parse specs + features
+import { generateHTML } from "@moejay/modspec/generator";       // render the graph HTML
+import { createModspecServer } from "@moejay/modspec/server";   // run the dev server
+import { parseResultsFile, mergeResults } from "@moejay/modspec/results"; // overlay test results
+import { analyzeGraph } from "@moejay/modspec/cycles";          // dependency + cycle analysis
+
+// Parse a spec directory and render a self-contained graph.
+const specs = await parseSpecDirectory("./spec", { projectRoot: "." });
+const html = generateHTML(specs);
+
+// Overlay Cucumber/vitest results onto the specs, then render.
+const lookup = await parseResultsFile("./results/cucumber.json");
+if (lookup) mergeResults(specs, lookup);
+const withStatus = generateHTML(specs);
+
+// Start the dev server (loopback-only by default).
+const server = await createModspecServer({ specDir: "./spec", port: 3333 });
+console.log(server.address);
+await server.close();
+```
+
+The default import (`@moejay/modspec`) is the parser. `generateHTML` produces a fully self-contained document — the rendering libraries are inlined, so it works offline.
 
 ## License
 
