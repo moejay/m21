@@ -1,8 +1,8 @@
 ---
 name: http-server
-description: Node.js HTTP server — routes requests to spec data, HTML, SSE, and editing endpoints
+description: Serves the graph, spec data, live updates, and editing endpoints over HTTP
 group: infrastructure
-tags: [http, server, node, rest-api]
+tags: [http, server, rest-api]
 depends_on:
   - name: spec-parser
     uses: [directory-parsing]
@@ -21,28 +21,31 @@ features: features/http-server/
 
 # HTTP Server
 
-Development server implemented with Node's built-in `http` module — no Express, no framework. Defined in `src/server.js` as `createModspecServer({ specDir, port, projectRoot, resultsPath })`.
+The development server. Exposes the interactive graph, the parsed spec data, a live-update stream, and the editing endpoints. It composes the other infrastructure modules — parsing, generation, watching, broadcasting, editing — behind a single HTTP interface.
 
 ### Test results overlay
 
-When a results file is available — given explicitly via `resultsPath` (the `--results` flag) or auto-detected by `results-parser` — the server merges Cucumber JSON test outcomes onto the parsed specs (via `mergeResults`) before serving HTML and before every SSE broadcast. The served `/api/specs` payload and the live-reload stream therefore carry per-scenario `status`, plus `testStatus`/`testCounts` on each feature and spec. With no results file, specs are served unannotated.
+When a results file is available — given explicitly (the `--results` flag) or auto-detected by results-parser — the server merges test outcomes onto the parsed specs before serving HTML and before every live-update broadcast. The served spec data and the live-reload stream therefore carry per-scenario status, plus rolled-up status and counts on each feature and spec. With no results file, specs are served unannotated.
 
 ### Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/` or `/index.html` | Serves generated HTML with `liveReload: true` |
+| `GET` | `/` or `/index.html` | Serves the generated graph HTML with live reload enabled |
 | `GET` | `/api/specs` | Returns parsed specs as JSON |
-| `GET` | `/api/events` | SSE stream for live updates |
-| `PUT` | `/api/specs/:name/body` | Update spec body (preserves frontmatter) |
-| `PUT` | `/api/features/:specName/:filename` | Update feature file content |
+| `POST` | `/api/specs` | Creates a new spec file (rejects missing name or duplicate) |
+| `GET` | `/api/events` | Live-update event stream |
+| `PUT` | `/api/specs/:name/body` | Update a spec's body (frontmatter preserved) |
+| `PUT` | `/api/features/:specName/:filename` | Update a feature file's content |
+
+Unmatched routes return 404. Responses are marked non-cacheable so the browser always sees current data.
 
 ### Server lifecycle
 
-- Binds to configured port (default 3333, supports `0` for random port in tests)
-- Returns a promise resolving to `{ port, address, close }` — the `close()` function tears down the watcher, closes SSE connections, and stops the HTTP server
-- Graceful shutdown is triggered by the orchestrator on `SIGINT`/`SIGTERM`
+- Binds to the configured port (default 3333; port 0 requests a random free port, used by tests)
+- Startup yields the bound port, the local address, and a close operation — closing tears down the watcher, ends all live-update connections, and stops accepting requests
+- Graceful shutdown is triggered by the orchestrator on interrupt/terminate signals
 
-### Request handling
+### Non-goals
 
-Incoming requests are URL-matched against route patterns. PUT endpoints parse JSON body via a `readBody()` helper that collects chunks. Unmatched routes get 404. All responses include `Cache-Control: no-cache`.
+- Not a production web server: no TLS, no authentication, no static file serving. It exists to serve one local development session.

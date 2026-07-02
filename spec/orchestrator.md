@@ -2,7 +2,7 @@
 name: orchestrator
 description: CLI entry point — wires together parsing, generation, serving, and version checking
 group: interface
-tags: [cli, entry-point, node, orchestration]
+tags: [cli, entry-point, orchestration]
 depends_on:
   - name: arg-parser
     uses: [argument-parsing, subcommand-parsing]
@@ -23,17 +23,19 @@ features: features/orchestrator/
 
 # Orchestrator
 
-The executable entry point (`bin/modspec.js`, 134 lines). This is the only module that touches `process.argv`, `process.exit`, and `process.stdin`. It owns all top-level side effects.
+The executable entry point. It is the only module that interacts with the host process — raw arguments, exit codes, interactive prompts, and signal handling all live here. Every other module stays side-effect-free at the top level so it can be tested and reused in isolation.
 
 Responsibilities:
 
 1. **Parse arguments** via arg-parser, then branch on help/error/mode
-2. **Ensure spec directory exists** — prompts interactively via `readline`, or auto-creates with `-y`
-3. **Parse specs** by calling spec-parser with `projectRoot` derived from spec directory's parent
+2. **Ensure the spec directory exists** — prompts interactively, or auto-creates with `-y`
+3. **Parse specs** by calling spec-parser, with the project root derived as the spec directory's parent
 4. **Route to mode**:
-   - **Dev server** (default): delegates to http-server, registers `SIGINT`/`SIGTERM` for graceful shutdown
-   - **Static export** (`--output`): calls graph-generator, writes HTML to file or opens temp file in browser via `open` package
-   - **Subcommand modes** (`list` / `show` / `features` / `deps` / `validate`): delegates to the corresponding handler in cli-commands, prints the returned string, exits with the handler's reported exit code
-5. **Kick off version check** non-blocking on startup (`checkForUpdate().catch(() => {})`)
+   - **Dev server** (default): delegates to http-server and shuts it down gracefully on interrupt/terminate
+   - **Static export** (`--output`): calls graph-generator and writes the HTML to the given path, or to a temporary file opened in the browser when no path is given
+   - **Subcommand modes** (`list` / `show` / `features` / `deps` / `validate`): delegates to the matching cli-commands handler, prints the returned output, exits with the handler's reported exit code
+5. **Kick off the version check** on startup, without blocking or failing startup if it errors
 
-Uses Node built-ins: `fs/promises`, `os`, `path`, `readline`. The `open` npm package is dynamically imported only in static export mode.
+### Invariants
+
+- Exit codes and all output to the terminal flow through the orchestrator; delegated modules return values instead of printing or exiting themselves.

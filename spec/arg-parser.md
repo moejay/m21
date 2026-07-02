@@ -1,6 +1,6 @@
 ---
 name: arg-parser
-description: Pure CLI argument parser — extracts subcommand, flags, positional args, and mode from process.argv
+description: Pure CLI argument parser — extracts subcommand, flags, positional args, and mode from the raw argument list
 group: interface
 tags: [cli, args, parsing]
 depends_on: []
@@ -9,21 +9,21 @@ features: features/arg-parser/
 
 # Arg Parser
 
-Stateless function (`parseCliArgs`) that takes a raw argument array and returns a structured options object. Has zero dependencies — no framework, no external library, no I/O.
+A pure function from the raw argument list to a structured options object. No I/O, no framework, no external dependencies.
 
-Implemented in `src/cli.js`. Supports:
+Supports:
 
 - **Subcommand keyword** (optional first non-flag arg): one of `list`, `show`, `features`, `deps`, `validate`. When present, sets `mode` to that keyword and shifts subsequent positional args (specDir, then optional spec name).
 - **Positional `specDir`**: in subcommand mode, the second positional arg; otherwise the first non-flag arg.
 - **Positional `name`**: third positional arg, used by `show` / `features` / `deps`. Required for `show` and `deps`; optional for `features` (omit to list features for all specs).
 - **`--output` / `-o`**: switches `mode` to `static`, captures output file path. Mutually exclusive with subcommands.
 - **`--port`**: custom port number for dev server (default 3333). Only meaningful in `serve` mode.
-- **`--results`**: path to a Cucumber JSON test-results file to overlay on the graph. Captured as `results` (default `null`). When omitted, the orchestrator auto-detects a results file from conventional locations. Meaningful in `serve` and `static` modes.
+- **`--results`**: path to a Cucumber JSON test-results file to overlay on the graph. Captured as `results` (default none). When omitted, the orchestrator auto-detects a results file from conventional locations. Meaningful in `serve` and `static` modes.
 - **`--json`**: emit JSON instead of human-readable text. Only meaningful in subcommand modes (list / show / features / deps / validate).
 - **`-y` / `--yes`**: auto-confirm directory creation prompts.
 - **`--help` / `-h`**: help flag (also triggers when no args given).
 - **`--version` / `-v`**: print version and exit.
-- **Error reporting**: returns `{ error }` for invalid flag usage (e.g., `--output` without a path, `show` without a spec name).
+- **Error reporting**: returns an error value for invalid flag usage (e.g., `--output` without a path, `show` without a spec name).
 
 ### Mode values
 
@@ -41,4 +41,6 @@ Implemented in `src/cli.js`. Supports:
 
 A bare word that exactly matches a subcommand keyword is a subcommand. Anything else (including paths like `./spec/` or `/abs/spec/`, or directory names not in the keyword set) is treated as `specDir`. Users with a directory literally named `list` must invoke it with a path indicator (`./list/`).
 
-Returns a plain object — never throws, never reads the filesystem, never calls `process.exit`. All side effects happen in the orchestrator.
+### Invariants
+
+- Always returns a plain value — never throws, never reads the filesystem, never terminates the process. All side effects belong to the orchestrator.

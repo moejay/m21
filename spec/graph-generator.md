@@ -1,6 +1,6 @@
 ---
 name: graph-generator
-description: Generates self-contained HTML string embedding specs, CSS, and the graph-client application
+description: Generates a self-contained HTML document embedding specs, styling, and the graph-client application
 group: domain
 tags: [visualization, html-generation, template]
 depends_on:
@@ -11,27 +11,25 @@ features: features/graph-generator/
 
 # Graph Generator
 
-The largest module (~1316 lines in `src/generator.js`). Exports a single function `generateHTML(specs, options)` that produces a complete, self-contained HTML document as a string.
+Produces a complete HTML document, as a single string, that renders the interactive dependency graph. The same generator serves both the dev server (live mode) and static export.
 
-### What it embeds
+### What the document contains
 
-The generated HTML is a single file containing:
-
-1. **Spec data**: all parsed specs serialized as a JSON literal in a `<script>` block
-2. **CSS**: ~200 lines of inline styles — dark theme inspired by neo4j browser (dark background, neon accents, monospace fonts)
-3. **JavaScript**: the graph-client application (~1000 lines) for the interactive D3 visualization
-4. **CDN references**: `<script>` tags for D3.js v7 and marked.js (the only external network requests)
+1. **Spec data**: all parsed specs embedded directly in the document, so it needs no data backend
+2. **Styling**: an embedded dark theme — dark background, neon accents, monospace type
+3. **The graph-client application**: embedded in full, so the document runs on its own
+4. **Two rendering libraries** referenced from public CDNs — the document's only external requests
 
 ### Conditional content
 
-When `options.liveReload` is `true` (dev server mode):
-- SSE client code is embedded (`connectSSE()` function with auto-reconnect)
-- `updateGraph()` function is embedded for hot-swapping spec data while preserving node positions
-- Inline editing UI is enabled (edit buttons, save handlers that `PUT` to server API)
+When live reload is requested (dev server mode):
+- The live-update subscription is embedded: the client listens for new spec data and swaps it in while preserving node positions, reconnecting automatically if the stream drops
+- The inline editing UI is enabled (edit buttons and save handlers that write back through the server's editing endpoints)
 
-When `liveReload` is `false` (static export):
-- No SSE code, no editing UI — pure read-only visualization
+For static export:
+- No live-update code, no editing UI — a pure read-only visualization
 
-### Design
+### Decisions
 
-This is a **template module** — it constructs HTML via string interpolation, not a template engine. The entire client-side application lives as a string literal inside this Node.js module. There are no external asset files, no build step, no bundler.
+- **No build step, no bundler, no external asset files** — the output is a single document produced by direct string construction. This keeps the tool runnable with zero build tooling, at the cost of the client application living embedded in the generator.
+- **Rendering libraries load from CDNs** rather than being embedded — keeps the output small, but the exported document needs network access to render. Recorded as a known trade-off; revisiting it is on the backlog.

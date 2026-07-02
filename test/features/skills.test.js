@@ -111,6 +111,52 @@ describeFeature(specAuthoring, ({ Scenario }) => {
     );
   });
 
+  Scenario("Guide what belongs in a spec body", ({ Given, When, Then, And }) => {
+    Given("the user is writing or editing a spec body", () => {
+      expect(modspecLower).toContain("markdown body");
+    });
+    When("the modspec skill is consulted", () => {
+      expect(modspecLower).toContain("what belongs in a spec");
+    });
+    Then(
+      "it explains that a spec describes responsibilities, non-goals, and invariants in domain language",
+      () => {
+        expect(modspecLower).toContain("responsib");
+        expect(modspecLower).toContain("non-goals");
+        expect(modspecLower).toContain("invariants");
+        expect(modspecLower).toContain("domain language");
+      },
+    );
+    And("it lists implementation details that do not belong in a spec body", () => {
+      // The smell list names concrete kinds of implementation leakage.
+      expect(modspecLower).toContain("file paths");
+      expect(modspecLower).toContain("function");
+      expect(modspecLower).toMatch(/library|framework/);
+      expect(modspecLower).toContain("tuning constants");
+    });
+  });
+
+  Scenario("Keep specs language-agnostic", ({ Given, When, Then, And }) => {
+    Given("a spec body is being authored", () => {
+      expect(modspecLower).toContain("spec body");
+    });
+    When("the skill evaluates whether a detail belongs in the spec", () => {
+      expect(modspecLower).toContain("regeneration test");
+    });
+    Then(
+      "it applies the regeneration test: the module could be rebuilt in another language from spec and features alone",
+      () => {
+        expect(modspecLower).toMatch(/regeneration test[\s\S]*another (language|stack)/);
+      },
+    );
+    And(
+      "deliberate technology choices are recorded only as decisions, not as descriptions of the code",
+      () => {
+        expect(modspecLower).toMatch(/decision[\s\S]*constraint/);
+      },
+    );
+  });
+
   Scenario("Assign architectural groups", ({ Given, When, Then }) => {
     Given("the skill categorizes a module", () => {
       expect(modspecLower).toContain("group");

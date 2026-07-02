@@ -9,23 +9,23 @@ features: features/feature-parser/
 
 # Feature Parser
 
-Reads `.feature` files and extracts structured scenario data. Implemented in `src/parser.js` — the `parseFeatureFile` and `parseFeatureDirectory` exports.
+Reads `.feature` files and extracts structured scenario data.
 
 ### Single file parsing
 
-`parseFeatureFile(filePath, options)` reads a `.feature` file line-by-line and extracts:
+Parsing one `.feature` file extracts:
 
 - **Feature name**: from the `Feature:` header line
 - **Scenarios**: each `Scenario:` block collects its name and steps
 - **Steps**: lines starting with `Given`, `When`, `Then`, `And`, or `But`
 - **Raw content**: full file content preserved for display/editing
 - **Filename**: base filename for identification
-- **Relative path**: computed from `options.basePath` if provided
+- **Relative path**: computed from a base path when one is provided
 
 ### Directory parsing
 
-`parseFeatureDirectory(dirPath, options)` scans a directory for `.feature` files, parses all of them in parallel via `Promise.all`, and returns an array. Returns an empty array if the directory doesn't exist (graceful degradation — no throw).
+Parsing a directory finds all `.feature` files in it and parses each, returning the collection. A directory that doesn't exist yields an empty collection (graceful degradation — never an error).
 
 ### Integration with spec-parser
 
-The spec-parser calls `parseFeatureDirectory` for each spec that has a `features` path, joining `projectRoot + spec.features` to locate the feature directory. Results are attached as `spec.featureFiles`.
+The spec-parser parses the feature directory of each spec that declares a `features` path (resolved relative to the project root) and attaches the results to the spec.

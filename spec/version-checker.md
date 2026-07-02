@@ -9,17 +9,17 @@ features: features/version-checker/
 
 # Version Checker
 
-Checks the npm registry for a newer published version and logs an upgrade notification. Implemented in `src/version.js` (49 lines).
+Checks the package registry for a newer published version and prints an upgrade notification.
 
 ### How it works
 
-1. Reads current version from `package.json` (resolved relative to `src/` via `import.meta.url`)
-2. Fetches `https://registry.npmjs.org/@moejay/modspec/latest` with a 3-second `AbortController` timeout
-3. Compares `latest.version` against current — if different, logs: `Update available: X.Y.Z → A.B.C`
-4. Silently swallows all errors (network failures, timeouts, JSON parse errors)
+1. Determines the currently installed version from the package's own metadata
+2. Asks the npm registry for the latest published version of `@moejay/modspec`, giving up after 3 seconds
+3. If the latest version differs from the current one, prints: `Update available: X.Y.Z → A.B.C`
+4. Silently swallows all errors (network failures, timeouts, malformed responses)
 
-### Design constraints
+### Invariants
 
-- **Non-blocking**: called with `.catch(() => {})` by the orchestrator — never delays startup
-- **No side effects beyond logging**: doesn't auto-update, doesn't write state, doesn't cache results
-- **3-second hard timeout**: prevents hanging on slow/unreachable registries
+- **Non-blocking**: never delays startup and never causes it to fail — the check runs alongside normal startup and any error is discarded
+- **No side effects beyond the notification**: doesn't auto-update, doesn't write state, doesn't cache results
+- **Hard timeout**: gives up after 3 seconds so a slow or unreachable registry can't hang the tool

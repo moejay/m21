@@ -13,12 +13,13 @@ features: features/skills/
 
 # Skills
 
-Claude Code skill files (`skills/*/SKILL.md`) that teach AI assistants the modspec file format and workflows. Shipped as part of the npm package (`"files": ["skills/"]`).
+Claude Code skill files (`skills/*/SKILL.md`) that teach AI assistants the modspec file format and workflows. Shipped as part of the published package.
 
 ### modspec skill (`skills/modspec/SKILL.md`)
 
 Day-to-day spec authoring guide. Covers:
 - Spec file structure (YAML frontmatter fields, markdown body conventions)
+- Spec content guidance: what belongs in a spec body (responsibilities, non-goals, invariants, decisions) and what does not (implementation detail), with the regeneration test as the yardstick
 - Dependency declaration with `depends_on` and `uses` feature references
 - Feature file creation in Gherkin format
 - Naming conventions (kebab-case for specs, features, files)

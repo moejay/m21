@@ -15,9 +15,9 @@ features: features/cli-commands/
 
 # CLI Commands
 
-Five read-only subcommands that let humans and coding agents explore a modspec project without spinning up the dev server. Each handler takes parsed CLI options and emits to stdout. None touch the dev server, the file watcher, or `process.exit` directly — exit codes flow back through the orchestrator.
+Five read-only subcommands that let humans and coding agents explore a modspec project without spinning up the dev server. Each handler takes the parsed specs and options and returns its output — exit codes and printing flow back through the orchestrator.
 
-Implemented in `src/commands.js`. Every command supports `--json` for machine-readable output; default output is concise human-readable text.
+Every command supports `--json` for machine-readable output; default output is concise human-readable text.
 
 ## Commands
 
@@ -48,12 +48,12 @@ Lint the spec graph. Surfaces:
 - Broken `uses` references (feature name not declared by the parent spec)
 - Orphan `features:` paths (declared in frontmatter but directory missing)
 - Specs that declare no features at all (warning, not error)
-- Cycles (delegated to `src/cycles.js`)
+- Dependency cycles
 
 Default output: grouped by severity, one issue per line with file path and message. Exit code is non-zero when any errors are present.
 
 JSON output: `{ ok: boolean, issues: [{ severity, type, spec, message, path? }] }`.
 
-## Stability and side effects
+## Invariants
 
-Pure functions where possible — handlers receive a parsed `specs` array and `options`, return a string (text or JSON). The orchestrator owns `console.log` and `process.exit`. This keeps the handlers testable in isolation and reusable from a future programmatic API.
+Handlers are pure: they receive parsed specs and options and return output (text or JSON) — they never print, never exit, never touch the filesystem. This keeps them testable in isolation and reusable from a future programmatic API.

@@ -1,8 +1,8 @@
 ---
 name: spec-parser
-description: Parses markdown spec files with YAML frontmatter into normalized spec objects
+description: Parses markdown spec files with YAML frontmatter into normalized spec records
 group: foundation
-tags: [parser, markdown, yaml, gray-matter]
+tags: [parser, markdown, yaml, frontmatter]
 depends_on:
   - name: feature-parser
     uses: [directory-parsing]
@@ -11,17 +11,15 @@ features: features/spec-parser/
 
 # Spec Parser
 
-Core data ingestion for spec files. Reads `.md` files, extracts YAML frontmatter via `gray-matter`, and produces normalized JavaScript objects.
-
-Implemented in `src/parser.js` — the `parseSpecFile` and `parseSpecDirectory` exports. Also the library's `main` entry point in `package.json`, usable programmatically.
+Core data ingestion for spec files. Reads `.md` files, extracts the YAML frontmatter, and produces normalized spec records. Also usable programmatically as the package's library entry point.
 
 ### Spec file contract
 
-A valid spec file requires a `name` field in frontmatter. Optional fields: `description`, `group`, `tags` (array), `depends_on` (array), `features` (path string). Everything below the frontmatter fence is the markdown `body`.
+A valid spec file requires a `name` field in frontmatter. Optional fields: `description`, `group`, `tags` (list), `depends_on` (list), `features` (path). Everything below the frontmatter fence is the markdown `body`.
 
 ### Dependency normalization
 
-`depends_on` entries are polymorphic — the parser normalizes both formats to canonical `{ name: string, uses: string[] }`:
+`depends_on` entries are polymorphic — both forms normalize to a canonical record with a `name` and a (possibly empty) `uses` list:
 
 ```yaml
 # Simple string → { name: "config", uses: [] }
@@ -38,4 +36,4 @@ Invalid entries (no `name`) are filtered out. Dependency matching is case-insens
 
 ### Directory parsing
 
-`parseSpecDirectory(dirPath, { projectRoot })` scans for all `.md` files, parses each, skips files without `name`, then resolves feature files for each spec by delegating to the feature-parser with `projectRoot`-relative paths.
+Parsing a spec directory finds all `.md` files, parses each, silently skips files without a `name`, then resolves each spec's feature files by delegating to the feature-parser with paths resolved relative to the project root.

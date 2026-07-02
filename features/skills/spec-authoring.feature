@@ -21,6 +21,18 @@ Feature: spec-authoring
     When naming
     Then kebab-case is used for spec names, feature names, and file names
 
+  Scenario: Guide what belongs in a spec body
+    Given the user is writing or editing a spec body
+    When the modspec skill is consulted
+    Then it explains that a spec describes responsibilities, non-goals, and invariants in domain language
+    And it lists implementation details that do not belong in a spec body
+
+  Scenario: Keep specs language-agnostic
+    Given a spec body is being authored
+    When the skill evaluates whether a detail belongs in the spec
+    Then it applies the regeneration test: the module could be rebuilt in another language from spec and features alone
+    And deliberate technology choices are recorded only as decisions, not as descriptions of the code
+
   Scenario: Assign architectural groups
     Given the skill categorizes a module
     When assigning a group

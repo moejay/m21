@@ -21,8 +21,6 @@ When this skill is loaded, every code change in the project follows the same flo
 
 This is strict on purpose. Specs are an investment in **regeneration**: detailed, current specs let the same behavior be reproduced repeatedly from the spec alone. Skipping Phase 1 lets the source of truth drift; skipping Phase 2 lets the implementation diverge from the spec. Either break breaks the regeneration property.
 
-Unless specified by the user, 
-
 > If the user requests a code change that isn't covered by an existing scenario — even a "small" one — **stop and update the spec/feature first**. Do not negotiate the workflow down to "just do this one quickly." The user invested in this workflow specifically to keep specs load-bearing.
 
 ## Test runner contract
@@ -53,6 +51,39 @@ project/
 ├── src/                        # Implementation (one module per spec)
 └── test/                       # Runner-specific — see project's test config
 ```
+
+---
+
+## What belongs in a spec
+
+The spec body is deliberately unstructured — free markdown prose, written to be read and edited by humans. This section is guidance on **content**, not a template. Do not impose headings or sections on the user's specs.
+
+A good spec body answers, in **domain language** anyone can read:
+
+- **Responsibilities** — what this module is accountable for, stated as outcomes, not mechanisms.
+- **Non-goals** — what it deliberately does *not* do. Often the highest-value sentence in the spec, because it's the thing scenarios can't express.
+- **Invariants** — what must always hold, no matter how the module is built ("edits never touch frontmatter", "no file outside the project root is ever written").
+- **Decisions** — constraints the user deliberately chose, recorded with the reason. A decision may name a technology ("local-first storage using SQLite — no server dependency"): that is a **constraint the user owns**, not a description of the code. This is the *only* place implementation vocabulary belongs.
+
+### The regeneration test
+
+Specs and features must stay language-agnostic: a competent developer — in a different language, framework, or decade — should be able to rebuild the module from the spec and its features alone and get the same behavior. Before writing a sentence into a spec body, apply the **regeneration test**: *would this sentence survive translation to another language or stack?* If not, it doesn't belong — it describes the current implementation, not the module.
+
+### Implementation smells
+
+These do not belong in a spec body (or in scenarios). Each one couples the spec to today's code and will silently rot:
+
+- **File paths and symbol names** — `src/server.js`, function or class names, module file layout
+- **Library and framework names** — outside a recorded decision
+- **Tuning constants and magic numbers** — timeouts, force strengths, buffer sizes, port defaults that aren't part of the contract
+- **Size and location trivia** — line counts, "defined in", "implemented with"
+- **Language idioms** — promises, goroutines, decorators, anything that presumes the stack
+
+When editing a spec that already contains these, flag them to the user and offer to remove them — don't update them to match the code, delete them.
+
+### Prose vs. scenario
+
+If a sentence in the spec body describes behavior with an **observable outcome** ("when the results file changes, the graph updates"), it belongs in a scenario — that's the executable contract. Spec prose that restates scenarios drifts; spec prose should carry what scenarios can't: purpose, non-goals, invariants, decisions.
 
 ---
 
@@ -143,13 +174,8 @@ Each spec is a `.md` file inside the spec directory with YAML frontmatter and an
 
 A file without a `name` is silently skipped.
 
-```
-```
-
-
 ### Minimal spec
 
-```markdown
 ```markdown
 ---
 name: bootstrap
@@ -176,8 +202,6 @@ This spec covers the database abstraction layer.
 ## Decisions
 - Use SQLite for local-first storage
 - Migrations managed via versioned SQL files
-
-```
 ```
 
 

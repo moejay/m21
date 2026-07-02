@@ -1,29 +1,25 @@
 ---
 name: graph-client
-description: Browser-side D3.js interactive dependency graph — force simulation, side panel, editing
+description: Browser-side interactive dependency graph — force simulation, side panel, editing
 group: domain
-tags: [d3, graph, browser, client-side, interactive]
+tags: [graph, browser, client-side, interactive]
 depends_on: []
 features: features/graph-client/
 ---
 
 # Graph Client
 
-The client-side JavaScript application embedded inside the generated HTML. Not a separate file — it lives as string literals within `src/generator.js`. Runs entirely in the browser.
+The interactive application that runs in the browser. It renders the spec dependency graph, lets the user explore it, and — in dev mode — edit specs and features inline.
 
 ### Force simulation
 
-Uses D3.js v7 force simulation with:
-- **Charge force**: `d3.forceManyBody()` with strength -300 for node repulsion
-- **Link force**: `d3.forceLink()` connecting dependency edges with distance 150
-- **Center force**: keeps graph centered in viewport
-- **Collision force**: prevents node overlap using node radius
+The default layout is a physics simulation: nodes repel each other, dependency edges act as springs, the graph stays centered in the viewport, and colliding nodes push apart. Nodes can be dragged and settle naturally.
 
 ### Graph elements
 
-- **Nodes**: circles sized proportionally to dependent count, colored by depth via `d3.interpolateCool` color scale
-- **Links**: directed edges with arrow markers, optional feature-use labels on hover/toggle
-- **Group hulls**: convex polygon overlays (`d3.polygonHull`) around specs sharing the same `group` value, with colored fills and dashed borders
+- **Nodes**: circles sized proportionally to how many specs depend on them, colored by dependency depth on a sequential color scale
+- **Links**: directed edges with arrow markers, with optional feature-use labels
+- **Group hulls**: convex outlines drawn around specs sharing the same `group` value, with colored fills and dashed borders
 
 ### Layout modes
 
@@ -35,27 +31,31 @@ Three modes switchable via toolbar buttons:
 ### Side panel
 
 Clicking a node opens a slide-in panel with two tabs:
-- **Spec tab**: renders the spec's markdown body via `marked.js`
+- **Spec tab**: renders the spec's markdown body
 - **Features tab**: lists all associated `.feature` files with collapsible scenarios showing Given/When/Then steps
 
 ### Test status
 
-When specs carry merged test results (`testStatus`, `testCounts`, and per-scenario `status` from results-parser), the client surfaces them:
-- **Node ring**: a `statusColor()` helper maps a status to a colour (green passed, red failed, amber for pending/skipped/undefined/ambiguous). Nodes with a `testStatus` get a thicker stroke in that colour; nodes with no data keep their depth-based stroke.
-- **Node count**: a `countLabel()` helper renders a `passed/total` count (e.g. `15/19`) centred inside the circle when the spec carries `testCounts`.
+When specs carry merged test results (rolled-up status, counts, and per-scenario status from results-parser), the client surfaces them:
+- **Node ring**: each status maps to a colour (green passed, red failed, amber for pending/skipped/undefined/ambiguous). Nodes with a test status get a thicker ring in that colour; nodes with no data keep their depth-based ring.
+- **Node count**: a `passed/total` count (e.g. `15/19`) is rendered inside the circle when the spec carries counts.
 - **Side panel**: each scenario shows a status pill (✓/✗/–), each feature file shows a `passed / total` summary, and the spec header shows an overall pass count.
 - **Legend**: when any spec has test data, a small legend maps the colours to passed / failed / other / no data.
 
 ### Inline editing (dev mode only)
 
 When live reload is active, the side panel includes edit buttons:
-- **Spec body editing**: textarea replacing the rendered markdown, saved via `PUT /api/specs/:name/body`
-- **Feature file editing**: textarea for raw `.feature` content, saved via `PUT /api/features/:specName/:filename`
+- **Spec body editing**: a plain-text editor replacing the rendered markdown, saved through the server's spec-body endpoint
+- **Feature file editing**: a plain-text editor for raw `.feature` content, saved through the server's feature endpoint
+
+### Live updates
+
+In dev mode the client subscribes to the server's event stream. When new spec data arrives, the graph is rebuilt in place — current node positions are preserved so the layout doesn't jump. If the connection drops, the client reconnects after a short delay.
 
 ### Zoom and pan
 
-D3 zoom behavior attached to the SVG — scroll to zoom, click-drag on background to pan. Node drag is handled separately and doesn't trigger panning.
+Scroll to zoom, click-drag on the background to pan. Node drag is handled separately and doesn't trigger panning.
 
 ### Depth calculation
 
-Recursive memoized function computes each spec's depth in the dependency DAG. Depth 0 = no dependencies (root). Used for both node coloring and tree layout positioning.
+Each spec's depth in the dependency graph is computed (memoized, cycle-tolerant): depth 0 means no dependencies. Depth drives both node coloring and tree-layout row placement.
