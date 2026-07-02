@@ -40,3 +40,8 @@ Feature: file-change-detection
     Given a new .md file is added to the spec directory
     When the re-parse completes
     Then the spec name → file path map is rebuilt to include the new file
+
+  Scenario: Watch a feature directory referenced after startup
+    Given a spec gains a features directory that did not exist when watching began
+    When a .feature file changes in that newly referenced directory
+    Then a re-parse is triggered

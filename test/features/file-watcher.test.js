@@ -328,4 +328,69 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
       },
     );
   });
+
+  Scenario(
+    "Watch a feature directory referenced after startup",
+    ({ Given, When, Then }) => {
+      let sse;
+      let specDir;
+      let baseline;
+      Given(
+        "a spec gains a features directory that did not exist when watching began",
+        async () => {
+          // Use the real modspec layout — spec/ and features/ as siblings —
+          // so the spec dir's recursive watch does not already cover the new
+          // feature directory.
+          tmpRoot = await mkdtemp(join(tmpdir(), "modspec-watch-late-"));
+          specDir = join(tmpRoot, "spec");
+          await mkdir(join(tmpRoot, "features", "demo"), { recursive: true });
+          await mkdir(specDir, { recursive: true });
+          await writeFile(
+            join(specDir, "demo.md"),
+            "---\nname: Demo\nfeatures: features/demo/\n---\n\n# Demo\n",
+            "utf-8",
+          );
+          await writeFile(
+            join(tmpRoot, "features", "demo", "a.feature"),
+            "Feature: a\n\n  Scenario: s\n    Given x\n",
+            "utf-8",
+          );
+          server = await createModspecServer({
+            specDir,
+            projectRoot: tmpRoot,
+            port: 0,
+          });
+          sse = openSse(server.port);
+          await sleep(300);
+
+          // A new spec referencing a directory that isn't watched yet.
+          await mkdir(join(tmpRoot, "features", "extra"), { recursive: true });
+          await writeFile(
+            join(specDir, "extra.md"),
+            "---\nname: Extra\nfeatures: features/extra/\n---\n\n# Extra\n",
+            "utf-8",
+          );
+          // Let the spec-dir change re-parse and register the new dir.
+          await sleep(700);
+          baseline = sse.events.length;
+          expect(baseline).toBeGreaterThan(0);
+        },
+      );
+      When(
+        "a .feature file changes in that newly referenced directory",
+        async () => {
+          await writeFile(
+            join(tmpRoot, "features", "extra", "new.feature"),
+            "Feature: extra-feature\n\n  Scenario: s\n    Given x\n",
+            "utf-8",
+          );
+          await sleep(700);
+        },
+      );
+      Then("a re-parse is triggered", async () => {
+        expect(sse.events.length).toBeGreaterThan(baseline);
+        await sse.stop();
+      });
+    },
+  );
 });

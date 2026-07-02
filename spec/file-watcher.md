@@ -16,6 +16,7 @@ Monitors the spec directory and all referenced feature directories for file chan
 ### Watch configuration
 
 - **Paths watched**: the spec directory, every feature directory referenced by parsed specs (resolved relative to the project root), and the resolved test-results file when one is available
+- **Newly referenced directories are picked up**: when a re-parse reveals a feature directory that isn't yet being watched (a spec added a `features:` path, or a new spec was created), that directory is added to the watch set without a restart
 - **Events**: file additions, changes, and removals for `.md` files, `.feature` files, and the watched results file
 - **Existing files are ignored on startup** — only changes after the watcher is ready trigger events
 

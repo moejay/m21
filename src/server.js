@@ -59,6 +59,22 @@ export async function createModspecServer({ specDir, port = 3333, host = null, p
     }
   }
 
+  // Feature directories currently on the watcher, by resolved path. Kept in
+  // sync as specs gain or drop `features:` paths so directories referenced
+  // after startup start being watched without a restart.
+  const watchedFeatureDirs = new Set();
+
+  function syncFeatureWatches(list) {
+    for (const spec of list) {
+      if (!spec.features) continue;
+      const dir = resolve(join(projectRoot, spec.features));
+      if (!watchedFeatureDirs.has(dir)) {
+        watchedFeatureDirs.add(dir);
+        watcher.add(dir);
+      }
+    }
+  }
+
   async function handleFileChange() {
     try {
       const newSpecs = await applyResults(
@@ -70,6 +86,10 @@ export async function createModspecServer({ specDir, port = 3333, host = null, p
       const newMap = await buildSpecFileMap(specDir);
       Object.keys(specFilePaths).forEach((k) => delete specFilePaths[k]);
       Object.assign(specFilePaths, newMap);
+
+      // Watch any feature directory a spec now references but that wasn't
+      // being watched yet.
+      syncFeatureWatches(specs);
 
       broadcastUpdate(specs);
     } catch (err) {
@@ -86,6 +106,7 @@ export async function createModspecServer({ specDir, port = 3333, host = null, p
   const featureDirs = specs
     .filter((s) => s.features)
     .map((s) => join(projectRoot, s.features));
+  featureDirs.forEach((dir) => watchedFeatureDirs.add(resolve(dir)));
 
   // Set up file watcher for spec dir, feature dirs, and the results file
   const watchPaths = [specDir, ...featureDirs, ...(resultsFile ? [resultsFile] : [])];
