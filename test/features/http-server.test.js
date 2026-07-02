@@ -317,4 +317,42 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
       expect(result.address).toBe(`http://localhost:${result.port}`);
     });
   });
+
+  Scenario(
+    "Listen only on the local machine by default",
+    ({ Given, When, Then }) => {
+      Given("no host is specified", async () => {
+        await makeProject();
+      });
+      When("the server is started", async () => {
+        server = await createModspecServer({
+          specDir: tmpRoot,
+          projectRoot: tmpRoot,
+          port: 0,
+        });
+      });
+      Then("it accepts connections only on the loopback interface", async () => {
+        expect(server.host).toBe("127.0.0.1");
+        const res = await fetch(`http://127.0.0.1:${server.port}/api/specs`);
+        expect(res.status).toBe(200);
+      });
+    },
+  );
+
+  Scenario("Listen on an explicit host", ({ Given, When, Then }) => {
+    Given("a host option is provided", async () => {
+      await makeProject();
+    });
+    When("the server is started", async () => {
+      server = await createModspecServer({
+        specDir: tmpRoot,
+        projectRoot: tmpRoot,
+        port: 0,
+        host: "0.0.0.0",
+      });
+    });
+    Then("it binds to that host instead of the loopback interface", () => {
+      expect(server.host).toBe("0.0.0.0");
+    });
+  });
 });

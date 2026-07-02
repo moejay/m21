@@ -31,6 +31,21 @@ Feature: argument-parsing
     When arguments are parsed
     Then an error is returned: "--port requires a number"
 
+  Scenario: Parse --host flag with value
+    Given the argument array includes "--host 0.0.0.0"
+    When arguments are parsed
+    Then host is "0.0.0.0"
+
+  Scenario: Error when --host has no value
+    Given the argument array ends with "--host"
+    When arguments are parsed
+    Then an error is returned: "--host requires a host or address"
+
+  Scenario: host defaults to null when flag absent
+    Given the argument array is ["./spec/"]
+    When arguments are parsed
+    Then host defaults to null
+
   Scenario: Parse --results flag with path
     Given the argument array includes "--results out/cucumber.json"
     When arguments are parsed

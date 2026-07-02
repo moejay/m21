@@ -16,6 +16,11 @@ Feature: feature-write-back
     When the request is processed
     Then 500 is returned with the error message
 
+  Scenario: Reject a filename that escapes the features directory
+    Given a PUT request whose filename contains path separators or parent references
+    When the request is processed
+    Then 400 is returned and nothing is written to disk
+
   Scenario: Trigger re-parse via file watcher
     Given a feature file is written
     When the write completes

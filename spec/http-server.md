@@ -13,7 +13,7 @@ depends_on:
   - name: sse-broadcaster
     uses: [event-streaming]
   - name: spec-editor
-    uses: [spec-write-back, feature-write-back]
+    uses: [spec-write-back, feature-write-back, spec-creation]
   - name: results-parser
     uses: [results-discovery, results-merge]
 features: features/http-server/
@@ -43,6 +43,7 @@ Unmatched routes return 404. Responses are marked non-cacheable so the browser a
 ### Server lifecycle
 
 - Binds to the configured port (default 3333; port 0 requests a random free port, used by tests)
+- Listens only on the loopback interface unless an explicit host is configured (the `--host` flag) — the editing endpoints have no authentication, so nothing outside the local machine may reach them by default
 - Startup yields the bound port, the local address, and a close operation — closing tears down the watcher, ends all live-update connections, and stops accepting requests
 - Graceful shutdown is triggered by the orchestrator on interrupt/terminate signals
 

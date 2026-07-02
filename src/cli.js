@@ -63,6 +63,15 @@ export function parseCliArgs(args) {
     port = Number(portStr);
   }
 
+  let host = null;
+  const hostIdx = args.indexOf("--host");
+  if (hostIdx !== -1) {
+    host = args[hostIdx + 1];
+    if (!host || host.startsWith("-")) {
+      return { error: "--host requires a host or address" };
+    }
+  }
+
   let results = null;
   const resultsIdx = args.indexOf("--results");
   if (resultsIdx !== -1) {
@@ -77,6 +86,7 @@ export function parseCliArgs(args) {
     mode,
     outputPath,
     port,
+    host,
     results,
     yes,
     json,

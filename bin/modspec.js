@@ -32,6 +32,7 @@ Subcommands (read-only — for humans and coding agents):
 Options:
   --output, -o  Save the HTML file to the specified path instead of serving
   --port        Port for the dev server (default: 3333)
+  --host        Host/address to bind the dev server (default: localhost only)
   --results     Path to a Cucumber JSON test-results file to overlay on the graph
                 (auto-detected from results/, reports/, test-results/ when omitted)
   --json        Subcommands: emit machine-readable JSON
@@ -206,6 +207,7 @@ async function main() {
     const server = await createModspecServer({
       specDir: dirPath,
       port: opts.port,
+      host: opts.host,
       resultsPath: opts.results,
     });
 

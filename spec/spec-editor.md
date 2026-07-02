@@ -30,9 +30,14 @@ Persists edits made in the browser's inline editor back to the spec and feature 
 
 The name → file-path lookup is built by scanning the spec directory and reading each `.md` file's frontmatter `name`. It is rebuilt on every file change to handle added/removed specs.
 
+### Spec creation (`POST /api/specs`)
+
+Creates a new spec file in the spec directory from a name plus optional description, group, tags, dependencies, and body. Requests without a name are rejected (400); names that already exist are rejected (409).
+
 ### Invariants
 
 - **Frontmatter is never touched by a body edit** — every YAML field survives a save unchanged. The browser editor edits prose; the structure stays owned by the file.
+- **Writes never escape the project** — a spec name or feature filename containing path separators or parent references is rejected (400) before anything touches disk. Every resolved write path must stay inside the spec directory (spec files) or the spec's features directory (feature files).
 
 ### Error handling
 

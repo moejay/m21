@@ -23,3 +23,13 @@ Feature: server-lifecycle
     Given the server starts successfully
     When the promise resolves
     Then address is "http://localhost:{port}"
+
+  Scenario: Listen only on the local machine by default
+    Given no host is specified
+    When the server is started
+    Then it accepts connections only on the loopback interface
+
+  Scenario: Listen on an explicit host
+    Given a host option is provided
+    When the server is started
+    Then it binds to that host instead of the loopback interface

@@ -127,6 +127,45 @@ describeFeature(feature, ({ Scenario }) => {
     },
   );
 
+  Scenario("Parse --host flag with value", ({ Given, When, Then }) => {
+    Given('the argument array includes "--host 0.0.0.0"', () => {
+      args = ["./spec/", "--host", "0.0.0.0"];
+    });
+    When("arguments are parsed", () => {
+      result = parseCliArgs(args);
+    });
+    Then('host is "0.0.0.0"', () => {
+      expect(result.host).toBe("0.0.0.0");
+    });
+  });
+
+  Scenario("Error when --host has no value", ({ Given, When, Then }) => {
+    Given('the argument array ends with "--host"', () => {
+      args = ["./spec/", "--host"];
+    });
+    When("arguments are parsed", () => {
+      result = parseCliArgs(args);
+    });
+    Then('an error is returned: "--host requires a host or address"', () => {
+      expect(result.error).toBe("--host requires a host or address");
+    });
+  });
+
+  Scenario(
+    "host defaults to null when flag absent",
+    ({ Given, When, Then }) => {
+      Given('the argument array is ["./spec/"]', () => {
+        args = ["./spec/"];
+      });
+      When("arguments are parsed", () => {
+        result = parseCliArgs(args);
+      });
+      Then("host defaults to null", () => {
+        expect(result.host).toBeNull();
+      });
+    },
+  );
+
   Scenario("Parse -y flag for auto-confirm", ({ Given, When, Then }) => {
     Given('the argument array includes "-y"', () => {
       args = ["./spec/", "-y"];

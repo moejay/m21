@@ -305,6 +305,43 @@ describeFeature(featureWriteBack, ({ Scenario, AfterEachScenario }) => {
     });
   });
 
+  Scenario(
+    "Reject a filename that escapes the features directory",
+    ({ Given, When, Then }) => {
+      Given(
+        "a PUT request whose filename contains path separators or parent references",
+        async () => {
+          await makeProject();
+          server = await createModspecServer({
+            specDir: tmpRoot,
+            projectRoot: tmpRoot,
+            port: 0,
+          });
+        },
+      );
+      When("the request is processed", async () => {
+        // %2F survives URL routing as a non-separator, then decodes to "/".
+        res = await fetch(
+          `http://localhost:${server.port}/api/features/auth/..%2F..%2Fpwned.txt`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: "owned" }),
+          },
+        );
+      });
+      Then("400 is returned and nothing is written to disk", async () => {
+        expect(res.status).toBe(400);
+        await expect(
+          readFile(join(tmpRoot, "pwned.txt"), "utf-8"),
+        ).rejects.toThrow();
+        await expect(
+          readFile(join(tmpRoot, "..", "pwned.txt"), "utf-8"),
+        ).rejects.toThrow();
+      });
+    },
+  );
+
   Scenario("Trigger re-parse via file watcher", ({ Given, When, Then }) => {
     const events = [];
     let controller;
@@ -371,4 +408,106 @@ describeFeature(featureWriteBack, ({ Scenario, AfterEachScenario }) => {
       },
     );
   });
+});
+
+const specCreation = await loadFeature(
+  "features/spec-editor/spec-creation.feature",
+);
+
+describeFeature(specCreation, ({ Scenario, AfterEachScenario }) => {
+  let res;
+
+  AfterEachScenario(cleanup);
+
+  async function startServer() {
+    await makeProject();
+    server = await createModspecServer({
+      specDir: tmpRoot,
+      projectRoot: tmpRoot,
+      port: 0,
+    });
+  }
+
+  function postSpec(payload) {
+    return fetch(`http://localhost:${server.port}/api/specs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  Scenario("Create a spec via POST", ({ Given, When, Then, And }) => {
+    Given("a POST request to /api/specs with a name and optional fields", startServer);
+    When("the request is processed", async () => {
+      res = await postSpec({
+        name: "billing",
+        description: "Billing module",
+        group: "domain",
+        body: "# Billing\n",
+      });
+    });
+    Then(
+      "a new spec file is created in the spec directory with the given frontmatter and body",
+      async () => {
+        const content = await readFile(join(tmpRoot, "billing.md"), "utf-8");
+        const { data, content: body } = matter(content);
+        expect(data.name).toBe("billing");
+        expect(data.description).toBe("Billing module");
+        expect(data.group).toBe("domain");
+        expect(body).toContain("# Billing");
+      },
+    );
+    And("201 is returned with the new spec's name", async () => {
+      expect(res.status).toBe(201);
+      const data = await res.json();
+      expect(data.name).toBe("billing");
+    });
+  });
+
+  Scenario("Reject creation without a name", ({ Given, When, Then }) => {
+    Given("a POST request to /api/specs with no name", startServer);
+    When("the request is processed", async () => {
+      res = await postSpec({ description: "anonymous" });
+    });
+    Then("400 is returned and nothing is written to disk", async () => {
+      expect(res.status).toBe(400);
+      await expect(
+        readFile(join(tmpRoot, "undefined.md"), "utf-8"),
+      ).rejects.toThrow();
+    });
+  });
+
+  Scenario("Reject a duplicate spec name", ({ Given, When, Then }) => {
+    let originalContent;
+    Given("a POST request naming a spec that already exists", async () => {
+      await startServer();
+      originalContent = await readFile(specFile(), "utf-8");
+    });
+    When("the request is processed", async () => {
+      res = await postSpec({ name: "auth", body: "# Clobbered\n" });
+    });
+    Then("409 is returned and the existing file is untouched", async () => {
+      expect(res.status).toBe(409);
+      expect(await readFile(specFile(), "utf-8")).toBe(originalContent);
+    });
+  });
+
+  Scenario(
+    "Reject a name that escapes the spec directory",
+    ({ Given, When, Then }) => {
+      Given(
+        "a POST request whose name contains path separators or parent references",
+        startServer,
+      );
+      When("the request is processed", async () => {
+        res = await postSpec({ name: "../pwned", body: "owned" });
+      });
+      Then("400 is returned and nothing is written to disk", async () => {
+        expect(res.status).toBe(400);
+        await expect(
+          readFile(join(tmpRoot, "..", "pwned.md"), "utf-8"),
+        ).rejects.toThrow();
+      });
+    },
+  );
 });

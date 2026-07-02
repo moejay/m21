@@ -2,7 +2,7 @@ import http from "http";
 import chokidar from "chokidar";
 import { readFile, writeFile } from "fs/promises";
 import { existsSync } from "fs";
-import { join, dirname, resolve } from "path";
+import { join, dirname, resolve, relative, isAbsolute } from "path";
 import matter from "gray-matter";
 import { parseSpecDirectory } from "./parser.js";
 import { generateHTML } from "./generator.js";
@@ -17,9 +17,14 @@ import { resolveResultsPath, parseResultsFile, mergeResults } from "./results.js
  * @param {string} [options.resultsPath] - Explicit path to a Cucumber JSON results file
  * @returns {Promise<{port: number, address: string, close: () => Promise<void>}>}
  */
-export async function createModspecServer({ specDir, port = 3333, projectRoot: explicitRoot, resultsPath = null } = {}) {
+export async function createModspecServer({ specDir, port = 3333, host = null, projectRoot: explicitRoot, resultsPath = null } = {}) {
   // Project root is explicit or parent of the spec directory
   const projectRoot = explicitRoot || dirname(resolve(specDir));
+
+  // Bind loopback-only unless a host is explicitly requested — the editing
+  // endpoints have no auth, so the server must not be reachable off-machine
+  // by default.
+  const bindHost = host || "127.0.0.1";
 
   // Resolve the results file once for watching (explicit path or auto-detected)
   const resultsFile = resolveResultsPath(projectRoot, resultsPath);
@@ -102,6 +107,15 @@ export async function createModspecServer({ specDir, port = 3333, projectRoot: e
   watcher.on("add", onFileEvent);
   watcher.on("change", onFileEvent);
   watcher.on("unlink", onFileEvent);
+
+  /**
+   * True when `child` resolves to a path inside `parent` (or equal to it).
+   * Used to reject writes that escape the directory they belong in.
+   */
+  function isInside(parent, child) {
+    const rel = relative(resolve(parent), resolve(child));
+    return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel);
+  }
 
   /**
    * Read the request body as a string.
@@ -200,7 +214,16 @@ export async function createModspecServer({ specDir, port = 3333, projectRoot: e
         return;
       }
 
-      const featurePath = join(projectRoot, spec.features, filename);
+      const featuresDir = join(projectRoot, spec.features);
+      const featurePath = join(featuresDir, filename);
+
+      // Reject any filename that escapes the spec's features directory
+      // (e.g. an encoded "../" that survives the route regex as %2F).
+      if (!isInside(featuresDir, featurePath)) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Invalid feature filename" }));
+        return;
+      }
 
       try {
         const rawBody = await readBody(req);
@@ -230,6 +253,15 @@ export async function createModspecServer({ specDir, port = 3333, projectRoot: e
           return;
         }
 
+        // Reject names that would escape the spec directory or contain
+        // path separators — the name becomes a filename on disk.
+        const candidatePath = join(specDir, `${name}.md`);
+        if (/[/\\]/.test(name) || !isInside(specDir, candidatePath)) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Invalid spec name" }));
+          return;
+        }
+
         if (specFilePaths[name]) {
           res.writeHead(409, { "Content-Type": "application/json" });
           res.end(
@@ -246,8 +278,7 @@ export async function createModspecServer({ specDir, port = 3333, projectRoot: e
           frontmatterData.depends_on = depends_on;
 
         const fileContent = matter.stringify(body || "", frontmatterData);
-        const filePath = join(specDir, `${name}.md`);
-        await writeFile(filePath, fileContent, "utf-8");
+        await writeFile(candidatePath, fileContent, "utf-8");
 
         res.writeHead(201, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ ok: true, name }));
@@ -265,10 +296,11 @@ export async function createModspecServer({ specDir, port = 3333, projectRoot: e
   await watcherReady;
 
   return new Promise((resolve, reject) => {
-    server.listen(port, () => {
+    server.listen(port, bindHost, () => {
       const addr = server.address();
       resolve({
         port: addr.port,
+        host: bindHost,
         address: `http://localhost:${addr.port}`,
         close: async () => {
           if (debounceTimer) clearTimeout(debounceTimer);
