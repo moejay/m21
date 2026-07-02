@@ -117,16 +117,67 @@ export async function createModspecServer({ specDir, port = 3333, host = null, p
     return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel);
   }
 
+  // Cap request bodies so a client can't stream unbounded data into memory.
+  const MAX_BODY_BYTES = 1024 * 1024;
+
   /**
-   * Read the request body as a string.
+   * Read the request body as a string, rejecting once it exceeds
+   * MAX_BODY_BYTES. The rejection carries statusCode 413 so the caller can
+   * distinguish "too large" from a genuine server error.
    */
   function readBody(req) {
     return new Promise((resolve, reject) => {
       const chunks = [];
-      req.on("data", (chunk) => chunks.push(chunk));
-      req.on("end", () => resolve(Buffer.concat(chunks).toString()));
+      let size = 0;
+      let exceeded = false;
+      req.on("data", (chunk) => {
+        size += chunk.length;
+        if (size > MAX_BODY_BYTES) {
+          // Stop buffering to bound memory, but keep draining the socket so
+          // the 413 response can be delivered cleanly instead of resetting.
+          exceeded = true;
+          chunks.length = 0;
+          return;
+        }
+        chunks.push(chunk);
+      });
+      req.on("end", () => {
+        if (exceeded) {
+          const err = new Error("Request body too large");
+          err.statusCode = 413;
+          reject(err);
+          return;
+        }
+        resolve(Buffer.concat(chunks).toString());
+      });
       req.on("error", reject);
     });
+  }
+
+  /**
+   * Read and JSON-parse a request body. Throws with statusCode 413 when the
+   * body is too large and 400 when it is present but not valid JSON, so
+   * handlers can map both to the right client-error response.
+   */
+  async function readJsonBody(req) {
+    const raw = await readBody(req);
+    try {
+      return JSON.parse(raw);
+    } catch {
+      const err = new Error("Request body is not valid JSON");
+      err.statusCode = 400;
+      throw err;
+    }
+  }
+
+  /**
+   * Send an error response, using the error's statusCode when it carries one
+   * (413 too large, 400 malformed) and 500 otherwise.
+   */
+  function sendError(res, err) {
+    const status = err.statusCode || 500;
+    res.writeHead(status, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: err.message }));
   }
 
   const server = http.createServer(async (req, res) => {
@@ -180,8 +231,7 @@ export async function createModspecServer({ specDir, port = 3333, host = null, p
       }
 
       try {
-        const rawBody = await readBody(req);
-        const { body: newBody } = JSON.parse(rawBody);
+        const { body: newBody } = await readJsonBody(req);
 
         const fileContent = await readFile(filePath, "utf-8");
         const { data } = matter(fileContent);
@@ -193,8 +243,7 @@ export async function createModspecServer({ specDir, port = 3333, host = null, p
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ ok: true }));
       } catch (err) {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: err.message }));
+        sendError(res, err);
       }
       return;
     }
@@ -226,16 +275,14 @@ export async function createModspecServer({ specDir, port = 3333, host = null, p
       }
 
       try {
-        const rawBody = await readBody(req);
-        const { content } = JSON.parse(rawBody);
+        const { content } = await readJsonBody(req);
 
         await writeFile(featurePath, content, "utf-8");
 
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ ok: true }));
       } catch (err) {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: err.message }));
+        sendError(res, err);
       }
       return;
     }
@@ -243,9 +290,8 @@ export async function createModspecServer({ specDir, port = 3333, host = null, p
     // POST /api/specs - create a new spec file
     if (url.pathname === "/api/specs" && req.method === "POST") {
       try {
-        const rawBody = await readBody(req);
         const { name, description, group, tags, depends_on, body } =
-          JSON.parse(rawBody);
+          await readJsonBody(req);
 
         if (!name) {
           res.writeHead(400, { "Content-Type": "application/json" });

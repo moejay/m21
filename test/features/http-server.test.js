@@ -181,6 +181,55 @@ describeFeature(routing, ({ Scenario, AfterEachScenario }) => {
       expect(body).toBe("Not found");
     });
   });
+
+  Scenario(
+    "Reject a malformed JSON body with 400",
+    ({ Given, When, Then }) => {
+      Given("the server is running", async () => {
+        const root = await makeProject();
+        server = await createModspecServer({
+          specDir: root,
+          projectRoot: root,
+          port: 0,
+        });
+      });
+      When("a PUT request carries a body that is not valid JSON", async () => {
+        res = await fetch(
+          `http://localhost:${server.port}/api/specs/Demo/body`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: "{ not valid json",
+          },
+        );
+      });
+      Then("400 is returned and nothing is written to disk", async () => {
+        expect(res.status).toBe(400);
+      });
+    },
+  );
+
+  Scenario("Reject an oversized request body", ({ Given, When, Then }) => {
+    Given("the server is running", async () => {
+      const root = await makeProject();
+      server = await createModspecServer({
+        specDir: root,
+        projectRoot: root,
+        port: 0,
+      });
+    });
+    When("a write request body exceeds the size limit", async () => {
+      const huge = JSON.stringify({ body: "x".repeat(2 * 1024 * 1024) });
+      res = await fetch(`http://localhost:${server.port}/api/specs/Demo/body`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: huge,
+      });
+    });
+    Then("413 is returned and the body is not processed", async () => {
+      expect(res.status).toBe(413);
+    });
+  });
 });
 
 const lifecycle = await loadFeature(

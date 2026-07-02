@@ -40,6 +40,10 @@ When a results file is available — given explicitly (the `--results` flag) or 
 
 Unmatched routes return 404. Responses are marked non-cacheable so the browser always sees current data.
 
+### Request body handling
+
+Write endpoints read a JSON request body. The body is size-limited: a request exceeding the limit is rejected (413) without being buffered further. A body that is present but not valid JSON is a client error (400), distinct from a genuine server-side failure (500). No write to disk happens until the body has been validated.
+
 ### Server lifecycle
 
 - Binds to the configured port (default 3333; port 0 requests a random free port, used by tests)

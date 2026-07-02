@@ -25,3 +25,13 @@ Feature: request-routing
     Given the server is running
     When a GET request hits an unrecognized path
     Then 404 Not found is returned as text/plain
+
+  Scenario: Reject a malformed JSON body with 400
+    Given the server is running
+    When a PUT request carries a body that is not valid JSON
+    Then 400 is returned and nothing is written to disk
+
+  Scenario: Reject an oversized request body
+    Given the server is running
+    When a write request body exceeds the size limit
+    Then 413 is returned and the body is not processed
