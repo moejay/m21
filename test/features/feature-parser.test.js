@@ -43,7 +43,7 @@ describeFeature(fileParsing, ({ Scenario }) => {
       );
       options = {};
     });
-    When("parseFeatureFile is called", async () => {
+    When("the feature file is parsed", async () => {
       result = await parseFeatureFile(filePath, options);
     });
     Then('name is "user-login"', () => {
@@ -60,7 +60,7 @@ describeFeature(fileParsing, ({ Scenario }) => {
         options = {};
       },
     );
-    When("parseFeatureFile is called", async () => {
+    When("the feature file is parsed", async () => {
       result = await parseFeatureFile(filePath, options);
     });
     Then(
@@ -103,7 +103,7 @@ describeFeature(fileParsing, ({ Scenario }) => {
         options = {};
       },
     );
-    When("parseFeatureFile is called", async () => {
+    When("the feature file is parsed", async () => {
       result = await parseFeatureFile(filePath, options);
     });
     Then(
@@ -122,7 +122,7 @@ describeFeature(fileParsing, ({ Scenario }) => {
       filePath = join(bootstrapDir, "scaffolding.feature");
       options = {};
     });
-    When("parseFeatureFile is called", async () => {
+    When("the feature file is parsed", async () => {
       result = await parseFeatureFile(filePath, options);
     });
     Then("the content field contains the full file text unchanged", () => {
@@ -136,7 +136,7 @@ describeFeature(fileParsing, ({ Scenario }) => {
       filePath = join(bootstrapDir, "scaffolding.feature");
       options = { basePath: fixturesDir };
     });
-    When("parseFeatureFile is called", async () => {
+    When("the feature file is parsed", async () => {
       result = await parseFeatureFile(filePath, options);
     });
     Then("path is the file's location relative to basePath", () => {
@@ -157,7 +157,7 @@ describeFeature(fileParsing, ({ Scenario }) => {
       );
       options = {};
     });
-    When("parseFeatureFile is called", async () => {
+    When("the feature file is parsed", async () => {
       result = await parseFeatureFile(filePath, options);
     });
     Then('filename is "login.feature"', () => {
@@ -189,7 +189,7 @@ describeFeature(directoryParsing, ({ Scenario }) => {
       writeFeature(dirPath, "two.feature", "two");
       writeFeature(dirPath, "three.feature", "three");
     });
-    When("parseFeatureDirectory is called", async () => {
+    When("the feature directory is parsed", async () => {
       result = await parseFeatureDirectory(dirPath);
     });
     Then("an array of three parsed feature objects is returned", () => {
@@ -206,7 +206,7 @@ describeFeature(directoryParsing, ({ Scenario }) => {
       Given("a path to a directory that does not exist", () => {
         dirPath = join(makeTmpDir(), "does-not-exist");
       });
-      When("parseFeatureDirectory is called", async () => {
+      When("the feature directory is parsed", async () => {
         result = await parseFeatureDirectory(dirPath);
       });
       Then("an empty array is returned without throwing", () => {
@@ -222,7 +222,7 @@ describeFeature(directoryParsing, ({ Scenario }) => {
       writeFileSync(join(dirPath, "notes.md"), "# notes\n", "utf-8");
       writeFileSync(join(dirPath, "data.txt"), "text\n", "utf-8");
     });
-    When("parseFeatureDirectory is called", async () => {
+    When("the feature directory is parsed", async () => {
       result = await parseFeatureDirectory(dirPath);
     });
     Then("only .feature files are parsed", () => {
@@ -240,12 +240,12 @@ describeFeature(directoryParsing, ({ Scenario }) => {
       writeFeature(dirPath, "c.feature", "c");
       writeFeature(dirPath, "d.feature", "d");
     });
-    When("parseFeatureDirectory is called", async () => {
+    When("the feature directory is parsed", async () => {
       // parseFeatureDirectory returns a Promise.all over the files; awaiting
       // resolves all of them concurrently.
       result = await parseFeatureDirectory(dirPath);
     });
-    Then("all files are parsed concurrently via Promise.all", () => {
+    Then("all feature files are parsed without waiting on one another", () => {
       expect(result).toHaveLength(4);
       const names = result.map((f) => f.name).sort();
       expect(names).toEqual(["a", "b", "c", "d"]);

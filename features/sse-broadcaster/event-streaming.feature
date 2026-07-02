@@ -15,12 +15,12 @@ Feature: event-streaming
 
   Scenario: Broadcast update to all clients
     Given three browsers are connected via SSE
-    When broadcastUpdate is called with new specs
+    When an update is broadcast with new specs
     Then all three receive a data: frame with the serialized specs JSON
 
   Scenario: Handle broken client gracefully
     Given a client connection has broken
-    When broadcastUpdate writes to it and fails
+    When a broadcast write to it fails
     Then the client is silently removed from the set
 
   Scenario: Close all clients on shutdown

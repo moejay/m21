@@ -239,7 +239,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
 
   Scenario("Ignore existing files on startup", ({ Given, When, Then }) => {
     let sse;
-    Given("the watcher starts with ignoreInitial: true", async () => {
+    Given("the watcher ignores files that already exist at startup", async () => {
       await makeProject();
       server = await createModspecServer({
         specDir: tmpRoot,
@@ -280,7 +280,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
           "utf-8",
         );
       });
-      Then("usePolling is true with a 100ms interval", async () => {
+      Then("changes are detected by polling at a 100ms interval", async () => {
         // Observable consequence of polling: the change is detected and
         // broadcast within a couple of polling intervals.
         await sleep(700);

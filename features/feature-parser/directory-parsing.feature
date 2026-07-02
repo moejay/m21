@@ -3,20 +3,20 @@ Feature: directory-parsing
 
   Scenario: Parse all features in a directory
     Given a directory with three .feature files
-    When parseFeatureDirectory is called
+    When the feature directory is parsed
     Then an array of three parsed feature objects is returned
 
   Scenario: Return empty array for nonexistent directory
     Given a path to a directory that does not exist
-    When parseFeatureDirectory is called
+    When the feature directory is parsed
     Then an empty array is returned without throwing
 
   Scenario: Skip non-feature files
     Given a directory with .md, .txt, and .feature files
-    When parseFeatureDirectory is called
+    When the feature directory is parsed
     Then only .feature files are parsed
 
   Scenario: Parallel parsing
     Given a directory with multiple .feature files
-    When parseFeatureDirectory is called
-    Then all files are parsed concurrently via Promise.all
+    When the feature directory is parsed
+    Then all feature files are parsed without waiting on one another

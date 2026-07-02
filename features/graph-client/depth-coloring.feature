@@ -14,7 +14,7 @@ Feature: depth-coloring
   Scenario: Color scale maps depth to color
     Given depth values from 0 to maxDepth
     When nodes are colored
-    Then d3.interpolateCool maps depth to a color gradient
+    Then a sequential color scale maps depth to a color gradient
 
   Scenario: Memoized calculation
     Given a spec's depth has already been computed

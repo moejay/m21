@@ -177,7 +177,7 @@ describeFeature(forceSim, ({ Scenario }) => {
     When("the graph initializes", () => {
       renderApp(ctx);
     });
-    Then("a D3 force simulation is created with charge, link, center, and collision forces", async () => {
+    Then("a force simulation is created with charge, link, center, and collision forces", async () => {
       await settle();
       // The simulation rendered nodes and links as SVG; a tick gives each node a
       // numeric position via the configured forces.
@@ -302,7 +302,7 @@ describeFeature(sidePanel, ({ Scenario }) => {
       window.switchTab("spec");
       expect(document.getElementById("panel-spec-tab").style.display).toBe("block");
     });
-    Then("the body is rendered as HTML via marked.js", () => {
+    Then("the body is rendered as HTML", () => {
       // marked.js renders the markdown body into #panel-body; when the marked CDN
       // is unavailable the app falls back to escaped HTML — either way the body
       // text is rendered into the panel as HTML.
@@ -382,7 +382,7 @@ describeFeature(layoutModes, ({ Scenario }) => {
     When("the graph renders", async () => {
       await settle();
     });
-    Then("nodes are positioned by D3 force simulation and can be dragged", () => {
+    Then("nodes are positioned by the force simulation and can be dragged", () => {
       // Force is the default active layout, nodes have numeric positions, and the
       // d3 drag handlers update fx/fy in force mode.
       expect(document.getElementById("layout-force").classList.contains("active")).toBe(true);
@@ -599,7 +599,7 @@ describeFeature(depthColoring, ({ Scenario }) => {
       renderApp();
     });
     When("nodes are colored", () => {});
-    Then("d3.interpolateCool maps depth to a color gradient", () => {
+    Then("a sequential color scale maps depth to a color gradient", () => {
       // Node fills follow d3.scaleSequential(d3.interpolateCool); reconstruct the
       // scale and confirm root + a deeper node match their expected gradient stops.
       const scale = d3.scaleSequential(d3.interpolateCool).domain([0, 3]);

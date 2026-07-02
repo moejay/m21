@@ -202,7 +202,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
       ];
       await sleep(400);
     });
-    When("broadcastUpdate is called with new specs", async () => {
+    When("an update is broadcast with new specs", async () => {
       // Trigger a real broadcast by changing a watched file.
       await writeFile(
         join(tmpRoot, "demo.md"),
@@ -244,7 +244,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
       await broken.stop();
       await sleep(100);
     });
-    When("broadcastUpdate writes to it and fails", async () => {
+    When("a broadcast write to it fails", async () => {
       await writeFile(
         join(tmpRoot, "demo.md"),
         "---\nname: Demo\ndescription: after-break\nfeatures: features/demo/\n---\n\n# AfterBreak\n",

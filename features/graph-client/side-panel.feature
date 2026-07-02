@@ -9,7 +9,7 @@ Feature: side-panel
   Scenario: Show spec body as rendered markdown
     Given the panel is open for a spec with a markdown body
     When the Spec tab is active
-    Then the body is rendered as HTML via marked.js
+    Then the body is rendered as HTML
 
   Scenario: Show feature files with collapsible scenarios
     Given the spec has associated .feature files

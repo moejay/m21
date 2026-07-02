@@ -4,7 +4,7 @@ Feature: layout-modes
   Scenario: Force layout (default)
     Given no layout mode is selected
     When the graph renders
-    Then nodes are positioned by D3 force simulation and can be dragged
+    Then nodes are positioned by the force simulation and can be dragged
 
   Scenario: Tree layout
     Given the user switches to tree layout

@@ -27,14 +27,14 @@ Feature: file-change-detection
     Then only one re-parse and broadcast occurs
 
   Scenario: Ignore existing files on startup
-    Given the watcher starts with ignoreInitial: true
+    Given the watcher ignores files that already exist at startup
     When existing files are discovered
     Then no file events are emitted
 
   Scenario: Polling mode for cross-filesystem compatibility
     Given the watcher is configured
     When watching begins
-    Then usePolling is true with a 100ms interval
+    Then changes are detected by polling at a 100ms interval
 
   Scenario: Rebuild spec file map on change
     Given a new .md file is added to the spec directory

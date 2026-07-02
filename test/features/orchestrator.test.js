@@ -146,7 +146,7 @@ describeFeature(modeRouting, ({ Scenario }) => {
       });
     });
     Then(
-      "createModspecServer is called with specDir, port, and the results path",
+      "the dev server is started with the spec directory, port, and results path",
       () => {
         // Observable proof the server started: it printed the serving banner
         // for this spec dir on the chosen port.
@@ -172,7 +172,7 @@ describeFeature(modeRouting, ({ Scenario }) => {
       result = await run([specDir, "--output", outputPath]);
     });
     Then(
-      'test results are merged onto specs and generateHTML is called and HTML is written to "graph.html"',
+      'test results are merged onto specs and the generated HTML is written to "graph.html"',
       () => {
         expect(result.code).toBe(0);
         expect(existsSync(outputPath)).toBe(true);
@@ -283,7 +283,7 @@ describeFeature(modeRouting, ({ Scenario }) => {
       When("the orchestrator routes", async () => {
         result = await run(["list", specDir]);
       });
-      Then("createModspecServer is not called", () => {
+      Then("the dev server is not started", () => {
         expect(result.stdout).not.toContain("serving at");
         expect(result.code).toBe(0);
       });

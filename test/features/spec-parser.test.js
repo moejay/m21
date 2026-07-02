@@ -60,7 +60,7 @@ describeFeature(specFileParsing, ({ Scenario }) => {
         );
       },
     );
-    When("parseSpecFile is called", async () => {
+    When("the spec file is parsed", async () => {
       result = await parseSpecFile(filePath);
     });
     Then(
@@ -83,7 +83,7 @@ describeFeature(specFileParsing, ({ Scenario }) => {
     Given("a .md file with only name in frontmatter", () => {
       filePath = join(fixturesDir, "minimal-spec.md");
     });
-    When("parseSpecFile is called", async () => {
+    When("the spec file is parsed", async () => {
       result = await parseSpecFile(filePath);
     });
     Then(
@@ -102,7 +102,7 @@ describeFeature(specFileParsing, ({ Scenario }) => {
     Given("a .md file with frontmatter but no name field", () => {
       filePath = join(fixturesDir, "partial-frontmatter.md");
     });
-    When("parseSpecFile is called", async () => {
+    When("the spec file is parsed", async () => {
       result = await parseSpecFile(filePath);
     });
     Then("null is returned", () => {
@@ -121,7 +121,7 @@ describeFeature(specFileParsing, ({ Scenario }) => {
         ),
       );
     });
-    When("parseSpecFile is called", async () => {
+    When("the spec file is parsed", async () => {
       result = await parseSpecFile(filePath);
     });
     Then('the entry is normalized to { name: "config", uses: [] }', () => {
@@ -151,7 +151,7 @@ describeFeature(specFileParsing, ({ Scenario }) => {
         );
       },
     );
-    When("parseSpecFile is called", async () => {
+    When("the spec file is parsed", async () => {
       result = await parseSpecFile(filePath);
     });
     Then(
@@ -183,7 +183,7 @@ describeFeature(specFileParsing, ({ Scenario }) => {
         ].join("\n"),
       );
     });
-    When("parseSpecFile is called", async () => {
+    When("the spec file is parsed", async () => {
       result = await parseSpecFile(filePath);
     });
     Then("the invalid entry is filtered out", () => {
@@ -226,7 +226,7 @@ describeFeature(directoryParsing, ({ Scenario }) => {
         );
       },
     );
-    When("parseSpecDirectory is called", async () => {
+    When("the spec directory is parsed", async () => {
       result = await parseSpecDirectory(dirPath, options);
     });
     Then("two spec objects are returned", () => {
@@ -274,7 +274,7 @@ describeFeature(directoryParsing, ({ Scenario }) => {
           options = { projectRoot: dirPath };
         },
       );
-      When("parseSpecDirectory is called", async () => {
+      When("the spec directory is parsed", async () => {
         result = await parseSpecDirectory(dirPath, options);
       });
       Then(
@@ -299,7 +299,7 @@ describeFeature(directoryParsing, ({ Scenario }) => {
       );
       options = { projectRoot: dirPath };
     });
-    When("parseSpecDirectory is called", async () => {
+    When("the spec directory is parsed", async () => {
       result = await parseSpecDirectory(dirPath, options);
     });
     Then("featureFiles is an empty array", () => {
@@ -315,7 +315,7 @@ describeFeature(directoryParsing, ({ Scenario }) => {
       writeFileSync(join(dirPath, "readme.txt"), "text\n", "utf-8");
       writeFileSync(join(dirPath, "data.json"), "{}\n", "utf-8");
     });
-    When("parseSpecDirectory is called", async () => {
+    When("the spec directory is parsed", async () => {
       result = await parseSpecDirectory(dirPath, options);
     });
     Then("an empty array is returned", () => {

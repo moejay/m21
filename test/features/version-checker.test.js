@@ -53,7 +53,7 @@ describeFeature(feature, ({ Scenario }) => {
         logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       },
     );
-    When("checkForUpdate completes", async () => {
+    When("the update check completes", async () => {
       await checkForUpdate();
     });
     Then('a message is logged: "Update available: 0.2.1 → 0.3.0"', () => {
@@ -75,7 +75,7 @@ describeFeature(feature, ({ Scenario }) => {
       );
       logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     });
-    When("checkForUpdate completes", async () => {
+    When("the update check completes", async () => {
       await checkForUpdate();
     });
     Then("nothing is logged", () => {
@@ -95,7 +95,7 @@ describeFeature(feature, ({ Scenario }) => {
       logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     });
     let error = null;
-    When("checkForUpdate runs", async () => {
+    When("the update check runs", async () => {
       try {
         await checkForUpdate();
       } catch (e) {
@@ -133,7 +133,7 @@ describeFeature(feature, ({ Scenario }) => {
       logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     });
     let error = null;
-    When("the AbortController fires", async () => {
+    When("the timeout fires", async () => {
       vi.useFakeTimers();
       const promise = checkForUpdate();
       // let getCurrentVersion's awaited read settle so the 3s timeout registers
@@ -155,14 +155,14 @@ describeFeature(feature, ({ Scenario }) => {
   Scenario("Read current version from package.json", ({ Given, When, Then }) => {
     let version;
     Given(
-      "src/version.js resolves package.json relative to its own directory",
+      "the tool locates its own package metadata regardless of the caller's working directory",
       () => {
         // exercise the real fs read against the real package.json
         readFile.mockReset();
         readFile.mockImplementation(actualFs.readFile);
       },
     );
-    When("getCurrentVersion is called", async () => {
+    When("the current version is read", async () => {
       version = await getCurrentVersion();
     });
     Then("the version field from package.json is returned", () => {

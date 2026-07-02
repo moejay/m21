@@ -199,7 +199,7 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
       // Use a fixed but likely-free port to assert exact binding.
       chosenPort = 38333;
     });
-    When("createModspecServer is called", async () => {
+    When("the server is started", async () => {
       server = await createModspecServer({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
@@ -223,7 +223,7 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
     Given("port 0 is specified", async () => {
       await makeProject();
     });
-    When("createModspecServer is called", async () => {
+    When("the server is started", async () => {
       server = await createModspecServer({
         specDir: tmpRoot,
         projectRoot: tmpRoot,

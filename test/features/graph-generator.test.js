@@ -49,7 +49,7 @@ describeFeature(feature, ({ Scenario }) => {
       specs = sampleSpecs;
       options = undefined;
     });
-    When("generateHTML is called", () => {
+    When("the HTML document is generated", () => {
       html = generateHTML(specs, options);
     });
     Then(
@@ -71,7 +71,7 @@ describeFeature(feature, ({ Scenario }) => {
       specs = sampleSpecs;
       options = undefined;
     });
-    When("generateHTML is called", () => {
+    When("the HTML document is generated", () => {
       html = generateHTML(specs, options);
     });
     Then(
@@ -91,15 +91,15 @@ describeFeature(feature, ({ Scenario }) => {
     );
   });
 
-  Scenario("Include CDN scripts for D3 and marked", ({ Given, When, Then }) => {
-    Given("any call to generateHTML", () => {
+  Scenario("Load rendering libraries from CDN", ({ Given, When, Then }) => {
+    Given("any generated document", () => {
       specs = sampleSpecs;
       options = undefined;
     });
     When("HTML is produced", () => {
       html = generateHTML(specs, options);
     });
-    Then("script tags reference D3.js v7 and marked.js from CDN", () => {
+    Then("the rendering libraries are referenced from CDN", () => {
       expect(html).toMatch(/<script[^>]+src="https:\/\/d3js\.org\/d3\.v7[^"]*"/);
       expect(html).toMatch(/<script[^>]+src="https:\/\/cdn\.jsdelivr\.net\/npm\/marked[^"]*"/);
     });
@@ -208,7 +208,7 @@ describeFeature(feature, ({ Scenario }) => {
   });
 
   Scenario("Embed test-status rendering", ({ Given, When, Then }) => {
-    Given("any call to generateHTML", () => {
+    Given("any generated document", () => {
       specs = sampleSpecs;
       options = undefined;
     });

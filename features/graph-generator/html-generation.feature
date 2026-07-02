@@ -3,18 +3,18 @@ Feature: html-generation
 
   Scenario: Generate complete HTML document
     Given an array of parsed specs
-    When generateHTML is called
+    When the HTML document is generated
     Then the result is a valid HTML string with DOCTYPE, head, and body
 
   Scenario: Embed specs as JSON
     Given specs contain dependency and feature data
-    When generateHTML is called
+    When the HTML document is generated
     Then the spec array is serialized as a JSON literal inside a script tag
 
-  Scenario: Include CDN scripts for D3 and marked
-    Given any call to generateHTML
+  Scenario: Load rendering libraries from CDN
+    Given any generated document
     When HTML is produced
-    Then script tags reference D3.js v7 and marked.js from CDN
+    Then the rendering libraries are referenced from CDN
 
   Scenario: Inline all CSS
     Given the dark neo4j-inspired theme
@@ -42,6 +42,6 @@ Feature: html-generation
     Then only CDN scripts are fetched — no other external requests
 
   Scenario: Embed test-status rendering
-    Given any call to generateHTML
+    Given any generated document
     When HTML is produced
     Then a statusColor function and status-pill styles are embedded for visualizing test results

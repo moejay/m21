@@ -3,12 +3,12 @@ Feature: server-lifecycle
 
   Scenario: Start server on configured port
     Given port 3333 is specified
-    When createModspecServer is called
+    When the server is started
     Then the server binds to port 3333 and returns { port, address, close }
 
   Scenario: Start server on random port
     Given port 0 is specified
-    When createModspecServer is called
+    When the server is started
     Then the server binds to a random available port
 
   Scenario: Close server cleanly

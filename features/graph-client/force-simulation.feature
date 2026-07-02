@@ -1,10 +1,10 @@
 Feature: force-simulation
-  D3.js force-directed layout for positioning spec nodes.
+  Force-directed physics layout for positioning spec nodes.
 
   Scenario: Initialize force simulation
     Given specs have been parsed into nodes and links
     When the graph initializes
-    Then a D3 force simulation is created with charge, link, center, and collision forces
+    Then a force simulation is created with charge, link, center, and collision forces
 
   Scenario: Node repulsion via charge force
     Given multiple nodes in the simulation

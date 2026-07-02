@@ -42,7 +42,7 @@ describeFeature(parsing, ({ Scenario }) => {
     Given('a scenario whose steps all have status "passed"', () => {
       input = steps(["passed", "passed", "passed"]);
     });
-    When("deriveScenarioStatus is called", () => {
+    When("the scenario status is derived", () => {
       result = deriveScenarioStatus(input);
     });
     Then('the derived status is "passed"', () => {
@@ -54,7 +54,7 @@ describeFeature(parsing, ({ Scenario }) => {
     Given('a scenario with steps having statuses ["passed", "failed", "passed"]', () => {
       input = steps(["passed", "failed", "passed"]);
     });
-    When("deriveScenarioStatus is called", () => {
+    When("the scenario status is derived", () => {
       result = deriveScenarioStatus(input);
     });
     Then('the derived status is "failed"', () => {
@@ -66,7 +66,7 @@ describeFeature(parsing, ({ Scenario }) => {
     Given('a scenario with steps having statuses ["passed", "skipped", "pending"]', () => {
       input = steps(["passed", "skipped", "pending"]);
     });
-    When("deriveScenarioStatus is called", () => {
+    When("the scenario status is derived", () => {
       result = deriveScenarioStatus(input);
     });
     Then('the derived status is "pending"', () => {
@@ -78,7 +78,7 @@ describeFeature(parsing, ({ Scenario }) => {
     Given("a scenario with an empty steps array", () => {
       input = [];
     });
-    When("deriveScenarioStatus is called", () => {
+    When("the scenario status is derived", () => {
       result = deriveScenarioStatus(input);
     });
     Then('the derived status is "undefined"', () => {
@@ -101,7 +101,7 @@ describeFeature(parsing, ({ Scenario }) => {
         },
       ];
     });
-    When("normalizeResults is called", () => {
+    When("the report is normalized", () => {
       result = normalizeResults(input);
     });
     Then('the lookup has feature "user-login" with scenario "Successful login" set to "passed"', () => {
@@ -124,7 +124,7 @@ describeFeature(parsing, ({ Scenario }) => {
         },
       ]);
     });
-    When("normalizeResults is called", () => {
+    When("the report is normalized", () => {
       result = normalizeResults(input);
     });
     Then('the lookup has feature "user-login" with scenario "Successful login" set to "passed"', () => {
@@ -149,7 +149,7 @@ describeFeature(parsing, ({ Scenario }) => {
         ],
       };
     });
-    When("normalizeResults is called", () => {
+    When("the report is normalized", () => {
       result = normalizeResults(input);
     });
     Then('the lookup has feature "user-login" with scenario "Successful login" set to "passed"', () => {
@@ -173,7 +173,7 @@ describeFeature(parsing, ({ Scenario }) => {
         ],
       };
     });
-    When("normalizeResults is called", () => {
+    When("the report is normalized", () => {
       result = normalizeResults(input);
     });
     Then('the lookup has feature "user-login" with scenario "Bad password" set to "failed"', () => {
@@ -221,7 +221,7 @@ describeFeature(merge, ({ Scenario }) => {
     And('a results lookup marking "Successful login" as "passed"', () => {
       lookup = { "user-login": { name: "user-login", scenarios: { "Successful login": "passed" } } };
     });
-    When("mergeResults is called", () => {
+    When("results are merged onto specs", () => {
       mergeResults(specs, lookup);
     });
     Then('the scenario "Successful login" has status "passed"', () => {
@@ -236,7 +236,7 @@ describeFeature(merge, ({ Scenario }) => {
     And('a results lookup that has no entry for "Forgotten password"', () => {
       lookup = { "user-login": { name: "user-login", scenarios: {} } };
     });
-    When("mergeResults is called", () => {
+    When("results are merged onto specs", () => {
       mergeResults(specs, lookup);
     });
     Then('the scenario "Forgotten password" has status null', () => {
@@ -249,7 +249,7 @@ describeFeature(merge, ({ Scenario }) => {
       specs = [specWith("user-login", ["a", "b"])];
       lookup = { "user-login": { name: "user-login", scenarios: { a: "passed", b: "failed" } } };
     });
-    When("mergeResults is called", () => {
+    When("results are merged onto specs", () => {
       mergeResults(specs, lookup);
     });
     Then('the feature testStatus is "failed"', () => {
@@ -276,7 +276,7 @@ describeFeature(merge, ({ Scenario }) => {
         f2: { name: "f2", scenarios: { b: "failed" } },
       };
     });
-    When("mergeResults is called", () => {
+    When("results are merged onto specs", () => {
       mergeResults(specs, lookup);
     });
     Then('the spec testStatus is "failed"', () => {
@@ -289,7 +289,7 @@ describeFeature(merge, ({ Scenario }) => {
       specs = [specWith("user-login", ["a", "b"])];
       lookup = {};
     });
-    When("mergeResults is called", () => {
+    When("results are merged onto specs", () => {
       mergeResults(specs, lookup);
     });
     Then("the spec testStatus is null", () => {
@@ -315,7 +315,7 @@ describeFeature(discovery, ({ Scenario }) => {
       projectRoot = process.cwd();
       explicit = "out/my-report.json";
     });
-    When("resolveResultsPath is called", () => {
+    When("the results file is located", () => {
       result = resolveResultsPath(projectRoot, explicit);
     });
     Then("it returns that path resolved to an absolute path", () => {
@@ -331,7 +331,7 @@ describeFeature(discovery, ({ Scenario }) => {
     And("no explicit results path", () => {
       explicit = null;
     });
-    When("resolveResultsPath is called", () => {
+    When("the results file is located", () => {
       result = resolveResultsPath(projectRoot, explicit);
     });
     Then('it returns the path to "results/cucumber.json"', () => {
@@ -346,7 +346,7 @@ describeFeature(discovery, ({ Scenario }) => {
     And("no explicit results path", () => {
       explicit = null;
     });
-    When("resolveResultsPath is called", () => {
+    When("the results file is located", () => {
       result = resolveResultsPath(projectRoot, explicit);
     });
     Then('it returns the root-level "cucumber.json"', () => {
@@ -361,7 +361,7 @@ describeFeature(discovery, ({ Scenario }) => {
     And("no explicit results path", () => {
       explicit = null;
     });
-    When("resolveResultsPath is called", () => {
+    When("the results file is located", () => {
       result = resolveResultsPath(projectRoot, explicit);
     });
     Then("it returns null", () => {
