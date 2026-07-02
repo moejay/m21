@@ -11,10 +11,10 @@ Feature: html-generation
     When the HTML document is generated
     Then the spec array is serialized as a JSON literal inside a script tag
 
-  Scenario: Load rendering libraries from CDN
+  Scenario: Inline rendering libraries
     Given any generated document
     When HTML is produced
-    Then the rendering libraries are referenced from CDN
+    Then the rendering libraries are embedded inline, not referenced from a CDN
 
   Scenario: Inline all CSS
     Given the dark neo4j-inspired theme
@@ -39,7 +39,7 @@ Feature: html-generation
   Scenario: No external assets
     Given the generated HTML
     When loaded in a browser
-    Then only CDN scripts are fetched — no other external requests
+    Then no external resources are fetched — every script and style is inline
 
   Scenario: Embed test-status rendering
     Given any generated document

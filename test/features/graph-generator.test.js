@@ -91,7 +91,7 @@ describeFeature(feature, ({ Scenario }) => {
     );
   });
 
-  Scenario("Load rendering libraries from CDN", ({ Given, When, Then }) => {
+  Scenario("Inline rendering libraries", ({ Given, When, Then }) => {
     Given("any generated document", () => {
       specs = sampleSpecs;
       options = undefined;
@@ -99,10 +99,16 @@ describeFeature(feature, ({ Scenario }) => {
     When("HTML is produced", () => {
       html = generateHTML(specs, options);
     });
-    Then("the rendering libraries are referenced from CDN", () => {
-      expect(html).toMatch(/<script[^>]+src="https:\/\/d3js\.org\/d3\.v7[^"]*"/);
-      expect(html).toMatch(/<script[^>]+src="https:\/\/cdn\.jsdelivr\.net\/npm\/marked[^"]*"/);
-    });
+    Then(
+      "the rendering libraries are embedded inline, not referenced from a CDN",
+      () => {
+        // No script loaded from a URL; the bundles are embedded inline. (A
+        // library banner may mention its CDN, so match the tag, not the text.)
+        expect(html).not.toMatch(/<script[^>]+src=/);
+        expect(html).toContain('<script data-vendor="d3">');
+        expect(html).toContain('<script data-vendor="marked">');
+      },
+    );
   });
 
   Scenario("Inline all CSS", ({ Given, When, Then }) => {
@@ -194,17 +200,14 @@ describeFeature(feature, ({ Scenario }) => {
     When("loaded in a browser", () => {
       html = generateHTML(specs, options);
     });
-    Then("only CDN scripts are fetched — no other external requests", () => {
-      // No local script/style references; the only src= values are CDN https URLs.
-      expect(html).not.toMatch(/<link[^>]+href="[^"]*\.css"/);
-      expect(html).not.toMatch(/src="(?!https:\/\/)[^"]*\.js"/);
-      const srcs = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(
-        (m) => m[1],
-      );
-      for (const src of srcs) {
-        expect(src.startsWith("https://")).toBe(true);
-      }
-    });
+    Then(
+      "no external resources are fetched — every script and style is inline",
+      () => {
+        // No stylesheet links and no script src at all — everything is inline.
+        expect(html).not.toMatch(/<link[^>]+href="[^"]*\.css"/);
+        expect(html).not.toMatch(/<script[^>]+src=/);
+      },
+    );
   });
 
   Scenario("Embed test-status rendering", ({ Given, When, Then }) => {

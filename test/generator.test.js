@@ -50,10 +50,13 @@ describe("generateHTML", () => {
     expect(html).toContain('"Repos"');
   });
 
-  it("includes D3.js from CDN", () => {
+  it("inlines D3.js instead of loading from a CDN", () => {
     const html = generateHTML(sampleSpecs);
 
-    expect(html).toContain("d3js.org");
+    // No script is loaded from a URL — the bundle is embedded inline. (The
+    // library's own banner mentions d3js.org, so match the tag, not the text.)
+    expect(html).not.toMatch(/<script[^>]+src=/);
+    expect(html).toContain('<script data-vendor="d3">');
   });
 
   it("includes neo4j-style dark background styling", () => {
@@ -116,10 +119,11 @@ describe("generateHTML", () => {
     expect(html).toContain('id="panel-body"');
   });
 
-  it("includes marked.js CDN for markdown rendering", () => {
+  it("inlines marked for markdown rendering", () => {
     const html = generateHTML(sampleSpecs);
 
-    expect(html).toContain("cdn.jsdelivr.net/npm/marked");
+    expect(html).not.toContain("cdn.jsdelivr.net/npm/marked");
+    expect(html).toContain('<script data-vendor="marked">');
   });
 
   it("includes markdown styling for dark theme", () => {

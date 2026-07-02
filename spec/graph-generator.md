@@ -18,7 +18,7 @@ Produces a complete HTML document, as a single string, that renders the interact
 1. **Spec data**: all parsed specs embedded directly in the document, so it needs no data backend
 2. **Styling**: an embedded dark theme — dark background, neon accents, monospace type
 3. **The graph-client application**: embedded in full, so the document runs on its own
-4. **Two rendering libraries** referenced from public CDNs — the document's only external requests
+4. **Two rendering libraries**: embedded inline, so the document has no external requests
 
 ### Conditional content
 
@@ -31,5 +31,5 @@ For static export:
 
 ### Decisions
 
-- **No build step, no bundler, no external asset files** — the output is a single document produced by direct string construction. This keeps the tool runnable with zero build tooling, at the cost of the client application living embedded in the generator.
-- **Rendering libraries load from CDNs** rather than being embedded — keeps the output small, but the exported document needs network access to render. Recorded as a known trade-off; revisiting it is on the backlog.
+- **No build step, no bundler** — the output is a single document produced by direct string construction. The stylesheet and client application are kept in their own files and read at generation time (no template engine), and the rendering libraries are vendored in the repository. This keeps the tool runnable with zero build tooling.
+- **Rendering libraries are inlined, not loaded from a CDN** — the exported document renders offline and under a strict CSP, at the cost of a larger document. Chosen because a self-contained document is the module's core purpose.

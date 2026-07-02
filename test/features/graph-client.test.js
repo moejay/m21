@@ -109,15 +109,17 @@ function renderApp(specs = makeSpecs()) {
     .replace(/<\/?html[^>]*>/gi, "");
   document.documentElement.innerHTML = inner;
 
-  // The app expects a global d3 (the CDN <script> is skipped here) and a
-  // visual window with non-zero dimensions + requestAnimationFrame.
+  // The app expects a global d3 (the inlined vendor bundles are skipped here)
+  // and a visual window with non-zero dimensions + requestAnimationFrame.
   window.d3 = d3;
   Object.defineProperty(window, "innerWidth", { value: 1200, configurable: true });
   Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
 
-  // Execute only the inline application script (CDN scripts carry a src attr).
+  // Execute only the inline application script — skip external (src) scripts
+  // and the inlined vendor bundles (tagged data-vendor); the test supplies its
+  // own d3/marked.
   const scripts = [...document.querySelectorAll("script")].filter(
-    (s) => !s.getAttribute("src"),
+    (s) => !s.getAttribute("src") && !s.getAttribute("data-vendor"),
   );
   for (const s of scripts) {
     window.eval(s.textContent);
