@@ -207,6 +207,7 @@ describe("parseFeatureFile", () => {
           "When I run the build command",
           "Then the build succeeds",
         ],
+        tags: [],
       },
       {
         name: "All dependencies resolve",
@@ -215,6 +216,7 @@ describe("parseFeatureFile", () => {
           "When I install dependencies",
           "Then all dependencies resolve successfully",
         ],
+        tags: [],
       },
     ]);
   });

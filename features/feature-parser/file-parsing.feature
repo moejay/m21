@@ -30,3 +30,24 @@ Feature: file-parsing
     Given a file at /project/features/auth/login.feature
     When the feature file is parsed
     Then filename is "login.feature"
+
+  Scenario: Parse a Scenario Outline as a scenario
+    Given a feature file containing a "Scenario Outline:" block with steps
+    When the feature file is parsed
+    Then the outline appears in scenarios with its name and steps
+
+  Scenario: Background steps are not counted as a scenario
+    Given a feature file with a "Background:" block and one "Scenario:" block
+    When the feature file is parsed
+    Then scenarios contains only the one scenario
+    And the background steps are captured separately
+
+  Scenario: Collect scenarios grouped under a Rule
+    Given a feature file with a "Rule:" line above its scenarios
+    When the feature file is parsed
+    Then the scenarios under the rule are collected and the rule line is not a scenario
+
+  Scenario: Capture feature and scenario tags
+    Given a feature file with a "@tag" above the feature and a "@wip" above a scenario
+    When the feature file is parsed
+    Then the feature tags include "tag" and that scenario's tags include "wip"

@@ -164,6 +164,168 @@ describeFeature(fileParsing, ({ Scenario }) => {
       expect(result.filename).toBe("login.feature");
     });
   });
+
+  Scenario(
+    "Parse a Scenario Outline as a scenario",
+    ({ Given, When, Then }) => {
+      Given(
+        'a feature file containing a "Scenario Outline:" block with steps',
+        () => {
+          const dir = makeTmpDir();
+          filePath = join(dir, "outline.feature");
+          writeFileSync(
+            filePath,
+            [
+              "Feature: outline-demo",
+              "",
+              "  Scenario Outline: login as <role>",
+              "    Given a <role> user",
+              "    When they sign in",
+              "    Then access is <result>",
+              "",
+              "    Examples:",
+              "      | role  | result  |",
+              "      | admin | granted |",
+              "      | guest | denied  |",
+              "",
+            ].join("\n"),
+            "utf-8",
+          );
+          options = {};
+        },
+      );
+      When("the feature file is parsed", async () => {
+        result = await parseFeatureFile(filePath, options);
+      });
+      Then("the outline appears in scenarios with its name and steps", () => {
+        expect(result.scenarios).toHaveLength(1);
+        expect(result.scenarios[0].name).toBe("login as <role>");
+        expect(result.scenarios[0].steps).toContain("Given a <role> user");
+      });
+    },
+  );
+
+  Scenario(
+    "Background steps are not counted as a scenario",
+    ({ Given, When, Then, And }) => {
+      Given(
+        'a feature file with a "Background:" block and one "Scenario:" block',
+        () => {
+          const dir = makeTmpDir();
+          filePath = join(dir, "background.feature");
+          writeFileSync(
+            filePath,
+            [
+              "Feature: background-demo",
+              "",
+              "  Background:",
+              "    Given a signed-in user",
+              "    And a loaded project",
+              "",
+              "  Scenario: view dashboard",
+              "    When they open the dashboard",
+              "    Then the graph renders",
+              "",
+            ].join("\n"),
+            "utf-8",
+          );
+          options = {};
+        },
+      );
+      When("the feature file is parsed", async () => {
+        result = await parseFeatureFile(filePath, options);
+      });
+      Then("scenarios contains only the one scenario", () => {
+        expect(result.scenarios).toHaveLength(1);
+        expect(result.scenarios[0].name).toBe("view dashboard");
+      });
+      And("the background steps are captured separately", () => {
+        expect(result.background).toBeDefined();
+        expect(result.background.steps).toContain("Given a signed-in user");
+        expect(result.background.steps).toContain("And a loaded project");
+      });
+    },
+  );
+
+  Scenario(
+    "Collect scenarios grouped under a Rule",
+    ({ Given, When, Then }) => {
+      Given('a feature file with a "Rule:" line above its scenarios', () => {
+        const dir = makeTmpDir();
+        filePath = join(dir, "rule.feature");
+        writeFileSync(
+          filePath,
+          [
+            "Feature: rule-demo",
+            "",
+            "  Rule: only admins may delete",
+            "",
+            "    Scenario: admin deletes",
+            "      Given an admin",
+            "      When they delete",
+            "      Then it succeeds",
+            "",
+            "    Scenario: guest cannot delete",
+            "      Given a guest",
+            "      When they delete",
+            "      Then it is refused",
+            "",
+          ].join("\n"),
+          "utf-8",
+        );
+        options = {};
+      });
+      When("the feature file is parsed", async () => {
+        result = await parseFeatureFile(filePath, options);
+      });
+      Then(
+        "the scenarios under the rule are collected and the rule line is not a scenario",
+        () => {
+          const names = result.scenarios.map((s) => s.name);
+          expect(names).toEqual(["admin deletes", "guest cannot delete"]);
+          expect(names).not.toContain("only admins may delete");
+        },
+      );
+    },
+  );
+
+  Scenario(
+    "Capture feature and scenario tags",
+    ({ Given, When, Then }) => {
+      Given(
+        'a feature file with a "@tag" above the feature and a "@wip" above a scenario',
+        () => {
+          const dir = makeTmpDir();
+          filePath = join(dir, "tags.feature");
+          writeFileSync(
+            filePath,
+            [
+              "@tag @smoke",
+              "Feature: tags-demo",
+              "",
+              "  @wip",
+              "  Scenario: work in progress",
+              "    Given a start",
+              "    Then an end",
+              "",
+            ].join("\n"),
+            "utf-8",
+          );
+          options = {};
+        },
+      );
+      When("the feature file is parsed", async () => {
+        result = await parseFeatureFile(filePath, options);
+      });
+      Then(
+        'the feature tags include "tag" and that scenario\'s tags include "wip"',
+        () => {
+          expect(result.tags).toContain("tag");
+          expect(result.scenarios[0].tags).toContain("wip");
+        },
+      );
+    },
+  );
 });
 
 const directoryParsing = await loadFeature(

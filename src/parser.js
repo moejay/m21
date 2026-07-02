@@ -63,27 +63,73 @@ export async function parseFeatureFile(filePath, options = {}) {
 
   let name = "";
   const scenarios = [];
+  const featureTags = [];
+  let background = null;
   let currentScenario = null;
+  // Steps flow into whichever block was opened last: a scenario or the
+  // background. `Rule:` is a grouping keyword and opens no block of its own.
+  let stepTarget = null;
+  // Tags accumulate until the next Feature/Scenario line claims them.
+  let pendingTags = [];
+
+  const collectTags = (trimmed) => {
+    for (const tag of trimmed.split(/\s+/)) {
+      if (tag.startsWith("@")) pendingTags.push(tag.slice(1));
+    }
+  };
 
   for (const line of content.split("\n")) {
     const trimmed = line.trim();
+
+    if (trimmed.startsWith("@")) {
+      collectTags(trimmed);
+      continue;
+    }
+
     const featureMatch = trimmed.match(/^Feature:\s*(.+)/);
     if (featureMatch) {
       name = featureMatch[1].trim();
+      featureTags.push(...pendingTags);
+      pendingTags = [];
+      stepTarget = null;
       continue;
     }
-    const scenarioMatch = trimmed.match(/^Scenario:\s*(.+)/);
+
+    if (/^Background:/.test(trimmed)) {
+      background = { steps: [] };
+      stepTarget = background;
+      pendingTags = [];
+      continue;
+    }
+
+    // Both `Scenario:` and `Scenario Outline:` open a scenario.
+    const scenarioMatch = trimmed.match(/^Scenario(?:\s+Outline)?:\s*(.+)/);
     if (scenarioMatch) {
-      currentScenario = { name: scenarioMatch[1].trim(), steps: [] };
+      currentScenario = {
+        name: scenarioMatch[1].trim(),
+        steps: [],
+        tags: pendingTags,
+      };
       scenarios.push(currentScenario);
+      stepTarget = currentScenario;
+      pendingTags = [];
       continue;
     }
-    if (currentScenario && /^(Given|When|Then|And|But)\s+/.test(trimmed)) {
-      currentScenario.steps.push(trimmed);
+
+    // `Rule:` groups scenarios but is not itself a scenario or step target.
+    if (/^Rule:/.test(trimmed)) {
+      stepTarget = null;
+      pendingTags = [];
+      continue;
+    }
+
+    if (stepTarget && /^(Given|When|Then|And|But)\s+/.test(trimmed)) {
+      stepTarget.steps.push(trimmed);
     }
   }
 
-  const result = { filename, name, content, scenarios };
+  const result = { filename, name, content, scenarios, tags: featureTags };
+  if (background) result.background = background;
 
   if (options.basePath) {
     result.path = relative(options.basePath, filePath);
