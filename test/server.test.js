@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { createModspecServer } from "../src/server.js";
 import { join } from "path";
 import { fileURLToPath } from "url";
@@ -149,7 +149,7 @@ describe("createModspecServer", () => {
     const events = [];
     const controller = new AbortController();
 
-    const ssePromise = fetch(`http://localhost:${server.port}/api/events`, {
+    fetch(`http://localhost:${server.port}/api/events`, {
       signal: controller.signal,
     }).then(async (res) => {
       const reader = res.body.getReader();

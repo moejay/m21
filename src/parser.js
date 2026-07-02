@@ -1,6 +1,6 @@
 import matter from "gray-matter";
 import { readFile, readdir, access } from "fs/promises";
-import { join, extname, relative, basename, resolve } from "path";
+import { join, extname, relative, basename } from "path";
 
 /**
  * Normalize a depends_on entry to the canonical { name, uses } form.

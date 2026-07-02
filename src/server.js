@@ -1,7 +1,6 @@
 import http from "http";
 import chokidar from "chokidar";
 import { readFile, writeFile } from "fs/promises";
-import { existsSync } from "fs";
 import { join, dirname, resolve, relative, isAbsolute } from "path";
 import matter from "gray-matter";
 import { parseSpecDirectory } from "./parser.js";

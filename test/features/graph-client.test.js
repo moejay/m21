@@ -210,10 +210,8 @@ describeFeature(forceSim, ({ Scenario }) => {
   });
 
   Scenario("Link distance", ({ Given, When, Then }) => {
-    let before;
     Given("dependency links between nodes", () => {
       renderApp();
-      before = nodeTranslate("ui");
     });
     When("forces are applied", async () => {
       await settle(60);
@@ -253,10 +251,8 @@ describeFeature(forceSim, ({ Scenario }) => {
   });
 
   Scenario("Tick updates positions", ({ Given, When, Then }) => {
-    let first;
     Given("the simulation is running", () => {
       renderApp();
-      first = nodeTranslate("api");
     });
     When("each tick fires", async () => {
       await settle(60);
@@ -424,10 +420,8 @@ describeFeature(layoutModes, ({ Scenario }) => {
   });
 
   Scenario("Manual layout", ({ Given, When, Then, And }) => {
-    let before;
     Given("the user switches to manual layout", () => {
       renderApp();
-      before = nodeDatum("core");
       window.setLayout("manual");
     });
     When("the layout changes", () => {});
@@ -448,11 +442,9 @@ describeFeature(layoutModes, ({ Scenario }) => {
   });
 
   Scenario("Switch back to force", ({ Given, When, Then }) => {
-    let pinned;
     Given("the layout was tree or manual", () => {
       renderApp();
       window.setLayout("tree");
-      pinned = nodeTranslate("core");
       const d = nodeDatum("core");
       expect(Number.isFinite(d.fx)).toBe(true);
     });

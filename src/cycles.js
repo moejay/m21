@@ -125,7 +125,7 @@ export function analyzeGraph(specs) {
   // An SCC is a "cycle" if it has >1 member OR a single member with a self-loop
   const inCycle = {};
   const cycles = [];
-  sccs.forEach((scc, i) => {
+  sccs.forEach((scc) => {
     const isCycle =
       scc.length > 1 ||
       (scc.length === 1 && (adj[scc[0]] || []).includes(scc[0]));
