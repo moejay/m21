@@ -43,7 +43,10 @@
   "scripts": {
     "test": "vitest run --reporter=default --reporter=json --outputFile=results/vitest-results.json",
     "test:watch": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "docs:graph": "node scripts/export-static.js",
+    "docs:graph:check": "node scripts/check-static-export.js",
+    "setup:githooks": "git config core.hooksPath .githooks"
   },
   "engines": {
     "node": ">=20"

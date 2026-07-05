@@ -7,7 +7,7 @@ export default [
   js.configs.recommended,
   {
     // Node ESM source, tests, and tooling.
-    files: ["src/**/*.js", "bin/**/*.js", "test/**/*.js", "*.js"],
+    files: ["src/**/*.js", "bin/**/*.js", "test/**/*.js", "scripts/**/*.js", "*.js"],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: "module",

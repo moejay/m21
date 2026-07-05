@@ -33,7 +33,7 @@ export async function createM21Server({ specDir, port = 3333, host = null, proje
   async function applyResults(list) {
     const file = resolveResultsPath(projectRoot, resultsPath);
     if (!file) return list;
-    const lookup = await parseResultsFile(file);
+    const lookup = await parseResultsFile(file, { sourceRoot: projectRoot });
     if (lookup) mergeResults(list, lookup);
     return list;
   }

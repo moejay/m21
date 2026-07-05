@@ -176,7 +176,7 @@ async function main() {
   // Overlay test results (explicit --results path or auto-detected)
   const resultsFile = resolveResultsPath(projectRoot, opts.results);
   if (resultsFile) {
-    const lookup = await parseResultsFile(resultsFile);
+    const lookup = await parseResultsFile(resultsFile, { sourceRoot: projectRoot });
     if (lookup) {
       mergeResults(specs, lookup);
       console.log(`Loaded test results from: ${resultsFile}`);

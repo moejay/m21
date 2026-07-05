@@ -1,6 +1,6 @@
 import { readFile } from "fs/promises";
 import { existsSync } from "fs";
-import { join, resolve } from "path";
+import { dirname, join, relative, resolve } from "path";
 
 /**
  * Conventional Cucumber JSON report filenames, checked in order. Root-level
@@ -151,7 +151,14 @@ function mapVitestTitles(assertion) {
  * (feature, scenario) and rolled up — so the multiple step assertions a
  * vitest-cucumber scenario produces collapse to a single scenario status.
  */
-function normalizeVitestResults(data) {
+function displaySourcePath(fileName, sourceRoot) {
+  if (!fileName) return "";
+  if (!sourceRoot) return fileName;
+  const rel = relative(sourceRoot, fileName);
+  return rel && !rel.startsWith("..") && !rel.startsWith("/") ? rel : fileName;
+}
+
+function normalizeVitestResults(data, { sourceRoot = null } = {}) {
   const acc = {}; // feature -> scenario -> string[]
   const detailAcc = {}; // feature -> scenario -> { source, steps[] }
   for (const file of data.testResults || []) {
@@ -164,13 +171,14 @@ function normalizeVitestResults(data) {
       acc[feature][scenario].push(status);
 
       if (!detailAcc[feature]) detailAcc[feature] = {};
+      const sourcePath = displaySourcePath(file.name, sourceRoot);
       if (!detailAcc[feature][scenario]) {
-        detailAcc[feature][scenario] = { source: file.name || "", steps: [] };
+        detailAcc[feature][scenario] = { source: sourcePath, steps: [] };
       }
       detailAcc[feature][scenario].steps.push({
         text: assertion.title || scenario,
         status,
-        source: file.name || "",
+        source: sourcePath,
       });
     }
   }
@@ -249,7 +257,7 @@ function findStepDefinition(source, stepText) {
   };
 }
 
-async function enrichVitestDetails(data, lookup) {
+async function enrichVitestDetails(data, lookup, { sourceRoot = null } = {}) {
   if (!data || !Array.isArray(data.testResults)) return;
 
   const sourceCache = new Map();
@@ -284,7 +292,7 @@ async function enrichVitestDetails(data, lookup) {
         step.line = definition.line;
         step.keyword = definition.keyword;
         step.definition = definition.code;
-        step.source = `${file.name}:${definition.line}`;
+        step.source = `${displaySourcePath(file.name, sourceRoot)}:${definition.line}`;
       }
     }
   }
@@ -297,7 +305,7 @@ async function enrichVitestDetails(data, lookup) {
  * @param {string} filePath
  * @returns {Promise<Object|null>}
  */
-export async function parseResultsFile(filePath) {
+export async function parseResultsFile(filePath, { sourceRoot = dirname(filePath) } = {}) {
   let content;
   try {
     content = await readFile(filePath, "utf-8");
@@ -306,8 +314,10 @@ export async function parseResultsFile(filePath) {
   }
   try {
     const data = JSON.parse(content);
-    const lookup = normalizeResults(data);
-    await enrichVitestDetails(data, lookup);
+    const lookup = Array.isArray(data)
+      ? normalizeResults(data)
+      : normalizeVitestResults(data, { sourceRoot });
+    await enrichVitestDetails(data, lookup, { sourceRoot });
     return lookup;
   } catch {
     return null;

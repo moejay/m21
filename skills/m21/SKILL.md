@@ -9,25 +9,25 @@ metadata:
 
 # M21 — Spec-Driven Development Workflow
 
-This skill defines the **complete workflow** for working in an M21 project: authoring specs, editing them, and implementing code. M21 uses markdown spec files with YAML frontmatter to define modules, their dependencies, and links to Gherkin `.feature` files. The features are the **executable contract** for the implementation.
+This skill defines the workflow for working in an M21 project: authoring specs, editing them, and implementing code. M21 uses markdown spec files with YAML frontmatter to define meaningful modules, their dependencies, and optional links to Gherkin `.feature` files. Features are for executable behavior contracts only — not every spec needs features, and not every repository concern needs a spec.
 
-## The contract — MUST ALWAYS
+## The contract — use judgment
 
-When this skill is loaded, every code change in the project follows the same flow, no exceptions:
+When a change affects a module's durable contract, follow this flow:
 
-1. **Phase 1 — Update the spec and features first.** If the requested change isn't already covered by an existing scenario, the spec or `.feature` file gets edited *before* any source code is touched.
+1. **Phase 1 — Update the spec and/or features first.** If the change alters module responsibility, dependency contracts, invariants, or externally observable behavior, update the owning spec and any relevant `.feature` scenarios before implementation.
 
-2. **Phase 2 — Red/green TDD against the feature suite.** New or modified scenarios must fail first, then implementation makes them pass, then the full feature suite is run to check for regressions.
+2. **Phase 2 — Red/green TDD for executable scenarios.** New or modified scenarios should fail first, then implementation makes them pass, then the full feature suite checks regressions.
 
-This is strict on purpose. Specs are an investment in **regeneration**: detailed, current specs let the same behavior be reproduced repeatedly from the spec alone. Skipping Phase 1 lets the source of truth drift; skipping Phase 2 lets the implementation diverge from the spec. Either break breaks the regeneration property.
+Do **not** create specs or features just to mirror files, folders, helper functions, repo chores, or implementation mechanics. Specs are load-bearing only when they describe architecture or behavior that should survive regeneration. Features are load-bearing only when they describe an observable outcome that can be tested.
 
-> If the user requests a code change that isn't covered by an existing scenario — even a "small" one — **stop and update the spec/feature first**. Do not negotiate the workflow down to "just do this one quickly." The user invested in this workflow specifically to keep specs load-bearing.
+> If the user requests a code-only maintenance change with no contract change — dependency bumps, refactors that preserve behavior, generated assets, CI plumbing, docs-only edits — do not invent a scenario. If the change reveals a missing behavioral contract, pause and add the smallest useful scenario.
 
 ## Test runner contract
 
 M21 does not prescribe a runner — the choice (cucumber, vitest-cucumber, jest-cucumber, behave, custom, etc.) and the wiring (where step defs live, file extensions, discovery mechanism) are decided per project. What is non-negotiable is the contract the runner must uphold:
 
-- The runner MUST treat the project's `features/` directory as its source of truth — every `.feature` file is part of the executable contract.
+- The runner MUST treat the project's `features/` directory as its executable source of truth when features exist — every `.feature` file there is part of the contract.
 - A scenario with no matching step definition is **red** (pending or failing — the agent's signal to write the stub and the implementation).
 - Tests that assert behavior not described in any `.feature` file are forbidden — that signal is "go to Phase 1 and add a scenario," not "skip the spec."
 - `src/` code that contradicts a passing scenario is the bug, not the scenario.
@@ -89,7 +89,7 @@ If a sentence in the spec body describes behavior with an **observable outcome**
 
 ## Phase 1 — Update the spec and features
 
-Use this phase when the user asks to add, change, or remove behavior.
+Use this phase when the user asks to add, change, or remove behavior, responsibilities, dependencies, invariants, or other durable contract information.
 
 ### 1.1 Understand the request
 - *What* is being added/changed/removed? (spec, feature, scenario, dependency)
@@ -98,15 +98,16 @@ Use this phase when the user asks to add, change, or remove behavior.
 ### 1.2 Find the right spec
 - Named explicitly by the user → use that
 - Fits an existing spec's responsibility → use the best fit (match by `description`, `group`, existing features)
-- Represents a new concern not covered by any spec → create a new spec
+- Represents a new durable module concern not covered by any spec → create a new spec
+- Is a repo chore, generated asset, helper-only refactor, or implementation detail → no new spec; keep it out of the M21 contract
 
 ### 1.3 Read current state before changing
 Read the target spec, all its existing feature files, and any specs that depend on it. This prevents duplicate features, conflicting scenarios, and broken dependency contracts.
 
 ### 1.4 Make the changes
-- **Add a feature** → new `.feature` file in `features/<spec>/`. Add the `features` field to spec frontmatter if missing.
-- **Add a scenario** → append to the existing `.feature` file, matching the surrounding step phrasing and detail level.
-- **New spec** → create the spec, the features dir, wire `depends_on` in both directions.
+- **Add a feature** → only when the module exposes observable behavior worth testing as a public contract. Create a new `.feature` file in `features/<spec>/` and add the `features` field to spec frontmatter if missing.
+- **Add a scenario** → only for an observable outcome. Append to the existing `.feature` file, matching the surrounding step phrasing and detail level.
+- **New spec** → create the spec for a meaningful module boundary. Do not add a `features` directory unless it has real executable behavior to describe.
 - **Modify dependencies** → update `depends_on`. If new `uses` references don't exist yet, offer to add them as scenarios.
 - **Remove a feature/spec** → check downstream `uses` first. Warn the user about broken contracts before deleting.
 
@@ -122,7 +123,7 @@ Summarize files created/modified/deleted. Flag downstream specs that may need at
 
 ## Phase 2 — Implement red/green
 
-Use this phase to make the (now-updated) feature scenarios pass.
+Use this phase to make the new or modified executable feature scenarios pass. If no feature changed, run the project's normal validation for the code change instead.
 
 ### 2.1 Read the spec
 - What is this module responsible for? (`description`, body)
@@ -141,7 +142,7 @@ Run the feature suite. Every scenario for this spec must fail because the implem
 4. Move to the next scenario.
 5. Refactor only after all scenarios in a feature pass.
 
-**Do not** add functionality that isn't described in a scenario. If something seems missing → return to Phase 1, add a scenario, then implement.
+**Do not** add functionality that contradicts an existing scenario. If new externally observable behavior seems missing from the contract → return to Phase 1, add the smallest useful scenario, then implement.
 
 ### 2.5 Verify dependency contracts
 If the spec declares `uses` against a dependency, the implementation must actually consume those features. If it doesn't, either the implementation is wrong or the spec needs updating — flag it and return to Phase 1 if the user agrees.

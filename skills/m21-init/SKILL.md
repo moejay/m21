@@ -14,8 +14,8 @@ You are helping the user generate M21 specification files from an existing codeb
 ## Goal
 
 Analyze the existing codebase and generate:
-1. **Spec files** (`.md` with YAML frontmatter) for each identifiable module
-2. **Feature files** (`.feature` with Gherkin scenarios) for each module's public interface (optional)
+1. **Spec files** (`.md` with YAML frontmatter) only for meaningful module boundaries
+2. **Feature files** (`.feature` with Gherkin scenarios) only when the user wants executable behavior contracts for observable outcomes
 
 ## Process
 
@@ -36,16 +36,17 @@ For each module, determine:
 - Which specific functionality (features) it uses from each dependency
 - Whether the dependency is direct or transitive
 
-### Step 3: Identify features (public interface)
+### Step 3: Decide whether features are warranted
 
-For each module, identify the features it provides — its public API surface:
-- Capabilities it exposes to other modules or external consumers
-- Endpoints or interfaces it serves
-- Events or notifications it emits
-- Commands or operations it handles
-- Data it stores or retrieves
+Do not generate feature files by default just because a module exists. A feature is warranted only when there is an observable behavior contract worth testing:
+- Capabilities exposed to other modules or external consumers
+- User-visible or API-visible outcomes
+- Events, commands, operations, or data behavior with clear pass/fail criteria
+- Dependency capabilities that downstream specs genuinely consume via `uses`
 
-Name features in **kebab-case**: `user-login`, `data-storage`, `api-routing`.
+Skip features for discovery steps, folder structure, helper utilities, build plumbing, documentation, CI configuration, generated assets, and implementation mechanics. These may belong in spec prose as decisions or invariants, or may not need M21 coverage at all.
+
+Name real features in **kebab-case**: `user-login`, `data-storage`, `api-routing`.
 
 ### Step 4: Generate spec files
 
@@ -60,7 +61,7 @@ tags: [relevant, tags]
 depends_on:
   - name: other-module
     uses: [feature-a, feature-b]
-features: features/module-name/
+# Add features: features/module-name/ only when real feature files are generated
 ---
 
 # Module Name
@@ -68,9 +69,9 @@ features: features/module-name/
 Brief description and any design notes.
 ```
 
-### Step 5: Generate feature files (optional)
+### Step 5: Generate feature files only when justified
 
-If the user requests features, create a `features/` directory with subdirectories per module:
+If the user requests executable features and the behavior is observable, create a `features/` directory with subdirectories per module:
 
 ```gherkin
 Feature: feature-name-in-kebab-case
@@ -121,7 +122,7 @@ Assign groups based on architectural layers or domains:
 
 ### Feature identification heuristics
 
-Examine the code to identify capabilities, then **abstract them** into technology-neutral feature names:
+Examine the code to identify observable capabilities, then **abstract them** into technology-neutral feature names. If you cannot write a meaningful pass/fail scenario, do not create the feature.
 
 | What you see in code | Feature name (tech-agnostic) |
 |---------|----------------------|
@@ -220,7 +221,7 @@ Feature: data-querying
 
 1. Ask the user which directory to analyze (or use the current project root) - Default: ./spec and ./features in current root
 2. Present the identified modules and their dependencies for review - Default: Accept
-3. Ask if they want feature files generated too - Default: Yes
+3. Ask if they want executable feature files generated too - Default: No unless clear observable contracts were found
 4. Generate the files
 5. Suggest running `m21 ./spec/` to visualize the result
 6. Iterate — the user may want to adjust groupings, split/merge modules, or refine features
