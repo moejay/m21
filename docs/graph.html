@@ -24,6 +24,8 @@
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
       overflow: hidden;
     }
 
@@ -61,7 +63,7 @@
     }
 
     nav .links a {
-      color: var(--text-dim);
+      color: #888;
       text-decoration: none;
       font-size: 14px;
       font-weight: 500;
@@ -117,9 +119,8 @@
 
     .fallback:hover { color: var(--text); }
 
-    @media (max-width: 720px) {
+    @media (max-width: 600px) {
       nav .links { gap: 16px; }
-      nav .links a { font-size: 12px; }
     }
   </style>
 </head>
