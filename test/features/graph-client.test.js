@@ -30,7 +30,23 @@ function makeSpecs() {
           testStatus: "passed",
           testCounts: { passed: 1, total: 1 },
           scenarios: [
-            { name: "Core boots", steps: ["Given a core", "Then it boots"], status: "passed" },
+            {
+              name: "Core boots",
+              steps: ["Given a core", "Then it boots"],
+              status: "passed",
+              testDetails: {
+                source: "test/features/core.test.js",
+                steps: [
+                  {
+                    text: "Given a core",
+                    status: "passed",
+                    source: "test/features/core.test.js:12",
+                    line: 12,
+                    definition: "Given(\"a core\", () => {\n  core = makeCore();\n})",
+                  },
+                ],
+              },
+            },
           ],
         },
       ],
@@ -330,6 +346,27 @@ describeFeature(sidePanel, ({ Scenario }) => {
       expect(list.classList.contains("expanded")).toBe(true);
       // steps present under a scenario
       expect(document.querySelectorAll(".scenario-steps li").length).toBeGreaterThan(0);
+    });
+  });
+
+  Scenario("Show test details when clicking a scenario", ({ Given, When, Then }) => {
+    Given("the Features tab shows a scenario with source-backed test details", () => {
+      renderApp();
+      clickNode("core");
+      window.switchTab("features");
+      window.toggleFeature("feat-0");
+      expect(document.querySelector(".scenario-item")).toBeTruthy();
+    });
+    When("the user clicks the scenario", () => {
+      document.querySelector(".scenario-item").dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true }),
+      );
+    });
+    Then("the scenario expands to show step statuses and definition snippets", () => {
+      const detail = document.querySelector(".scenario-test-details");
+      expect(detail.classList.contains("expanded")).toBe(true);
+      expect(detail.textContent).toContain("test/features/core.test.js:12");
+      expect(detail.textContent).toContain("Given(\"a core\"");
     });
   });
 

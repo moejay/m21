@@ -19,6 +19,12 @@ Feature: results-merge
     When results are merged onto specs
     Then the scenario "Forgotten password" has status null
 
+  Scenario: Merge test details onto scenarios
+    Given a spec with a feature "user-login" containing scenario "Successful login"
+    And a results lookup with source-backed test details for "Successful login"
+    When results are merged onto specs
+    Then the scenario "Successful login" has test details attached
+
   Scenario: Compute feature-level rollup and counts
     Given a spec feature with scenarios statuses ["passed", "failed"]
     When results are merged onto specs

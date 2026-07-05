@@ -16,6 +16,11 @@ Feature: side-panel
     When the Features tab is active
     Then each feature file is listed with expandable/collapsible scenarios and steps
 
+  Scenario: Show test details when clicking a scenario
+    Given the Features tab shows a scenario with source-backed test details
+    When the user clicks the scenario
+    Then the scenario expands to show step statuses and definition snippets
+
   Scenario: Close panel
     Given the panel is open
     When the user clicks the close button or clicks on the background

@@ -29,7 +29,7 @@ The graph has a single lock control instead of layout-mode buttons. Nodes are un
 
 Clicking a node opens a slide-in panel with two tabs:
 - **Spec tab**: renders the spec's markdown body
-- **Features tab**: lists all associated `.feature` files with collapsible scenarios showing Given/When/Then steps
+- **Features tab**: lists all associated `.feature` files with collapsible scenarios showing Given/When/Then steps. Clicking a scenario toggles available test details, including step result status, source location, and definition snippets when the results parser can resolve them from the test report.
 
 ### Test status
 

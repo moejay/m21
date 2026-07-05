@@ -181,6 +181,49 @@ describeFeature(parsing, ({ Scenario }) => {
     });
   });
 
+  Scenario("Include vitest step details from source", ({ Given, When, Then }) => {
+    Given("a vitest JSON report for a step backed by a test source file", () => {
+      const root = mkdtempSync(join(tmpdir(), "modspec-results-source-"));
+      tmpDirs.push(root);
+      const testPath = join(root, "login.test.js");
+      writeFileSync(
+        testPath,
+        `Scenario("Successful login", ({ Given }) => {\n  Given("a valid user", () => {\n    expect(user.valid).toBe(true);\n  });\n});\n`,
+        "utf-8",
+      );
+      const resultsPath = join(root, "vitest-results.json");
+      writeFileSync(
+        resultsPath,
+        JSON.stringify({
+          testResults: [
+            {
+              name: testPath,
+              assertionResults: [
+                {
+                  ancestorTitles: ["Feature: user-login", "Scenario: Successful login"],
+                  title: "Given a valid user",
+                  status: "passed",
+                },
+              ],
+            },
+          ],
+        }),
+        "utf-8",
+      );
+      input = resultsPath;
+    });
+    When("parseResultsFile is called", async () => {
+      result = await parseResultsFile(input);
+    });
+    Then("the lookup includes the step status, source path, line number, and definition snippet", () => {
+      const detail = result["user-login"].scenarioDetails["Successful login"];
+      expect(detail.steps[0].status).toBe("passed");
+      expect(detail.steps[0].source).toContain("login.test.js:2");
+      expect(detail.steps[0].line).toBe(2);
+      expect(detail.steps[0].definition).toContain('Given("a valid user"');
+    });
+  });
+
   Scenario("Missing results file returns null", ({ Given, When, Then }) => {
     Given("a path to a results file that does not exist", () => {
       input = "/no/such/path/results.json";
@@ -289,6 +332,32 @@ describeFeature(merge, ({ Scenario }) => {
     });
     Then('the scenario "Forgotten password" has status null', () => {
       expect(specs[0].featureFiles[0].scenarios[0].status).toBeNull();
+    });
+  });
+
+  Scenario("Merge test details onto scenarios", ({ Given, And, When, Then }) => {
+    Given('a spec with a feature "user-login" containing scenario "Successful login"', () => {
+      specs = [specWith("user-login", ["Successful login"] )];
+    });
+    And('a results lookup with source-backed test details for "Successful login"', () => {
+      lookup = {
+        "user-login": {
+          name: "user-login",
+          scenarios: { "Successful login": "passed" },
+          scenarioDetails: {
+            "Successful login": {
+              source: "login.test.js",
+              steps: [{ text: "Given a user", status: "passed", definition: "Given(...)" }],
+            },
+          },
+        },
+      };
+    });
+    When("results are merged onto specs", () => {
+      mergeResults(specs, lookup);
+    });
+    Then('the scenario "Successful login" has test details attached', () => {
+      expect(specs[0].featureFiles[0].scenarios[0].testDetails.steps[0].definition).toBe("Given(...)");
     });
   });
 

@@ -96,12 +96,19 @@ function normalizeCucumberResults(data) {
   for (const feature of data) {
     if (!feature || !feature.name) continue;
     const scenarios = {};
+    const scenarioDetails = {};
     for (const element of feature.elements || []) {
       if (!element || !element.name) continue;
       if (element.type && element.type !== "scenario") continue;
       scenarios[element.name] = deriveScenarioStatus(element.steps);
+      scenarioDetails[element.name] = {
+        steps: (element.steps || []).map((step) => ({
+          text: `${step.keyword || ""}${step.name || ""}`.trim(),
+          status: step.result?.status || "undefined",
+        })),
+      };
     }
-    const entry = { name: feature.name, scenarios };
+    const entry = { name: feature.name, scenarios, scenarioDetails };
     // Cucumber JSON identifies each feature by its source file; keep it so
     // the merge can join on path and disambiguate same-named features.
     if (feature.uri) entry.uri = feature.uri;
@@ -146,6 +153,7 @@ function mapVitestTitles(assertion) {
  */
 function normalizeVitestResults(data) {
   const acc = {}; // feature -> scenario -> string[]
+  const detailAcc = {}; // feature -> scenario -> { source, steps[] }
   for (const file of data.testResults || []) {
     for (const assertion of file.assertionResults || []) {
       const { feature, scenario } = mapVitestTitles(assertion);
@@ -154,6 +162,16 @@ function normalizeVitestResults(data) {
       if (!acc[feature]) acc[feature] = {};
       if (!acc[feature][scenario]) acc[feature][scenario] = [];
       acc[feature][scenario].push(status);
+
+      if (!detailAcc[feature]) detailAcc[feature] = {};
+      if (!detailAcc[feature][scenario]) {
+        detailAcc[feature][scenario] = { source: file.name || "", steps: [] };
+      }
+      detailAcc[feature][scenario].steps.push({
+        text: assertion.title || scenario,
+        status,
+        source: file.name || "",
+      });
     }
   }
 
@@ -163,9 +181,113 @@ function normalizeVitestResults(data) {
     for (const [name, statuses] of Object.entries(scenarios)) {
       sc[name] = rollupStatus(statuses) || "undefined";
     }
-    lookup[feature] = { name: feature, scenarios: sc };
+    lookup[feature] = {
+      name: feature,
+      scenarios: sc,
+      scenarioDetails: detailAcc[feature] || {},
+    };
   }
   return lookup;
+}
+
+/** Escape a string for use in a RegExp literal. */
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function lineNumberAt(source, index) {
+  return source.slice(0, index).split("\n").length;
+}
+
+function findMatchingParen(source, openIndex) {
+  let depth = 0;
+  let quote = null;
+  let escaped = false;
+  for (let i = openIndex; i < source.length; i++) {
+    const ch = source[i];
+    if (quote) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === "\\") {
+        escaped = true;
+      } else if (ch === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === "`") {
+      quote = ch;
+      continue;
+    }
+    if (ch === "(") depth += 1;
+    if (ch === ")") {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+function findStepDefinition(source, stepText) {
+  const literalPattern = new RegExp("(['\"`])" + escapeRegExp(stepText) + "\\1");
+  const literalMatch = literalPattern.exec(source);
+  if (!literalMatch) return null;
+
+  const before = source.slice(Math.max(0, literalMatch.index - 120), literalMatch.index);
+  const keywordMatch = /(Given|When|Then|And|But)\s*\(\s*$/.exec(before);
+  if (!keywordMatch) return null;
+
+  const callStart = literalMatch.index - (keywordMatch[0].length);
+  const openParen = source.indexOf("(", callStart);
+  const closeParen = findMatchingParen(source, openParen);
+  const end = closeParen === -1 ? literalMatch.index + literalMatch[0].length : closeParen + 1;
+  const line = lineNumberAt(source, callStart);
+  return {
+    keyword: keywordMatch[1],
+    line,
+    code: source.slice(callStart, end).trim(),
+  };
+}
+
+async function enrichVitestDetails(data, lookup) {
+  if (!data || !Array.isArray(data.testResults)) return;
+
+  const sourceCache = new Map();
+  for (const file of data.testResults) {
+    if (!file.name) continue;
+    if (!sourceCache.has(file.name)) {
+      try {
+        sourceCache.set(file.name, await readFile(file.name, "utf-8"));
+      } catch {
+        sourceCache.set(file.name, null);
+      }
+    }
+    const source = sourceCache.get(file.name);
+    if (!source) continue;
+
+    for (const assertion of file.assertionResults || []) {
+      const { feature, scenario } = mapVitestTitles(assertion);
+      const detail = lookup[feature]?.scenarioDetails?.[scenario];
+      if (!detail) continue;
+      const step = detail.steps.find(
+        (candidate) => candidate.text === assertion.title && !candidate.definition,
+      );
+      if (!step) continue;
+      const title = assertion.title || "";
+      const titleWithoutKeyword = title.replace(/^(Given|When|Then|And|But)\s+/, "");
+      const definition =
+        findStepDefinition(source, title) ||
+        (titleWithoutKeyword !== title
+          ? findStepDefinition(source, titleWithoutKeyword)
+          : null);
+      if (definition) {
+        step.line = definition.line;
+        step.keyword = definition.keyword;
+        step.definition = definition.code;
+        step.source = `${file.name}:${definition.line}`;
+      }
+    }
+  }
 }
 
 /**
@@ -183,7 +305,10 @@ export async function parseResultsFile(filePath) {
     return null;
   }
   try {
-    return normalizeResults(JSON.parse(content));
+    const data = JSON.parse(content);
+    const lookup = normalizeResults(data);
+    await enrichVitestDetails(data, lookup);
+    return lookup;
   } catch {
     return null;
   }
@@ -286,8 +411,9 @@ export function mergeResults(specs, lookup = {}) {
     const specStatuses = [];
 
     for (const feature of spec.featureFiles || []) {
-      const featureResults =
-        resultsForFeature(feature, lookup, byPath)?.scenarios || {};
+      const resultEntry = resultsForFeature(feature, lookup, byPath);
+      const featureResults = resultEntry?.scenarios || {};
+      const featureDetails = resultEntry?.scenarioDetails || {};
       const statuses = [];
 
       for (const scenario of feature.scenarios || []) {
@@ -298,6 +424,9 @@ export function mergeResults(specs, lookup = {}) {
           ? featureResults[scenario.name]
           : null;
         scenario.status = status;
+        if (featureDetails[scenario.name]) {
+          scenario.testDetails = featureDetails[scenario.name];
+        }
         statuses.push(status);
       }
 

@@ -41,6 +41,11 @@ Feature: results-parsing
     When the report is normalized
     Then the lookup has feature "user-login" with scenario "Bad password" set to "failed"
 
+  Scenario: Include vitest step details from source
+    Given a vitest JSON report for a step backed by a test source file
+    When parseResultsFile is called
+    Then the lookup includes the step status, source path, line number, and definition snippet
+
   Scenario: Missing results file returns null
     Given a path to a results file that does not exist
     When parseResultsFile is called

@@ -63,6 +63,7 @@ A scenario passes only when every step passes. A scenario with no steps is `unde
 
 - **Status rollup** — a list of statuses reduces to the highest-severity one; used at scenario, feature, and spec level.
 - **Report normalization** — a raw report (parsed value or JSON text) becomes a lookup of feature name → scenario name → status, with the input format auto-detected. Missing or malformed fields are tolerated.
+- **Source-backed test details** — when a Jest/vitest JSON report points at a readable test source file, step assertions can be enriched with source path, line number, and a best-effort definition snippet so the graph can show how Given/When/Then steps are implemented.
 - **Results file reading** — reading a results file yields the normalized lookup, or nothing if the file is missing or unparseable (graceful degradation — never an error), mirroring how feature directories degrade.
 - **Results discovery** — an explicit path always wins (resolved to absolute and honored even if the file doesn't exist yet, so it can be watched into existence). Otherwise conventional locations are probed in order.
 - **Merging** — annotates each spec's scenarios with a status, and each feature file and spec with a rolled-up status and pass/fail counts.
@@ -80,6 +81,7 @@ Any matched file is content-sniffed, so a Jest/vitest report works at any of the
 
 - Features join on **file path** when the report identifies each feature by its source file (Cucumber JSON carries this), falling back to **feature name** (kebab-case) otherwise. Matching by path disambiguates two features that share a name. Scenarios join on exact **scenario name**.
 - A scenario in a spec with no matching result gets a null status (no data).
+- If normalized results include source-backed step details for a scenario, those details are attached to the parsed scenario as `testDetails` without changing status rollup.
 - Counts are `{ passed, failed, total }` where `total` counts only scenarios that have result data.
 - A feature or spec with zero matched results has a null status — the graph renders this as a neutral "no data" state, distinct from a real pass/fail.
 

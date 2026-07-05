@@ -578,6 +578,26 @@ ${STYLES}
       el.style.display = nodes.some(n => n.testStatus) ? '' : 'none';
     }
 
+    function scenarioTestDetailsHtml(scenario, id) {
+      const details = scenario.testDetails;
+      if (!details || !details.steps || details.steps.length === 0) {
+        return '<div class="scenario-test-details" id="' + id + '" onclick="event.stopPropagation()"><p>No test details available.</p></div>';
+      }
+      let html = '<div class="scenario-test-details" id="' + id + '" onclick="event.stopPropagation()">';
+      if (details.source) {
+        html += '<div class="test-source">' + escapeHtml(details.source) + '</div>';
+      }
+      details.steps.forEach(step => {
+        html += '<div class="test-step-detail">';
+        html += '<div class="test-step-title">' + statusBadge(step.status) + '<span>' + escapeHtml(step.text || '') + '</span></div>';
+        if (step.source) html += '<div class="test-step-source">' + escapeHtml(step.source) + '</div>';
+        if (step.definition) html += '<pre><code>' + escapeHtml(step.definition) + '</code></pre>';
+        html += '</div>';
+      });
+      html += '</div>';
+      return html;
+    }
+
     function renderFeatures(d) {
       const container = document.getElementById('panel-features-content');
       const featureFiles = d.featureFiles || [];
@@ -602,11 +622,15 @@ ${STYLES}
         html += '</div>';
         html += '<div class="feature-scenarios" id="feat-' + idx + '">';
         html += '<ul class="scenario-list">';
-        (f.scenarios || []).forEach(s => {
+        (f.scenarios || []).forEach((s, scenarioIdx) => {
           const scenario = typeof s === 'string' ? { name: s, steps: [] } : s;
-          html += '<li class="scenario-item">';
+          const detailId = 'scenario-detail-' + idx + '-' + scenarioIdx;
+          html += '<li class="scenario-item" data-detail-id="' + detailId + '">';
+          html += '<div class="scenario-title-row">';
           html += statusBadge(scenario.status);
           html += '<strong>' + escapeHtml(scenario.name) + '</strong>';
+          html += '<span class="scenario-detail-hint">details</span>';
+          html += '</div>';
           if (scenario.steps && scenario.steps.length > 0) {
             html += '<ul class="scenario-steps">';
             scenario.steps.forEach(step => {
@@ -614,6 +638,7 @@ ${STYLES}
             });
             html += '</ul>';
           }
+          html += scenarioTestDetailsHtml(scenario, detailId);
           html += '</li>';
         });
         html += '</ul>';
@@ -623,6 +648,11 @@ ${STYLES}
       });
 
       container.innerHTML = html;
+      container.querySelectorAll('.scenario-item').forEach(item => {
+        item.addEventListener('click', () => {
+          toggleScenarioDetails(item.dataset.detailId);
+        });
+      });
     }
 
     function toggleFeature(id) {
@@ -635,6 +665,12 @@ ${STYLES}
         el.classList.add('expanded');
         if (toggle) toggle.classList.add('expanded');
       }
+    }
+
+    function toggleScenarioDetails(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('expanded');
     }
 
     // Render spec body (markdown preview)
