@@ -4,7 +4,7 @@
   "description": "Spec-driven dependency graph visualizer with composable modules and feature tracking",
   "type": "module",
   "bin": {
-    "m21": "./bin/m21.js"
+    "m21": "bin/m21.js"
   },
   "main": "./src/parser.js",
   "exports": {
