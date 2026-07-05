@@ -335,6 +335,7 @@
   <div class="inner">
     <a href="#" class="logo">modspec</a>
     <ul class="links">
+      <li><a href="#vision">Vision</a></li>
       <li><a href="#features">Features</a></li>
       <li><a href="#how-it-works">How it works</a></li>
       <li><a href="spec.html">Spec Format</a></li>
@@ -349,10 +350,36 @@
   <p>Define project specs in markdown. Declare dependencies and feature contracts with YAML frontmatter. Overlay your test results and visualize everything as a live, interactive graph.</p>
   <div class="hero-actions">
     <a href="https://github.com/moejay/modspec" class="btn btn-primary">Get started</a>
+    <a href="vision.html" class="btn btn-secondary">Read the vision</a>
     <a href="#how-it-works" class="btn btn-secondary">See how it works</a>
   </div>
   <div class="install-block">
     <span class="prompt">$</span> npx @moejay/modspec ./spec/
+  </div>
+</section>
+
+<section class="section" id="vision">
+  <div class="section-label">Vision</div>
+  <h2>Higher-level tooling for understandable software</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="icon">&#9670;</span>
+      <h3>Specs describe intent</h3>
+      <p>Capture what each module is responsible for, what it depends on, and what it deliberately does not own.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">&#8594;</span>
+      <h3>Contracts over vibes</h3>
+      <p>Dependency edges name the exact features they use, making architecture traceable instead of implicit.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">&#8635;</span>
+      <h3>Living documentation</h3>
+      <p>Specs, Gherkin scenarios, test results, and the graph reinforce each other so docs do not drift from behavior.</p>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 36px;">
+    <a href="vision.html" class="btn btn-secondary">Read the full vision</a>
   </div>
 </section>
 

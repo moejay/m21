@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>modspec vision</title>
+  <meta name="description" content="The modspec vision: higher-level tooling for maintainable, extensible, reliable, clean, understandable software.">
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --surface: #16213e;
+      --border: #0f3460;
+      --accent: #e94560;
+      --accent-glow: rgba(233, 69, 96, 0.25);
+      --text: #e0e0e0;
+      --text-dim: #aaa;
+      --text-muted: #666;
+      --code-bg: #0d0d1a;
+      --teal: #53a8b6;
+      --radius: 12px;
+      --max-w: 900px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      background: rgba(15, 15, 26, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav .inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    nav .logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+    }
+
+    nav .links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    nav .links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    nav .links a:hover { color: var(--text); }
+
+    .hero {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 150px 24px 72px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--accent-glow);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 99px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(38px, 6vw, 64px);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--text) 0%, var(--teal) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 19px;
+      color: var(--text-dim);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    main {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px 96px;
+    }
+
+    section {
+      margin-top: 64px;
+    }
+
+    h2 {
+      font-size: 30px;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: var(--text-dim);
+      margin-bottom: 18px;
+    }
+
+    ul, ol {
+      color: var(--text-dim);
+      padding-left: 24px;
+      margin: 0 0 18px;
+    }
+
+    li { margin-bottom: 10px; }
+    strong { color: var(--text); }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .card p {
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .callout {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-top: 32px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    footer a, main a {
+      color: var(--teal);
+      text-decoration: none;
+    }
+
+    footer a:hover, main a:hover { color: var(--text); }
+
+    @media (max-width: 600px) {
+      .hero { padding: 120px 20px 52px; }
+      main { padding: 0 20px 64px; }
+      nav .links { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="inner">
+    <a href="index.html" class="logo">modspec</a>
+    <ul class="links">
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#how-it-works">How it works</a></li>
+      <li><a href="spec.html">Spec Format</a></li>
+      <li><a href="https://github.com/moejay/modspec">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <span class="badge">Vision</span>
+  <h1>Higher-level tooling for understandable software</h1>
+  <p>modspec is an experiment in helping people build systems that stay maintainable, extensible, reliable, professional, clean, and understandable as they grow.</p>
+</header>
+
+<main>
+  <section>
+    <h2>What modspec is trying to prove</h2>
+    <p>A software project can be easier to understand and safer to change when its structure is captured in a small set of living artifacts:</p>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Specs describe intent</h3>
+        <p>A spec explains what a module owns, what it depends on, and what it deliberately does not own.</p>
+      </div>
+      <div class="card">
+        <h3>Features define contracts</h3>
+        <p>Gherkin scenarios describe the observable behavior a module offers to the rest of the system.</p>
+      </div>
+      <div class="card">
+        <h3>Dependencies are explicit</h3>
+        <p>A module should not just depend on another module; it should say which capabilities it relies on.</p>
+      </div>
+      <div class="card">
+        <h3>Tests close the loop</h3>
+        <p>Passing scenarios make the spec executable instead of aspirational.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why this matters</h2>
+    <p>Modern codebases often fail quietly. The code may still run, but the architecture becomes implicit, onboarding becomes oral tradition, tests drift from intent, and changes become risky because nobody can see the contracts between parts.</p>
+    <p>modspec aims to make those contracts durable. A maintainer should be able to open a project and quickly answer what the major modules are, what each one promises, what each one depends on, which behavior is tested, where the risky relationships are, and what is safe to change.</p>
+  </section>
+
+  <section>
+    <h2>Principles</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Understandable by default</h3>
+        <p>The primary audience is a human maintainer. Specs should be readable without knowing the implementation language or file layout.</p>
+      </div>
+      <div class="card">
+        <h3>Contracts over vibes</h3>
+        <p>A graph edge is more valuable when it says why the relationship exists.</p>
+      </div>
+      <div class="card">
+        <h3>Living documentation</h3>
+        <p>Specs, features, test results, and the graph should reinforce each other instead of drifting apart.</p>
+      </div>
+      <div class="card">
+        <h3>Professional software hygiene</h3>
+        <p>Clean boundaries, explicit responsibilities, reproducible tests, and visible risk help teams keep leverage over time.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The long-term direction</h2>
+    <ol>
+      <li>Describe the system as modules and contracts.</li>
+      <li>Visualize the relationships and risks.</li>
+      <li>Bind behavior to executable scenarios.</li>
+      <li>Use tooling and agents to safely evolve the system from the specs.</li>
+      <li>Keep documentation, tests, and implementation from drifting apart.</li>
+    </ol>
+    <div class="callout">
+      <p>The experiment succeeds if modspec helps builders move faster without making the system harder to understand later.</p>
+      <p>Read the source version in <a href="https://github.com/moejay/modspec/blob/main/VISION.md">VISION.md</a>.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>modspec &mdash; built for spec-driven development &middot; <a href="https://github.com/moejay/modspec">GitHub</a></p>
+</footer>
+</body>
+</html>

@@ -1,5 +1,5 @@
 Feature: results-parsing
-  Parse a Cucumber JSON test report into a normalized feature/scenario status lookup.
+  Parse supported JSON test reports into a normalized feature/scenario status lookup.
 
   Scenario: Scenario passes when all steps pass
     Given a scenario whose steps all have status "passed"

@@ -1,6 +1,6 @@
 ---
 name: results-parser
-description: Parses language-agnostic Cucumber JSON test results and merges scenario pass/fail status onto specs
+description: Parses Cucumber, Jest, and vitest JSON test results and merges scenario pass/fail status onto specs
 group: foundation
 tags: [parser, test-results, cucumber, bdd]
 depends_on:

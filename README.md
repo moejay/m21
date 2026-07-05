@@ -6,6 +6,14 @@ Markdown-driven spec files with dependency graphs, feature tracking, and group c
 
 modspec lets you define project specs as simple markdown files with YAML frontmatter. Each spec declares its name, dependencies, group, tags, and an optional path to Gherkin `.feature` files. Specs are composable modules — child specs declare which features they use from parent specs, creating traceable contracts between modules. modspec renders everything as a live, interactive dependency graph in the browser.
 
+## Vision
+
+modspec is an experiment in higher-level software tooling for building maintainable, extensible, reliable, professional, clean, and understandable software. It treats a project as a network of purposeful modules with explicit responsibilities, dependencies, and executable feature contracts.
+
+The goal is living architecture: specs describe intent, Gherkin features define contracts, dependency edges explain which capabilities are used, and test results close the loop so documentation, behavior, and implementation stay aligned.
+
+Read the full vision in [VISION.md](VISION.md).
+
 ## Install
 
 ```bash
@@ -196,7 +204,7 @@ Results join onto specs by feature name and scenario name: each node is ringed g
 npx @moejay/modspec <directory>                       Start dev server with live reload (default)
 npx @moejay/modspec <directory> --output <file>       Save graph to a static HTML file
 npx @moejay/modspec <directory> --port <number>       Custom port for dev server (default: 3333)
-npx @moejay/modspec <directory> --results <file>      Overlay Cucumber JSON test results on the graph
+npx @moejay/modspec <directory> --results <file>      Overlay Cucumber, Jest, or vitest JSON test results
 npx @moejay/modspec <directory> -y                    Auto-create spec directory if missing
 npx @moejay/modspec --help                            Show help
 ```
