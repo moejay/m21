@@ -232,8 +232,8 @@ M21 is itself spec-driven: every module has a spec in `spec/` and Gherkin scenar
 ```bash
 npm test          # run the suite once; also writes results/vitest-results.json
 npm run test:watch
-npm run docs:graph        # refresh docs/graph.html, including test overlay when results exist
-npm run docs:graph:check  # CI check: generated static export must match docs/graph.html
+npm run docs:graph        # refresh docs/graph-export.html, including test overlay when results exist
+npm run docs:graph:check  # CI check: generated static export must match docs/graph-export.html
 npm run setup:githooks    # install the local pre-commit hook for static export refreshes
 ```
 
@@ -242,7 +242,7 @@ npm run setup:githooks    # install the local pre-commit hook for static export 
 ```bash
 npm test
 npx . ./spec/     # the graph lights up green with each module's passed/total count
-npm run docs:graph # writes the same overlay into docs/graph.html for GitHub Pages
+npm run docs:graph # writes the same overlay into docs/graph-export.html for GitHub Pages
 ```
 
 Requires Node ≥ 20.

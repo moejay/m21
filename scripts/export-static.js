@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const resultsPath = join(root, "results", "vitest-results.json");
-const args = [join(root, "bin", "m21.js"), join(root, "spec"), "--output", join(root, "docs", "graph.html")];
+const args = [join(root, "bin", "m21.js"), join(root, "spec"), "--output", join(root, "docs", "graph-export.html")];
 
 if (existsSync(resultsPath)) {
   args.push("--results", resultsPath);

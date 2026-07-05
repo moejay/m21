@@ -13,12 +13,12 @@ function run(command, args) {
 
 run(process.execPath, [join(root, "scripts", "export-static.js")]);
 
-const diff = spawnSync("git", ["diff", "--exit-code", "--", "docs/graph.html"], {
+const diff = spawnSync("git", ["diff", "--exit-code", "--", "docs/graph-export.html"], {
   cwd: root,
   stdio: "inherit",
 });
 
 if (diff.status !== 0) {
-  console.error("\nStatic export is out of date. Run `npm run docs:graph` and commit docs/graph.html.");
+  console.error("\nStatic export is out of date. Run `npm run docs:graph` and commit docs/graph-export.html.");
   process.exit(diff.status ?? 1);
 }

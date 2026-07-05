@@ -10,4 +10,4 @@ fi
 echo "M21 specs/features changed; refreshing static export with test overlay..."
 npm test
 npm run docs:graph
-git add docs/graph.html
+git add docs/graph-export.html
