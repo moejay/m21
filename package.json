@@ -1,6 +1,6 @@
 {
   "name": "@moejay/m21",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Spec-driven dependency graph visualizer with composable modules and feature tracking",
   "type": "module",
   "bin": {
