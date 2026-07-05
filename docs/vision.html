@@ -18,7 +18,7 @@
       --code-bg: #0d0d1a;
       --teal: #53a8b6;
       --radius: 12px;
-      --max-w: 900px;
+      --max-w: 960px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -73,6 +73,27 @@
     }
 
     nav .links a:hover { color: var(--text); }
+
+    nav .links a.active { color: var(--accent); }
+
+    nav .links a.external-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    nav .links .external-icon {
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      color: currentColor;
+    }
+
+    nav .links .external-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
 
     .hero {
       max-width: var(--max-w);
@@ -200,11 +221,13 @@
   <div class="inner">
     <a href="index.html" class="logo">M21</a>
     <ul class="links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="vision.html" class="active">Vision</a></li>
       <li><a href="index.html#features">Features</a></li>
       <li><a href="index.html#how-it-works">How it works</a></li>
       <li><a href="spec.html">Spec Format</a></li>
       <li><a href="graph.html">Project Graph</a></li>
-      <li><a href="https://github.com/moejay/m21">GitHub</a></li>
+      <li><a class="external-link" href="https://github.com/moejay/m21" target="_blank" rel="noopener noreferrer">GitHub <span class="external-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><path d="M3 3h6v1.5H4.5v7h7V7H13v6H3z"/><path d="M10 3h3v3h-1.5V5.56L7.53 9.53 6.47 8.47l3.97-3.97H10z"/></svg></span></a></li>
     </ul>
   </div>
 </nav>

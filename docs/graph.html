@@ -31,18 +31,16 @@
       position: fixed;
       top: 0;
       width: 100%;
-      height: var(--nav-h);
       z-index: 100;
-      background: rgba(15, 15, 26, 0.9);
+      background: rgba(15, 15, 26, 0.85);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
     }
 
     nav .inner {
       max-width: var(--max-w);
-      height: 100%;
       margin: 0 auto;
-      padding: 0 24px;
+      padding: 16px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -70,8 +68,28 @@
       transition: color 0.2s;
     }
 
-    nav .links a:hover,
-    nav .links a.active { color: var(--text); }
+    nav .links a:hover { color: var(--text); }
+
+    nav .links a.active { color: var(--accent); }
+
+    nav .links a.external-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    nav .links .external-icon {
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      color: currentColor;
+    }
+
+    nav .links .external-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
 
     .graph-frame {
       position: absolute;
@@ -100,7 +118,7 @@
     .fallback:hover { color: var(--text); }
 
     @media (max-width: 720px) {
-      nav .links { gap: 14px; }
+      nav .links { gap: 16px; }
       nav .links a { font-size: 12px; }
     }
   </style>
@@ -112,9 +130,11 @@
     <ul class="links">
       <li><a href="index.html">Home</a></li>
       <li><a href="vision.html">Vision</a></li>
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#how-it-works">How it works</a></li>
       <li><a href="spec.html">Spec Format</a></li>
       <li><a href="graph.html" class="active">Project Graph</a></li>
-      <li><a href="https://github.com/moejay/m21">GitHub</a></li>
+      <li><a class="external-link" href="https://github.com/moejay/m21" target="_blank" rel="noopener noreferrer">GitHub <span class="external-icon" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><path d="M3 3h6v1.5H4.5v7h7V7H13v6H3z"/><path d="M10 3h3v3h-1.5V5.56L7.53 9.53 6.47 8.47l3.97-3.97H10z"/></svg></span></a></li>
     </ul>
   </div>
 </nav>
