@@ -1,24 +1,25 @@
 Feature: layout-modes
-  Switch between force, tree, and manual layout modes.
+  Present one default tree-and-groups layout with optional node locking.
 
-  Scenario: Force layout (default)
+  Scenario: Default tree-and-groups layout
     Given no layout mode is selected
     When the graph renders
-    Then nodes are positioned by the force simulation and can be dragged
+    Then deeper dependents are arranged above depth-0 dependencies
+    And nodes in the same group are placed near each other horizontally
+    And force, tree, groups, and manual layout buttons are not shown
 
-  Scenario: Tree layout
-    Given the user switches to tree layout
-    When the layout changes
-    Then nodes are arranged hierarchically — depth-0 at top, increasing depth downward
-    And the force simulation is stopped
+  Scenario: Nodes are unlocked by default
+    Given the graph has rendered
+    When the user drags a node
+    Then the node moves to the cursor position
+    And the node remains fixed at the dropped position
 
-  Scenario: Manual layout
-    Given the user switches to manual layout
-    When the layout changes
-    Then all nodes are frozen at their current positions
-    And the force simulation is stopped
+  Scenario: Lock nodes to prevent manual positioning
+    Given the graph has rendered with nodes unlocked
+    When the user checks the lock nodes checkbox
+    Then dragging a node leaves it at its computed layout position
 
-  Scenario: Switch back to force
-    Given the layout was tree or manual
-    When the user switches to force
-    Then the simulation restarts and nodes begin moving
+  Scenario: Re-lock nodes returns to computed layout
+    Given a node has been manually moved while unlocked
+    When the user checks the lock nodes checkbox
+    Then nodes return to the tree-and-groups layout

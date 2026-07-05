@@ -1,6 +1,6 @@
 ---
 name: graph-client
-description: Browser-side interactive dependency graph — force simulation, side panel, editing
+description: Browser-side interactive dependency graph — stable layout, side panel, editing
 group: domain
 tags: [graph, browser, client-side, interactive]
 depends_on: []
@@ -11,9 +11,9 @@ features: features/graph-client/
 
 The interactive application that runs in the browser. It renders the spec dependency graph, lets the user explore it, and — in dev mode — edit specs and features inline.
 
-### Force simulation
+### Default layout
 
-The default layout is a physics simulation: nodes repel each other, dependency edges act as springs, the graph stays centered in the viewport, and colliding nodes push apart. Nodes can be dragged and settle naturally.
+The default layout combines dependency depth and grouping: dependency depth places modules in tree-like rows, while specs in the same group occupy the same horizontal band so related modules stay visually close. The default direction is top-down from deeper dependents toward depth-0 dependencies; a Reverse tree checkbox switches to the opposite direction. This gives the graph a stable architecture-first shape without requiring the user to choose a view.
 
 ### Graph elements
 
@@ -21,12 +21,9 @@ The default layout is a physics simulation: nodes repel each other, dependency e
 - **Links**: directed edges with arrow markers, with optional feature-use labels
 - **Group hulls**: convex outlines drawn around specs sharing the same `group` value, with colored fills and dashed borders
 
-### Layout modes
+### Node locking
 
-Three modes switchable via toolbar buttons:
-- **Force** (default): physics simulation — nodes can be dragged and settle
-- **Tree**: hierarchical arrangement by dependency depth — roots at top, leaves at bottom
-- **Manual**: freezes all nodes in place for precise positioning
+The graph has a single lock control instead of layout-mode buttons. Nodes are unlocked by default, starting from the computed tree-and-groups layout and allowing immediate manual positioning. When nodes are locked, the computed layout is restored and dragging is ignored. Dragging a group label moves every node in that group together when unlocked.
 
 ### Side panel
 
@@ -58,4 +55,4 @@ Scroll to zoom, click-drag on the background to pan. Node drag is handled separa
 
 ### Depth calculation
 
-Each spec's depth in the dependency graph is computed (memoized, cycle-tolerant): depth 0 means no dependencies. Depth drives both node coloring and tree-layout row placement.
+Each spec's depth in the dependency graph is computed (memoized, cycle-tolerant): depth 0 means no dependencies. Depth drives both node coloring and the default layout's row placement.

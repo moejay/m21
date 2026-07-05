@@ -12,8 +12,7 @@ const D3_MIN = readFileSync(join(moduleDir, "..", "vendor", "d3.min.js"), "utf-8
 const MARKED_MIN = readFileSync(join(moduleDir, "..", "vendor", "marked.min.js"), "utf-8");
 
 /**
- * Generate a self-contained HTML file with an interactive D3 force-directed
- * dependency graph styled like a neo4j browser.
+ * Generate a self-contained HTML file with an interactive D3 dependency graph.
  *
  * @param {Array} specs - parsed spec objects
  * @param {Object} [options]
@@ -184,18 +183,12 @@ export function generateHTML(specs, options = {}) {
         }
       }
 
-      // Re-apply current layout
-      if (currentLayout === 'tree') {
-        computeTreePositions();
-        simulation.alpha(0.3).restart();
-      } else if (currentLayout === 'groups') {
-        computeGroupsPositions();
-        simulation.alpha(0.3).restart();
-      } else if (currentLayout === 'manual') {
+      // Re-apply current lock state after data changes.
+      if (nodesLocked) {
+        applyComputedLayout();
+      } else {
         nodes.forEach(n => { n.fx = n.x; n.fy = n.y; });
         tickUpdate();
-      } else {
-        simulation.alpha(0.3).restart();
       }
     }
 
@@ -285,10 +278,14 @@ ${STYLES}
 <body>
   <div class="title-bar"><span>modspec</span> dependency graph <span id="cycle-badge" class="cycle-badge" style="display:none;"></span></div>
   <div class="layout-toolbar">
-    <button class="layout-btn active" id="layout-force" onclick="setLayout('force')">Force</button>
-    <button class="layout-btn" id="layout-tree" onclick="setLayout('tree')">Tree</button>
-    <button class="layout-btn" id="layout-groups" onclick="setLayout('groups')">Groups</button>
-    <button class="layout-btn" id="layout-manual" onclick="setLayout('manual')">Manual</button>
+    <label class="layout-lock">
+      <input type="checkbox" id="lock-nodes">
+      Lock nodes
+    </label>
+    <label class="layout-lock">
+      <input type="checkbox" id="reverse-tree">
+      Reverse tree
+    </label>
     <span style="width:1px;height:20px;background:#0f3460;margin:0 8px;"></span>
     <button class="layout-btn" id="toggle-edge-labels" onclick="toggleEdgeLabels()">Edge Labels</button>
   </div>
@@ -733,15 +730,14 @@ ${STYLES}
     const hullGroup = g.append("g").attr("class", "hulls");
     const hullLabelGroup = g.append("g").attr("class", "hull-labels");
 
-    // Layout state
-    let currentLayout = 'force';
+    // Layout state: locked keeps the computed tree-and-groups layout;
+    // unlocked lets users manually position nodes by dragging.
+    let nodesLocked = false;
+    let reverseTree = false;
 
-    // Force simulation
-    const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(120))
-      .force("charge", d3.forceManyBody().strength(-400))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(40));
+    // A stopped simulation owns node/link data for d3 compatibility, but the
+    // default view is computed and stable.
+    const simulation = d3.forceSimulation(nodes).stop();
 
     // Draw links
     const link = g.selectAll(".link")
@@ -889,6 +885,10 @@ ${STYLES}
       labels.enter()
         .append("text")
         .attr("class", "group-label")
+        .call(d3.drag()
+          .on("start", groupDragStarted)
+          .on("drag", groupDragged)
+          .on("end", groupDragEnded))
         .merge(labels)
         .text(d => d.group)
         .attr("x", d => {
@@ -903,17 +903,22 @@ ${STYLES}
         .attr("fill", d => groupColorScale(d.group));
     }
 
-    // Simulation tick — updates positions for links, labels, nodes, and hulls
+    function linkEndpoint(ref) {
+      if (typeof ref !== 'string') return ref;
+      return nodes.find(n => n.id === ref) || { x: 0, y: 0 };
+    }
+
+    // Updates positions for links, labels, nodes, and hulls
     function tickUpdate() {
       link
-        .attr("x1", d => d.source.x)
-        .attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y);
+        .attr("x1", d => linkEndpoint(d.source).x)
+        .attr("y1", d => linkEndpoint(d.source).y)
+        .attr("x2", d => linkEndpoint(d.target).x)
+        .attr("y2", d => linkEndpoint(d.target).y);
 
       linkLabel
-        .attr("x", d => (d.source.x + d.target.x) / 2)
-        .attr("y", d => (d.source.y + d.target.y) / 2 - 6);
+        .attr("x", d => (linkEndpoint(d.source).x + linkEndpoint(d.target).x) / 2)
+        .attr("y", d => (linkEndpoint(d.source).y + linkEndpoint(d.target).y) / 2 - 6);
 
       node.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
 
@@ -924,171 +929,157 @@ ${STYLES}
 
     // Drag handlers
     function dragStarted(event, d) {
-      if (currentLayout === 'force') {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-      } else if (currentLayout === 'manual') {
-        d.fx = d.x;
-        d.fy = d.y;
-      }
-      // tree: no drag
+      if (nodesLocked || !d) return;
+      d.fx = d.x;
+      d.fy = d.y;
     }
 
     function dragged(event, d) {
-      if (currentLayout === 'force') {
-        d.fx = event.x;
-        d.fy = event.y;
-      } else if (currentLayout === 'manual') {
-        d.x = event.x;
-        d.y = event.y;
-        d.fx = event.x;
-        d.fy = event.y;
-        tickUpdate();
-      }
+      if (nodesLocked || !d) return;
+      d.x = event.x;
+      d.y = event.y;
+      d.fx = event.x;
+      d.fy = event.y;
+      tickUpdate();
     }
 
     function dragEnded(event, d) {
-      if (currentLayout === 'force') {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-      }
-      // manual: keep fx/fy so node stays put
+      if (nodesLocked || !d) return;
+      d.fx = d.x;
+      d.fy = d.y;
+      tickUpdate();
     }
 
-    // --- Tree layout ---
-    // Compute tree positions: roots at top, children below
-    function computeTreePositions() {
+    function groupDragStarted(event, d) {
+      if (nodesLocked || !d) return;
+      (d.members || []).forEach(n => {
+        n.fx = n.x;
+        n.fy = n.y;
+      });
+    }
+
+    function groupDragged(event, d) {
+      if (nodesLocked || !d) return;
+      const dx = event.dx || 0;
+      const dy = event.dy || 0;
+      (d.members || []).forEach(n => {
+        n.x += dx;
+        n.y += dy;
+        n.fx = n.x;
+        n.fy = n.y;
+      });
+      tickUpdate();
+    }
+
+    function groupDragEnded(event, d) {
+      if (nodesLocked || !d) return;
+      (d.members || []).forEach(n => {
+        n.fx = n.x;
+        n.fy = n.y;
+      });
+      tickUpdate();
+    }
+
+    // --- Default tree-and-groups layout ---
+    // Depth controls vertical rows. Group controls horizontal bands. Nodes that
+    // share both depth and group receive small offsets so they never overlap.
+    function computeDefaultPositions() {
       const w = window.innerWidth;
       const h = window.innerHeight;
+      const marginX = 120;
+      const yPad = 90;
 
-      // Group nodes by depth
-      const byDepth = {};
-      let maxD = 0;
-      nodes.forEach(n => {
-        const d = depthMemo[n.id] || 0;
-        if (!byDepth[d]) byDepth[d] = [];
-        byDepth[d].push(n);
-        if (d > maxD) maxD = d;
+      const groupKeys = [...new Set(nodes.map(n => n.group || '(ungrouped)'))].sort();
+      const groupCenter = {};
+      const usableW = Math.max(1, w - marginX * 2);
+      groupKeys.forEach((group, i) => {
+        groupCenter[group] = groupKeys.length === 1
+          ? w / 2
+          : marginX + (usableW * i) / (groupKeys.length - 1);
       });
 
-      const levelCount = maxD + 1;
-      const yPad = 80;
-      const ySpacing = Math.min(140, (h - yPad * 2) / Math.max(levelCount - 1, 1));
+      const depths = nodes.map(n => depthMemo[n.id] || 0);
+      const maxD = Math.max(0, ...depths);
+      const ySpacing = maxD === 0 ? 0 : Math.min(150, (h - yPad * 2) / maxD);
 
-      for (let depth = 0; depth <= maxD; depth++) {
-        const row = byDepth[depth] || [];
-        const xSpacing = w / (row.length + 1);
-        row.forEach((n, i) => {
-          n.fx = xSpacing * (i + 1);
-          n.fy = yPad + depth * ySpacing;
+      const buckets = {};
+      nodes.forEach(n => {
+        const depth = depthMemo[n.id] || 0;
+        const displayDepth = reverseTree ? depth : maxD - depth;
+        const group = n.group || '(ungrouped)';
+        const key = displayDepth + '|' + group;
+        if (!buckets[key]) buckets[key] = [];
+        buckets[key].push(n);
+      });
+
+      Object.values(buckets).forEach(bucket => {
+        bucket.sort((a, b) => a.id.localeCompare(b.id));
+        const depth = depthMemo[bucket[0].id] || 0;
+        const displayDepth = reverseTree ? depth : maxD - depth;
+        const group = bucket[0].group || '(ungrouped)';
+        const centerX = groupCenter[group];
+        const y = yPad + displayDepth * ySpacing;
+        const spacing = 72;
+        const start = -((bucket.length - 1) * spacing) / 2;
+        bucket.forEach((n, i) => {
+          n.x = centerX + start + i * spacing;
+          n.y = y;
+          n.fx = n.x;
+          n.fy = n.y;
         });
-      }
-    }
-
-    // --- Groups layout ---
-    // Arrange nodes in a grid of clusters, one cluster per group.
-    // Nodes without a group go into a dedicated "(ungrouped)" cluster.
-    function computeGroupsPositions() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-
-      const byGroup = {};
-      nodes.forEach(n => {
-        const key = n.group || '(ungrouped)';
-        if (!byGroup[key]) byGroup[key] = [];
-        byGroup[key].push(n);
-      });
-
-      const groupKeys = Object.keys(byGroup).sort();
-      const groupCount = groupKeys.length;
-      if (groupCount === 0) return;
-
-      const cols = Math.ceil(Math.sqrt(groupCount));
-      const rows = Math.ceil(groupCount / cols);
-      const cellW = w / cols;
-      const cellH = h / rows;
-
-      groupKeys.forEach((key, idx) => {
-        const col = idx % cols;
-        const row = Math.floor(idx / cols);
-        const cx = cellW * (col + 0.5);
-        const cy = cellH * (row + 0.5);
-        const members = byGroup[key];
-        const ringCount = members.length;
-        const radius = Math.min(cellW, cellH) * 0.32;
-        if (ringCount === 1) {
-          members[0].fx = cx;
-          members[0].fy = cy;
-        } else {
-          members.forEach((n, i) => {
-            const angle = (i / ringCount) * Math.PI * 2 - Math.PI / 2;
-            n.fx = cx + Math.cos(angle) * radius;
-            n.fy = cy + Math.sin(angle) * radius;
-          });
-        }
       });
     }
 
-    // --- Layout switching ---
-    function setLayout(layout) {
-      currentLayout = layout;
-      document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('layout-' + layout).classList.add('active');
+    function applyComputedLayout() {
+      computeDefaultPositions();
+      simulation.stop();
+      tickUpdate();
+    }
 
-      if (layout === 'force') {
-        // Release all fixed positions, restart simulation
-        nodes.forEach(n => { n.fx = null; n.fy = null; });
-        simulation.force("link", d3.forceLink(links).id(d => d.id).distance(120));
-        simulation.force("charge", d3.forceManyBody().strength(-400));
-        simulation.force("center", d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2));
-        simulation.force("collision", d3.forceCollide().radius(40));
-        simulation.alpha(1).restart();
-      } else if (layout === 'tree') {
-        // Stop simulation forces, pin nodes to tree positions
-        simulation.force("link", null);
-        simulation.force("charge", null);
-        simulation.force("center", null);
-        simulation.force("collision", null);
-        computeTreePositions();
-        simulation.alpha(0.5).restart();
-      } else if (layout === 'groups') {
-        // Stop simulation forces, pin nodes into group clusters
-        simulation.force("link", null);
-        simulation.force("charge", null);
-        simulation.force("center", null);
-        simulation.force("collision", null);
-        computeGroupsPositions();
-        simulation.alpha(0.5).restart();
-      } else if (layout === 'manual') {
-        // Stop simulation entirely, keep nodes where they are
-        simulation.force("link", null);
-        simulation.force("charge", null);
-        simulation.force("center", null);
-        simulation.force("collision", null);
+    function setNodesLocked(locked) {
+      nodesLocked = !!locked;
+      const checkbox = document.getElementById('lock-nodes');
+      if (checkbox) checkbox.checked = nodesLocked;
+
+      if (nodesLocked) {
+        applyComputedLayout();
+      } else {
         simulation.stop();
-        // Pin all nodes at current positions
         nodes.forEach(n => {
           n.fx = n.x;
           n.fy = n.y;
         });
+        tickUpdate();
       }
+    }
+
+    function setReverseTree(reversed) {
+      reverseTree = !!reversed;
+      const checkbox = document.getElementById('reverse-tree');
+      if (checkbox) checkbox.checked = reverseTree;
+      applyComputedLayout();
     }
 
     // Handle window resize
     window.addEventListener("resize", () => {
-      if (currentLayout === 'force') {
-        simulation.force("center", d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2));
-        simulation.alpha(0.3).restart();
-      } else if (currentLayout === 'tree') {
-        computeTreePositions();
-        simulation.alpha(0.3).restart();
-      } else if (currentLayout === 'groups') {
-        computeGroupsPositions();
-        simulation.alpha(0.3).restart();
-      }
+      applyComputedLayout();
     });
+
+    const lockNodesCheckbox = document.getElementById('lock-nodes');
+    if (lockNodesCheckbox) {
+      lockNodesCheckbox.addEventListener('change', event => {
+        setNodesLocked(event.target.checked);
+      });
+    }
+
+    const reverseTreeCheckbox = document.getElementById('reverse-tree');
+    if (reverseTreeCheckbox) {
+      reverseTreeCheckbox.addEventListener('change', event => {
+        setReverseTree(event.target.checked);
+      });
+    }
+
+    applyComputedLayout();
 
     // Non-live-reload stubs for edit functions
     function startSpecEdit() {}

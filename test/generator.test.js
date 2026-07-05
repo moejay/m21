@@ -90,13 +90,15 @@ describe("generateHTML", () => {
     expect(html).toContain('id="panel-tags"');
   });
 
-  it("includes force simulation with drag, zoom, and collision", () => {
+  it("includes stable layout controls with drag and zoom", () => {
     const html = generateHTML(sampleSpecs);
 
-    expect(html).toContain("d3.forceSimulation");
+    expect(html).toContain('id="lock-nodes"');
+    expect(html).toContain('id="reverse-tree"');
+    expect(html).toContain("computeDefaultPositions");
     expect(html).toContain("d3.zoom");
     expect(html).toContain("d3.drag");
-    expect(html).toContain("d3.forceCollide");
+    expect(html).not.toContain('id="layout-force"');
   });
 
   it("includes arrow markers for directed edges", () => {

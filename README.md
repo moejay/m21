@@ -186,11 +186,11 @@ Results join onto specs by feature name and scenario name: each node is ringed g
 
 ## Features
 
-- **Interactive graph** — D3 force-directed dependency visualization with zoom, pan, and drag
+- **Interactive graph** — D3 dependency visualization with zoom, pan, and drag
 - **Group clustering** — Specs in the same group are visually clustered with colored hulls
 - **Feature tracking** — See which features flow along each dependency edge
 - **Test results overlay** — Point modspec at a Cucumber JSON **or** Jest/vitest JSON report and the graph colours each node by pass/fail, shows a `passed/total` count inside every circle, and lists per-scenario status pills in the side panel. Auto-detected from `results/`, `reports/`, `test-results/`, or pass `--results <file>`. Live-updates as tests re-run
-- **Three layout modes** — Force (physics-based), Tree (top-down hierarchy), Manual (free positioning)
+- **Tree-and-groups layout** — Default architecture view combines dependency depth with group clustering. Nodes start unlocked for manual positioning, group labels drag whole groups, and checkboxes can lock nodes or reverse the tree direction
 - **Side panel** — Click any node to see description, group, tags, dependencies with used features, rendered markdown body, and Gherkin scenarios
 - **Composable specs** — Specs are modules with clear interfaces defined by their features
 - **Live reload** — Dev server watches your spec and feature files, pushes changes via SSE instantly

@@ -11,12 +11,18 @@ Feature: group-clustering
     When the graph renders
     Then no hull is drawn for that group
 
-  Scenario: Update hulls on tick
-    Given nodes are moving in force layout
-    When each simulation tick fires
+  Scenario: Update hulls after node movement
+    Given nodes can be manually moved when unlocked
+    When a node in a group moves
     Then hull polygons are recalculated to follow node positions
 
   Scenario: Group label
     Given a group hull is drawn
     When the graph renders
     Then a text label with the group name is positioned at the hull centroid
+
+  Scenario: Drag group label moves the group
+    Given nodes are unlocked and a group label is visible
+    When the user drags the group label
+    Then every node in that group moves by the drag amount
+    And the group hull follows the moved nodes

@@ -11,10 +11,10 @@ Feature: zoom-and-drag
     When the user clicks and drags on the SVG background
     Then the view pans in the drag direction
 
-  Scenario: Drag a node in force mode
-    Given the layout is force mode
+  Scenario: Drag a node when unlocked
+    Given nodes are unlocked for manual positioning
     When the user clicks and drags a node
-    Then the node follows the cursor and the simulation adjusts surrounding nodes
+    Then the node follows the cursor and stays at the dropped position
 
   Scenario: Drag does not trigger pan
     Given the user is dragging a node

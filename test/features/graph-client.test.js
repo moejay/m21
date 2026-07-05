@@ -165,12 +165,12 @@ function panel() {
 }
 
 // ---------------------------------------------------------------------------
-// force-simulation
+// layout-positioning
 // ---------------------------------------------------------------------------
-const forceSim = await loadFeature("features/graph-client/force-simulation.feature");
+const layoutPositioning = await loadFeature("features/graph-client/layout-positioning.feature");
 
-describeFeature(forceSim, ({ Scenario }) => {
-  Scenario("Initialize force simulation", ({ Given, When, Then }) => {
+describeFeature(layoutPositioning, ({ Scenario }) => {
+  Scenario("Initialize computed positions", ({ Given, When, Then }) => {
     let ctx;
     Given("specs have been parsed into nodes and links", () => {
       ctx = makeSpecs();
@@ -179,93 +179,92 @@ describeFeature(forceSim, ({ Scenario }) => {
     When("the graph initializes", () => {
       renderApp(ctx);
     });
-    Then("a force simulation is created with charge, link, center, and collision forces", async () => {
-      await settle();
-      // The simulation rendered nodes and links as SVG; a tick gives each node a
-      // numeric position via the configured forces.
+    Then("each node receives a finite computed position", () => {
       expect(circles().length).toBe(ctx.length);
-      expect(document.querySelectorAll("line.link").length).toBeGreaterThan(0);
-      const d = nodeDatum("core");
-      expect(Number.isFinite(d.x)).toBe(true);
-      expect(Number.isFinite(d.y)).toBe(true);
-    });
-  });
-
-  Scenario("Node repulsion via charge force", ({ Given, When, Then }) => {
-    Given("multiple nodes in the simulation", () => {
-      renderApp();
-      expect(circles().length).toBeGreaterThan(1);
-    });
-    When("forces are applied", async () => {
-      await settle();
-    });
-    Then("forceManyBody with strength -300 pushes nodes apart", () => {
-      // Charge repulsion spreads nodes to distinct positions rather than stacking.
-      const positions = [...document.querySelectorAll(".node")].map((g) =>
-        g.getAttribute("transform"),
-      );
-      const unique = new Set(positions);
-      expect(unique.size).toBe(positions.length);
-    });
-  });
-
-  Scenario("Link distance", ({ Given, When, Then }) => {
-    Given("dependency links between nodes", () => {
-      renderApp();
-    });
-    When("forces are applied", async () => {
-      await settle(60);
-    });
-    Then("forceLink keeps connected nodes at approximately 150px distance", () => {
-      // Connected nodes settle to finite, separated positions under the link force.
-      const after = nodeTranslate("ui");
-      expect(Number.isFinite(after.x)).toBe(true);
-      expect(Number.isFinite(after.y)).toBe(true);
-      const api = nodeTranslate("api");
-      const dist = Math.hypot(after.x - api.x, after.y - api.y);
-      expect(dist).toBeGreaterThan(0);
-    });
-  });
-
-  Scenario("Collision prevention", ({ Given, When, Then }) => {
-    Given("nodes have radii based on dependent count", () => {
-      renderApp();
-      // core is depended on by several specs → larger radius than a leaf.
-      const coreR = parseFloat(nodeGroupFor("core").querySelector("circle").getAttribute("r"));
-      const uiR = parseFloat(nodeGroupFor("ui").querySelector("circle").getAttribute("r"));
-      expect(coreR).toBeGreaterThan(uiR);
-    });
-    When("forces are applied", async () => {
-      await settle(60);
-    });
-    Then("forceCollide prevents node circles from overlapping", () => {
-      // After settling, every pair of nodes occupies a distinct position.
-      const datums = ["core", "db", "cache", "api", "ui", "tooling"].map(nodeDatum);
-      for (let i = 0; i < datums.length; i++) {
-        for (let j = i + 1; j < datums.length; j++) {
-          const d = Math.hypot(datums[i].x - datums[j].x, datums[i].y - datums[j].y);
-          expect(d).toBeGreaterThan(0);
-        }
+      for (const spec of ctx) {
+        const d = nodeDatum(spec.name);
+        expect(Number.isFinite(d.x)).toBe(true);
+        expect(Number.isFinite(d.y)).toBe(true);
       }
     });
   });
 
-  Scenario("Tick updates positions", ({ Given, When, Then }) => {
-    Given("the simulation is running", () => {
+  Scenario("Default top-down depth position", ({ Given, When, Then }) => {
+    Given("a dependency chain crosses multiple depths", () => {
       renderApp();
     });
-    When("each tick fires", async () => {
-      await settle(60);
+    When("the graph initializes", () => {});
+    Then("deeper dependents are above depth-0 dependencies", () => {
+      const core = nodeTranslate("core");
+      const db = nodeTranslate("db");
+      const api = nodeTranslate("api");
+      const ui = nodeTranslate("ui");
+      expect(ui.y).toBeLessThan(api.y);
+      expect(api.y).toBeLessThan(db.y);
+      expect(db.y).toBeLessThan(core.y);
     });
-    Then("node and link SVG elements are repositioned to match simulation coordinates", () => {
-      // Node <g> transform mirrors its datum coordinates; links carry endpoints.
-      const d = nodeDatum("api");
-      const t = nodeTranslate("api");
-      expect(t.x).toBeCloseTo(d.x, 3);
-      expect(t.y).toBeCloseTo(d.y, 3);
+  });
+
+  Scenario("Reverse tree direction", ({ Given, When, Then }) => {
+    Given("the graph has rendered with top-down depth positions", () => {
+      renderApp();
+      const core = nodeTranslate("core");
+      const ui = nodeTranslate("ui");
+      expect(ui.y).toBeLessThan(core.y);
+    });
+    When("the user checks the reverse tree checkbox", () => {
+      const checkbox = document.getElementById("reverse-tree");
+      checkbox.checked = true;
+      checkbox.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    Then("depth-0 dependencies are above deeper dependents", () => {
+      const core = nodeTranslate("core");
+      const db = nodeTranslate("db");
+      const api = nodeTranslate("api");
+      const ui = nodeTranslate("ui");
+      expect(core.y).toBeLessThan(db.y);
+      expect(db.y).toBeLessThan(api.y);
+      expect(api.y).toBeLessThan(ui.y);
+    });
+  });
+
+  Scenario("Groups control horizontal position", ({ Given, When, Then }) => {
+    Given("multiple nodes share a group", () => {
+      renderApp();
+    });
+    When("the graph initializes", () => {});
+    Then("grouped nodes are placed closer to each other than to nodes in other groups", () => {
+      const db = nodeTranslate("db");
+      const cache = nodeTranslate("cache");
+      const api = nodeTranslate("api");
+      expect(Math.abs(db.x - cache.x)).toBeLessThan(Math.abs(db.x - api.x));
+    });
+  });
+
+  Scenario("Link endpoints follow positioned nodes", ({ Given, When, Then }) => {
+    Given("dependency links between positioned nodes", () => {
+      renderApp();
+    });
+    When("the graph renders", () => {});
+    Then("link SVG elements connect the positioned source and target nodes", () => {
       const line = document.querySelector("line.link");
       expect(Number.isFinite(parseFloat(line.getAttribute("x1")))).toBe(true);
+      expect(Number.isFinite(parseFloat(line.getAttribute("y1")))).toBe(true);
+      expect(Number.isFinite(parseFloat(line.getAttribute("x2")))).toBe(true);
       expect(Number.isFinite(parseFloat(line.getAttribute("y2")))).toBe(true);
+    });
+  });
+
+  Scenario("Collision offsets separate neighbors", ({ Given, When, Then }) => {
+    Given("nodes share the same depth and group", () => {
+      renderApp();
+    });
+    When("positions are computed", () => {});
+    Then("the nodes have distinct positions instead of overlapping", () => {
+      const db = nodeTranslate("db");
+      const cache = nodeTranslate("cache");
+      expect(db.x).not.toBe(cache.x);
+      expect(db.y).toBe(cache.y);
     });
   });
 });
@@ -373,92 +372,101 @@ describeFeature(sidePanel, ({ Scenario }) => {
 const layoutModes = await loadFeature("features/graph-client/layout-modes.feature");
 
 describeFeature(layoutModes, ({ Scenario }) => {
-  Scenario("Force layout (default)", ({ Given, When, Then }) => {
+  Scenario("Default tree-and-groups layout", ({ Given, When, Then, And }) => {
     Given("no layout mode is selected", () => {
       renderApp();
     });
-    When("the graph renders", async () => {
-      await settle();
+    When("the graph renders", () => {});
+    Then("deeper dependents are arranged above depth-0 dependencies", () => {
+      const core = nodeTranslate("core");
+      const db = nodeTranslate("db");
+      const ui = nodeTranslate("ui");
+      expect(ui.y).toBeLessThan(db.y);
+      expect(db.y).toBeLessThan(core.y);
     });
-    Then("nodes are positioned by the force simulation and can be dragged", () => {
-      // Force is the default active layout, nodes have numeric positions, and the
-      // d3 drag handlers update fx/fy in force mode.
-      expect(document.getElementById("layout-force").classList.contains("active")).toBe(true);
-      const d = nodeDatum("core");
-      expect(Number.isFinite(d.x)).toBe(true);
+    And("nodes in the same group are placed near each other horizontally", () => {
+      const db = nodeTranslate("db");
+      const cache = nodeTranslate("cache");
+      const api = nodeTranslate("api");
+      expect(Math.abs(db.x - cache.x)).toBeLessThan(Math.abs(db.x - api.x));
+    });
+    And("force, tree, groups, and manual layout buttons are not shown", () => {
+      expect(document.getElementById("layout-force")).toBeNull();
+      expect(document.getElementById("layout-tree")).toBeNull();
+      expect(document.getElementById("layout-groups")).toBeNull();
+      expect(document.getElementById("layout-manual")).toBeNull();
+    });
+  });
+
+  Scenario("Nodes are unlocked by default", ({ Given, When, Then, And }) => {
+    let d;
+    Given("the graph has rendered", () => {
+      renderApp();
+      d = nodeDatum("api");
+      expect(document.getElementById("lock-nodes").checked).toBe(false);
+    });
+    When("the user drags a node", () => {
+      window.dragStarted({ active: 0 }, d);
+      window.dragged({ x: 333, y: 222 }, d);
+    });
+    Then("the node moves to the cursor position", () => {
+      expect(d.x).toBe(333);
+      expect(d.y).toBe(222);
+    });
+    And("the node remains fixed at the dropped position", () => {
+      window.dragEnded({ active: 0 }, d);
+      expect(d.fx).toBe(333);
+      expect(d.fy).toBe(222);
+    });
+  });
+
+  Scenario("Lock nodes to prevent manual positioning", ({ Given, When, Then }) => {
+    let d;
+    let before;
+    Given("the graph has rendered with nodes unlocked", () => {
+      renderApp();
+      const checkbox = document.getElementById("lock-nodes");
+      expect(checkbox.checked).toBe(false);
+      d = nodeDatum("core");
+      before = { x: d.x, y: d.y };
+    });
+    When("the user checks the lock nodes checkbox", () => {
+      const checkbox = document.getElementById("lock-nodes");
+      checkbox.checked = true;
+      checkbox.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    Then("dragging a node leaves it at its computed layout position", () => {
       window.dragStarted({ active: 0 }, d);
       window.dragged({ x: 99, y: 88 }, d);
-      expect(d.fx).toBe(99);
-      expect(d.fy).toBe(88);
       window.dragEnded({ active: 0 }, d);
+      expect(d.x).toBe(before.x);
+      expect(d.y).toBe(before.y);
     });
   });
 
-  Scenario("Tree layout", ({ Given, When, Then, And }) => {
-    Given("the user switches to tree layout", () => {
+  Scenario("Re-lock nodes returns to computed layout", ({ Given, When, Then }) => {
+    let moved;
+    Given("a node has been manually moved while unlocked", () => {
       renderApp();
-      window.setLayout("tree");
+      window.setNodesLocked(false);
+      moved = nodeDatum("api");
+      window.dragStarted({ active: 0 }, moved);
+      window.dragged({ x: 333, y: 222 }, moved);
+      window.dragEnded({ active: 0 }, moved);
+      expect(moved.x).toBe(333);
     });
-    When("the layout changes", async () => {
-      await settle();
+    When("the user checks the lock nodes checkbox", () => {
+      const checkbox = document.getElementById("lock-nodes");
+      checkbox.checked = true;
+      checkbox.dispatchEvent(new window.Event("change", { bubbles: true }));
     });
-    Then("nodes are arranged hierarchically — depth-0 at top, increasing depth downward", () => {
-      const core = nodeTranslate("core"); // depth 0
-      const db = nodeTranslate("db"); // depth 1
-      const ui = nodeTranslate("ui"); // depth 3
-      expect(core.y).toBeLessThan(db.y);
-      expect(db.y).toBeLessThan(ui.y);
-    });
-    And("the force simulation is stopped", () => {
-      // Tree pins nodes to fixed positions (fx/fy set); the force-link/charge/etc
-      // forces are removed so layout no longer wanders. The tree button is active.
-      expect(document.getElementById("layout-tree").classList.contains("active")).toBe(true);
-      const d = nodeDatum("core");
-      expect(Number.isFinite(d.fx)).toBe(true);
-      expect(Number.isFinite(d.fy)).toBe(true);
-    });
-  });
-
-  Scenario("Manual layout", ({ Given, When, Then, And }) => {
-    Given("the user switches to manual layout", () => {
-      renderApp();
-      window.setLayout("manual");
-    });
-    When("the layout changes", () => {});
-    Then("all nodes are frozen at their current positions", () => {
-      const d = nodeDatum("core");
-      expect(d.fx).toBe(d.x);
-      expect(d.fy).toBe(d.y);
-    });
-    And("the force simulation is stopped", () => {
-      expect(document.getElementById("layout-manual").classList.contains("active")).toBe(true);
-      // Frozen: every node carries pinned fx/fy.
-      for (const name of ["core", "db", "api", "ui"]) {
-        const d = nodeDatum(name);
-        expect(Number.isFinite(d.fx)).toBe(true);
-        expect(Number.isFinite(d.fy)).toBe(true);
-      }
-    });
-  });
-
-  Scenario("Switch back to force", ({ Given, When, Then }) => {
-    Given("the layout was tree or manual", () => {
-      renderApp();
-      window.setLayout("tree");
-      const d = nodeDatum("core");
-      expect(Number.isFinite(d.fx)).toBe(true);
-    });
-    When("the user switches to force", async () => {
-      window.setLayout("force");
-      await settle(80);
-    });
-    Then("the simulation restarts and nodes begin moving", () => {
-      expect(document.getElementById("layout-force").classList.contains("active")).toBe(true);
-      // Fixed positions are released and the simulation moves nodes again.
-      const d = nodeDatum("core");
-      expect(d.fx).toBeNull();
-      const after = nodeTranslate("core");
-      expect(Number.isFinite(after.x)).toBe(true);
+    Then("nodes return to the tree-and-groups layout", () => {
+      const core = nodeTranslate("core");
+      const db = nodeTranslate("db");
+      const api = nodeTranslate("api");
+      expect(api.x).not.toBe(333);
+      expect(api.y).toBeLessThan(db.y);
+      expect(db.y).toBeLessThan(core.y);
     });
   });
 });
@@ -504,25 +512,20 @@ describeFeature(groupClustering, ({ Scenario }) => {
     });
   });
 
-  Scenario("Update hulls on tick", ({ Given, When, Then }) => {
+  Scenario("Update hulls after node movement", ({ Given, When, Then }) => {
     let before;
-    Given("nodes are moving in force layout", async () => {
+    Given("nodes can be manually moved when unlocked", () => {
       renderApp();
-      await settle();
+      window.setNodesLocked(false);
       const hull = document.querySelector(".hulls .group-hull");
       before = hull.getAttribute("d");
     });
-    When("each simulation tick fires", () => {
-      // Move a hull member, then drive a tick: updateGroupHulls recomputes the
-      // path from the live node positions (manual mode lets us set positions
-      // deterministically rather than racing the async simulation).
-      window.setLayout("manual");
+    When("a node in a group moves", () => {
       const member = nodeDatum("core");
       window.dragStarted({}, member);
       window.dragged({ x: member.x + 250, y: member.y + 250 }, member);
     });
     Then("hull polygons are recalculated to follow node positions", () => {
-      // The hull path is recomputed from live node positions every tick.
       const hull = document.querySelector(".hulls .group-hull");
       const after = hull.getAttribute("d");
       expect(after).toMatch(/^M.+Z$/);
@@ -545,6 +548,42 @@ describeFeature(groupClustering, ({ Scenario }) => {
       expect(infra).toBeTruthy();
       expect(Number.isFinite(parseFloat(infra.getAttribute("x")))).toBe(true);
       expect(Number.isFinite(parseFloat(infra.getAttribute("y")))).toBe(true);
+    });
+  });
+
+  Scenario("Drag group label moves the group", ({ Given, When, Then, And }) => {
+    let beforeCore;
+    let beforeDb;
+    let beforeHull;
+    Given("nodes are unlocked and a group label is visible", () => {
+      renderApp();
+      expect(document.getElementById("lock-nodes").checked).toBe(false);
+      beforeCore = { ...nodeTranslate("core") };
+      beforeDb = { ...nodeTranslate("db") };
+      beforeHull = document.querySelector(".hulls .group-hull").getAttribute("d");
+      const label = [...document.querySelectorAll(".hull-labels .group-label")]
+        .find((l) => l.textContent === "infrastructure");
+      expect(label).toBeTruthy();
+    });
+    When("the user drags the group label", () => {
+      const labelDatum = [...document.querySelectorAll(".hull-labels .group-label")]
+        .map((l) => d3.select(l).datum())
+        .find((d) => d.group === "infrastructure");
+      window.groupDragStarted({}, labelDatum);
+      window.groupDragged({ dx: 40, dy: 25 }, labelDatum);
+      window.groupDragEnded({}, labelDatum);
+    });
+    Then("every node in that group moves by the drag amount", () => {
+      const core = nodeTranslate("core");
+      const db = nodeTranslate("db");
+      expect(core.x).toBe(beforeCore.x + 40);
+      expect(core.y).toBe(beforeCore.y + 25);
+      expect(db.x).toBe(beforeDb.x + 40);
+      expect(db.y).toBe(beforeDb.y + 25);
+    });
+    And("the group hull follows the moved nodes", () => {
+      const afterHull = document.querySelector(".hulls .group-hull").getAttribute("d");
+      expect(afterHull).not.toBe(beforeHull);
     });
   });
 });
@@ -659,23 +698,24 @@ describeFeature(zoomAndDrag, ({ Scenario }) => {
     });
   });
 
-  Scenario("Drag a node in force mode", ({ Given, When, Then }) => {
+  Scenario("Drag a node when unlocked", ({ Given, When, Then }) => {
     let d;
-    Given("the layout is force mode", () => {
+    Given("nodes are unlocked for manual positioning", () => {
       renderApp();
-      expect(document.getElementById("layout-force").classList.contains("active")).toBe(true);
+      window.setNodesLocked(false);
+      expect(document.getElementById("lock-nodes").checked).toBe(false);
       d = nodeDatum("api");
     });
     When("the user clicks and drags a node", () => {
       window.dragStarted({ active: 0 }, d);
       window.dragged({ x: 333, y: 222 }, d);
+      window.dragEnded({ active: 0 }, d);
     });
-    Then("the node follows the cursor and the simulation adjusts surrounding nodes", () => {
-      // In force mode dragging pins the node to the cursor via fx/fy and bumps the
-      // simulation's alpha so neighbours re-settle.
+    Then("the node follows the cursor and stays at the dropped position", () => {
+      expect(d.x).toBe(333);
+      expect(d.y).toBe(222);
       expect(d.fx).toBe(333);
       expect(d.fy).toBe(222);
-      window.dragEnded({ active: 0 }, d);
     });
   });
 
@@ -685,6 +725,7 @@ describeFeature(zoomAndDrag, ({ Scenario }) => {
     let before;
     Given("the user is dragging a node", () => {
       renderApp();
+      window.setNodesLocked(false);
       zoomG = document.querySelector("svg#graph > g");
       d = nodeDatum("core");
       window.dragStarted({ active: 0 }, d);

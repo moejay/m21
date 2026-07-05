@@ -111,7 +111,9 @@
       fill-opacity: 0.5;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      pointer-events: none;
+      pointer-events: auto;
+      cursor: move;
+      user-select: none;
     }
 
     #info-panel {
@@ -481,7 +483,26 @@
       left: 20px;
       z-index: 5;
       display: flex;
+      align-items: center;
       gap: 4px;
+    }
+
+    .layout-lock {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      color: #ccc;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .layout-lock input {
+      accent-color: #e94560;
     }
 
     .layout-btn {
