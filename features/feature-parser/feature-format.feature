@@ -12,6 +12,6 @@ Feature: feature-format
     Then each starts with "Scenario: description" followed by Given/When/Then/And/But steps
 
   Scenario: Kebab-case naming convention
-    Given feature files follow modspec conventions
+    Given feature files follow m21 conventions
     When named
     Then feature names and filenames use kebab-case (e.g., "data-querying.feature")

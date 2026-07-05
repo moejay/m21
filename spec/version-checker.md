@@ -1,6 +1,6 @@
 ---
 name: version-checker
-description: Non-blocking npm registry check for available updates to @moejay/modspec
+description: Non-blocking npm registry check for available updates to @moejay/m21
 group: infrastructure
 tags: [version, npm, update-notification]
 depends_on: []
@@ -14,7 +14,7 @@ Checks the package registry for a newer published version and prints an upgrade 
 ### How it works
 
 1. Determines the currently installed version from the package's own metadata
-2. Asks the npm registry for the latest published version of `@moejay/modspec`, giving up after 3 seconds
+2. Asks the npm registry for the latest published version of `@moejay/m21`, giving up after 3 seconds
 3. If the latest version differs from the current one, prints: `Update available: X.Y.Z → A.B.C`
 4. Silently swallows all errors (network failures, timeouts, malformed responses)
 

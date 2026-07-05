@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { createModspecServer } from "../src/server.js";
+import { createM21Server } from "../src/server.js";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -11,7 +11,7 @@ const fixturesDir = join(__dirname, "fixtures");
 // Use a temp dir for file-watching tests to avoid polluting fixtures
 const watchDir = join(__dirname, "fixtures", "watch-tmp");
 
-describe("createModspecServer", () => {
+describe("createM21Server", () => {
   let server;
 
   afterEach(async () => {
@@ -24,14 +24,14 @@ describe("createModspecServer", () => {
   });
 
   it("starts an HTTP server on the specified port", async () => {
-    server = await createModspecServer({ specDir: fixturesDir, port: 0 });
+    server = await createM21Server({ specDir: fixturesDir, port: 0 });
 
     expect(server.port).toBeGreaterThan(0);
     expect(server.address).toBeDefined();
   });
 
   it("serves HTML at the root path", async () => {
-    server = await createModspecServer({ specDir: fixturesDir, port: 0 });
+    server = await createM21Server({ specDir: fixturesDir, port: 0 });
 
     const res = await fetch(`http://localhost:${server.port}/`);
     expect(res.status).toBe(200);
@@ -39,11 +39,11 @@ describe("createModspecServer", () => {
 
     const body = await res.text();
     expect(body).toContain("<!DOCTYPE html>");
-    expect(body).toContain("modspec");
+    expect(body).toContain("M21");
   });
 
   it("serves spec data as JSON at /api/specs", async () => {
-    server = await createModspecServer({ specDir: fixturesDir, port: 0 });
+    server = await createM21Server({ specDir: fixturesDir, port: 0 });
 
     const res = await fetch(`http://localhost:${server.port}/api/specs`);
     expect(res.status).toBe(200);
@@ -58,7 +58,7 @@ describe("createModspecServer", () => {
   });
 
   it("provides an SSE endpoint at /api/events", async () => {
-    server = await createModspecServer({ specDir: fixturesDir, port: 0 });
+    server = await createM21Server({ specDir: fixturesDir, port: 0 });
 
     const res = await fetch(`http://localhost:${server.port}/api/events`);
     expect(res.status).toBe(200);
@@ -66,7 +66,7 @@ describe("createModspecServer", () => {
   });
 
   it("closes cleanly and stops the watcher", async () => {
-    server = await createModspecServer({ specDir: fixturesDir, port: 0 });
+    server = await createM21Server({ specDir: fixturesDir, port: 0 });
     const port = server.port;
 
     await server.close();
@@ -88,7 +88,7 @@ describe("createModspecServer", () => {
       "utf-8",
     );
 
-    server = await createModspecServer({ specDir: watchDir, port: 0 });
+    server = await createM21Server({ specDir: watchDir, port: 0 });
 
     // Connect to SSE and collect events
     const events = [];
@@ -144,7 +144,7 @@ describe("createModspecServer", () => {
       "utf-8",
     );
 
-    server = await createModspecServer({ specDir: watchDir, port: 0 });
+    server = await createM21Server({ specDir: watchDir, port: 0 });
 
     const events = [];
     const controller = new AbortController();
@@ -194,7 +194,7 @@ describe("createModspecServer", () => {
   }, 10000);
 
   it("includes featureFiles in /api/specs when projectRoot is set", async () => {
-    server = await createModspecServer({
+    server = await createM21Server({
       specDir: fixturesDir,
       projectRoot: fixturesDir,
       port: 0,
@@ -219,7 +219,7 @@ describe("createModspecServer", () => {
       "utf-8",
     );
 
-    server = await createModspecServer({ specDir: watchDir, port: 0 });
+    server = await createM21Server({ specDir: watchDir, port: 0 });
 
     const res = await fetch(
       `http://localhost:${server.port}/api/specs/EditTest/body`,
@@ -240,7 +240,7 @@ describe("createModspecServer", () => {
   });
 
   it("PUT /api/specs/:name/body returns 404 for unknown spec", async () => {
-    server = await createModspecServer({ specDir: fixturesDir, port: 0 });
+    server = await createM21Server({ specDir: fixturesDir, port: 0 });
 
     const res = await fetch(
       `http://localhost:${server.port}/api/specs/NonExistent/body`,
@@ -269,7 +269,7 @@ describe("createModspecServer", () => {
       "utf-8",
     );
 
-    server = await createModspecServer({
+    server = await createM21Server({
       specDir: watchDir,
       projectRoot: watchDir,
       port: 0,
@@ -295,7 +295,7 @@ describe("createModspecServer", () => {
   });
 
   it("PUT /api/features/:specName/:filename returns 404 for unknown spec", async () => {
-    server = await createModspecServer({ specDir: fixturesDir, port: 0 });
+    server = await createM21Server({ specDir: fixturesDir, port: 0 });
 
     const res = await fetch(
       `http://localhost:${server.port}/api/features/NonExistent/test.feature`,
@@ -342,7 +342,7 @@ describe("createModspecServer", () => {
     const reportPath = join(watchDir, "out", "cucumber.json");
     await seedResultsProject(reportPath);
 
-    server = await createModspecServer({
+    server = await createM21Server({
       specDir: watchDir,
       projectRoot: watchDir,
       port: 0,
@@ -363,7 +363,7 @@ describe("createModspecServer", () => {
     // results/cucumber.json is a conventional auto-detect location
     await seedResultsProject(join(watchDir, "results", "cucumber.json"));
 
-    server = await createModspecServer({
+    server = await createM21Server({
       specDir: watchDir,
       projectRoot: watchDir,
       port: 0,

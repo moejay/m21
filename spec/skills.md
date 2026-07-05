@@ -13,9 +13,9 @@ features: features/skills/
 
 # Skills
 
-Claude Code skill files (`skills/*/SKILL.md`) that teach AI assistants the modspec file format and workflows. Shipped as part of the published package.
+Claude Code skill files (`skills/*/SKILL.md`) that teach AI assistants the M21 file format and workflows. Shipped as part of the published package.
 
-### modspec skill (`skills/modspec/SKILL.md`)
+### m21 skill (`skills/m21/SKILL.md`)
 
 Day-to-day spec authoring guide. Covers:
 - Spec file structure (YAML frontmatter fields, markdown body conventions)
@@ -26,7 +26,7 @@ Day-to-day spec authoring guide. Covers:
 - Group assignment by architectural layer
 - Common operations: add a module, add a dependency, create features, restructure groups
 
-### modspec-init skill (`skills/modspec-init/SKILL.md`)
+### m21-init skill (`skills/m21-init/SKILL.md`)
 
 Brownfield adoption workflow. Guides AI through:
 1. Analyzing existing codebase structure (package boundaries, import/export patterns)

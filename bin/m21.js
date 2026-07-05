@@ -2,7 +2,7 @@
 
 import { parseSpecDirectory } from "../src/parser.js";
 import { generateHTML } from "../src/generator.js";
-import { createModspecServer } from "../src/server.js";
+import { createM21Server } from "../src/server.js";
 import { resolveResultsPath, parseResultsFile, mergeResults } from "../src/results.js";
 import { parseCliArgs } from "../src/cli.js";
 import { checkForUpdate, getCurrentVersion } from "../src/version.js";
@@ -15,19 +15,19 @@ import { existsSync } from "fs";
 import { createInterface } from "readline";
 
 const HELP_TEXT = `
-modspec — Visualize spec file dependencies as an interactive graph
+M21 — Visualize spec file dependencies as an interactive graph
 
 Usage:
-  modspec <directory>                       Start dev server with live reload (default)
-  modspec <directory> --output <file>       Save graph to a static HTML file
-  modspec <directory> --port <number>       Custom port for dev server (default: 3333)
+  m21 <directory>                       Start dev server with live reload (default)
+  m21 <directory> --output <file>       Save graph to a static HTML file
+  m21 <directory> --port <number>       Custom port for dev server (default: 3333)
 
 Subcommands (read-only — for humans and coding agents):
-  modspec list <directory>                  Print all specs
-  modspec show <directory> <name>           Print one spec's full info
-  modspec features <directory> [<name>]     List features (all, or for one spec)
-  modspec deps <directory> <name>           Print forward + reverse dependency tree
-  modspec validate <directory>              Lint specs and features
+  m21 list <directory>                  Print all specs
+  m21 show <directory> <name>           Print one spec's full info
+  m21 features <directory> [<name>]     List features (all, or for one spec)
+  m21 deps <directory> <name>           Print forward + reverse dependency tree
+  m21 validate <directory>              Lint specs and features
 
 Options:
   --output, -o  Save the HTML file to the specified path instead of serving
@@ -41,10 +41,10 @@ Options:
   --help, -h    Show this help message
 
 Examples:
-  modspec ./spec/
-  modspec list ./spec/
-  modspec show ./spec/ auth --json
-  modspec validate ./spec/
+  m21 ./spec/
+  m21 list ./spec/
+  m21 show ./spec/ auth --json
+  m21 validate ./spec/
 `;
 
 function printSpecSummary(specs, dirPath) {
@@ -167,7 +167,7 @@ async function main() {
   const specs = await parseSpecDirectory(dirPath, { projectRoot });
 
   if (specs.length === 0) {
-    console.log("No valid modspec files found in:", dirPath);
+    console.log("No valid M21 files found in:", dirPath);
     process.exit(0);
   }
 
@@ -194,7 +194,7 @@ async function main() {
       console.log(`Graph saved to: ${opts.outputPath}`);
     } else {
       // Write to temp file and open in browser
-      const tmpDir = await mkdtemp(join(tmpdir(), "modspec-"));
+      const tmpDir = await mkdtemp(join(tmpdir(), "m21-"));
       const tmpFile = join(tmpDir, "graph.html");
       await writeFile(tmpFile, html, "utf-8");
 
@@ -204,14 +204,14 @@ async function main() {
     }
   } else {
     // Dev server mode (default)
-    const server = await createModspecServer({
+    const server = await createM21Server({
       specDir: dirPath,
       port: opts.port,
       host: opts.host,
       resultsPath: opts.results,
     });
 
-    console.log(`modspec serving at ${server.address} (watching ${dirPath})`);
+    console.log(`M21 serving at ${server.address} (watching ${dirPath})`);
 
     // Handle graceful shutdown
     const shutdown = async () => {

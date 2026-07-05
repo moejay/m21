@@ -1,10 +1,10 @@
 {
-  "name": "@moejay/modspec",
-  "version": "0.6.0",
+  "name": "@moejay/m21",
+  "version": "0.7.0",
   "description": "Spec-driven dependency graph visualizer with composable modules and feature tracking",
   "type": "module",
   "bin": {
-    "modspec": "./bin/modspec.js"
+    "m21": "./bin/m21.js"
   },
   "main": "./src/parser.js",
   "exports": {
@@ -37,9 +37,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moejay/modspec.git"
+    "url": "git+https://github.com/moejay/m21.git"
   },
-  "homepage": "https://moejay.github.io/modspec",
+  "homepage": "https://moejay.github.io/m21",
   "scripts": {
     "test": "vitest run --reporter=default --reporter=json --outputFile=results/vitest-results.json",
     "test:watch": "vitest",

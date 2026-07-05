@@ -8,13 +8,13 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, "..", "..");
-const binPath = join(projectRoot, "bin", "modspec.js");
+const binPath = join(projectRoot, "bin", "m21.js");
 
 const tmpDirs = [];
 let openLoaderPath = null;
 
 function makeSpecDir({ withSpec = true } = {}) {
-  const root = mkdtempSync(join(tmpdir(), "modspec-orch-"));
+  const root = mkdtempSync(join(tmpdir(), "m21-orch-"));
   tmpDirs.push(root);
   if (withSpec) {
     writeFileSync(
@@ -32,7 +32,7 @@ function makeSpecDir({ withSpec = true } = {}) {
 }
 
 function freshDirPath() {
-  const root = mkdtempSync(join(tmpdir(), "modspec-orch-parent-"));
+  const root = mkdtempSync(join(tmpdir(), "m21-orch-parent-"));
   tmpDirs.push(root);
   return join(root, "does-not-exist-yet");
 }
@@ -60,7 +60,7 @@ export async function resolve(specifier, context, nextResolve) {
   return nextResolve(specifier, context);
 }
 `;
-  const dir = mkdtempSync(join(tmpdir(), "modspec-orch-loader-"));
+  const dir = mkdtempSync(join(tmpdir(), "m21-orch-loader-"));
   tmpDirs.push(dir);
   openLoaderPath = join(dir, "open-loader.mjs");
   writeFileSync(openLoaderPath, code, "utf-8");
@@ -71,7 +71,7 @@ afterAll(() => {
 });
 
 /**
- * Run `node bin/modspec.js <args>`, capturing stdout/stderr/exit code.
+ * Run `node bin/m21.js <args>`, capturing stdout/stderr/exit code.
  * Resolves once the process exits.
  */
 function run(args, { stdinData, nodeArgs = [] } = {}) {
@@ -193,7 +193,7 @@ describeFeature(modeRouting, ({ Scenario }) => {
       When("the orchestrator routes", async () => {
         // The CLI never produces static+null itself, so we force those options
         // via a loader and stub `open` — the real generate/mkdtemp/writeFile/
-        // open branch in bin/modspec.js executes.
+        // open branch in bin/m21.js executes.
         result = await run(["x"], {
           nodeArgs: ["--experimental-loader", openLoaderPath],
         });
@@ -223,7 +223,7 @@ describeFeature(modeRouting, ({ Scenario }) => {
     });
     Then("a message is logged and the process exits with code 0", () => {
       expect(result.code).toBe(0);
-      expect(result.stdout).toContain("No valid modspec files found");
+      expect(result.stdout).toContain("No valid M21 files found");
     });
   });
 
@@ -369,7 +369,7 @@ describeFeature(directorySetup, ({ Scenario }) => {
       expect(result.stdout + result.stderr).not.toContain("Create it?");
       // Empty existing dir → parsing proceeds and reports no specs, exit 0.
       expect(result.code).toBe(0);
-      expect(result.stdout).toContain("No valid modspec files found");
+      expect(result.stdout).toContain("No valid M21 files found");
     });
   });
 });

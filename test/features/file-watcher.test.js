@@ -1,6 +1,6 @@
 import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
-import { createModspecServer } from "../../src/server.js";
+import { createM21Server } from "../../src/server.js";
 import { mkdtemp, writeFile, mkdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -20,7 +20,7 @@ async function cleanup() {
 }
 
 async function makeProject() {
-  tmpRoot = await mkdtemp(join(tmpdir(), "modspec-watch-"));
+  tmpRoot = await mkdtemp(join(tmpdir(), "m21-watch-"));
   await mkdir(join(tmpRoot, "features", "demo"), { recursive: true });
   await writeFile(
     join(tmpRoot, "demo.md"),
@@ -85,7 +85,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
         await makeProject();
       });
       When("the watcher is initialized", async () => {
-        server = await createModspecServer({
+        server = await createM21Server({
           specDir: tmpRoot,
           projectRoot: tmpRoot,
           port: 0,
@@ -124,7 +124,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let sse;
     Given("the watcher is running", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -152,7 +152,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let sse;
     Given("the watcher is running", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -178,7 +178,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let sse;
     Given("the watcher is running", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -209,7 +209,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let sse;
     Given("multiple files change within 100ms", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -241,7 +241,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let sse;
     Given("the watcher ignores files that already exist at startup", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -264,7 +264,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
       let sse;
       Given("the watcher is configured", async () => {
         await makeProject();
-        server = await createModspecServer({
+        server = await createM21Server({
           specDir: tmpRoot,
           projectRoot: tmpRoot,
           port: 0,
@@ -294,7 +294,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let sse;
     Given("a new .md file is added to the spec directory", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -338,10 +338,10 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
       Given(
         "a spec gains a features directory that did not exist when watching began",
         async () => {
-          // Use the real modspec layout — spec/ and features/ as siblings —
+          // Use the real m21 layout — spec/ and features/ as siblings —
           // so the spec dir's recursive watch does not already cover the new
           // feature directory.
-          tmpRoot = await mkdtemp(join(tmpdir(), "modspec-watch-late-"));
+          tmpRoot = await mkdtemp(join(tmpdir(), "m21-watch-late-"));
           specDir = join(tmpRoot, "spec");
           await mkdir(join(tmpRoot, "features", "demo"), { recursive: true });
           await mkdir(specDir, { recursive: true });
@@ -355,7 +355,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
             "Feature: a\n\n  Scenario: s\n    Given x\n",
             "utf-8",
           );
-          server = await createModspecServer({
+          server = await createM21Server({
             specDir,
             projectRoot: tmpRoot,
             port: 0,

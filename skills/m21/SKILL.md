@@ -1,15 +1,15 @@
 ---
-name: modspec
-description: Spec-driven development workflow for modspec projects. Use whenever you author specs, edit them, or implement code in a modspec project.
+name: m21
+description: Spec-driven development workflow for M21 projects. Use whenever you author specs, edit them, or implement code in an M21 project.
 license: MIT
 metadata:
-  author: modspec
+  author: m21
   version: "2.0"
 ---
 
-# modspec — Spec-Driven Development Workflow
+# M21 — Spec-Driven Development Workflow
 
-This skill defines the **complete workflow** for working in a modspec project: authoring specs, editing them, and implementing code. modspec uses markdown spec files with YAML frontmatter to define modules, their dependencies, and links to Gherkin `.feature` files. The features are the **executable contract** for the implementation.
+This skill defines the **complete workflow** for working in an M21 project: authoring specs, editing them, and implementing code. M21 uses markdown spec files with YAML frontmatter to define modules, their dependencies, and links to Gherkin `.feature` files. The features are the **executable contract** for the implementation.
 
 ## The contract — MUST ALWAYS
 
@@ -25,7 +25,7 @@ This is strict on purpose. Specs are an investment in **regeneration**: detailed
 
 ## Test runner contract
 
-modspec does not prescribe a runner — the choice (cucumber, vitest-cucumber, jest-cucumber, behave, custom, etc.) and the wiring (where step defs live, file extensions, discovery mechanism) are decided per project. What is non-negotiable is the contract the runner must uphold:
+M21 does not prescribe a runner — the choice (cucumber, vitest-cucumber, jest-cucumber, behave, custom, etc.) and the wiring (where step defs live, file extensions, discovery mechanism) are decided per project. What is non-negotiable is the contract the runner must uphold:
 
 - The runner MUST treat the project's `features/` directory as its source of truth — every `.feature` file is part of the executable contract.
 - A scenario with no matching step definition is **red** (pending or failing — the agent's signal to write the stub and the implementation).
@@ -277,10 +277,10 @@ Feature: feature-name-in-kebab-case
 ## Reference: CLI
 
 ```bash
-modspec ./spec/                       # Dev server with live reload (default)
-modspec ./spec/ -y                    # Auto-create spec dir if missing
-modspec ./spec/ --port 4000           # Custom port
-modspec ./spec/ --output graph.html   # Static HTML export
+m21 ./spec/                       # Dev server with live reload (default)
+m21 ./spec/ -y                    # Auto-create spec dir if missing
+m21 ./spec/ --port 4000           # Custom port
+m21 ./spec/ --output graph.html   # Static HTML export
 ```
 
 | Flag | Description |

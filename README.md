@@ -1,14 +1,14 @@
-# modspec
+# M21
 
 Markdown-driven spec files with dependency graphs, feature tracking, and group clustering — visualized as an interactive, explorable graph.
 
-## What is modspec?
+## What is M21?
 
-modspec lets you define project specs as simple markdown files with YAML frontmatter. Each spec declares its name, dependencies, group, tags, and an optional path to Gherkin `.feature` files. Specs are composable modules — child specs declare which features they use from parent specs, creating traceable contracts between modules. modspec renders everything as a live, interactive dependency graph in the browser.
+M21 lets you define project specs as simple markdown files with YAML frontmatter. Each spec declares its name, dependencies, group, tags, and an optional path to Gherkin `.feature` files. Specs are composable modules — child specs declare which features they use from parent specs, creating traceable contracts between modules. M21 renders everything as a live, interactive dependency graph in the browser.
 
 ## Vision
 
-modspec is an experiment in higher-level software tooling for building maintainable, extensible, reliable, professional, clean, and understandable software. It treats a project as a network of purposeful modules with explicit responsibilities, dependencies, and executable feature contracts.
+M21 is an experiment in higher-level software tooling for building maintainable, extensible, reliable, professional, clean, and understandable software. It treats a project as a network of purposeful modules with explicit responsibilities, dependencies, and executable feature contracts.
 
 The goal is living architecture: specs describe intent, Gherkin features define contracts, dependency edges explain which capabilities are used, and test results close the loop so documentation, behavior, and implementation stay aligned.
 
@@ -17,27 +17,27 @@ Read the full vision in [VISION.md](VISION.md).
 ## Install
 
 ```bash
-npm install -g @moejay/modspec
+npm install -g @moejay/m21
 ```
 
 Or run directly:
 
 ```bash
-npx @moejay/modspec ./spec/
+npx @moejay/m21 ./spec/
 ```
 
 ## Skills
 
-modspec ships with skills for spec authoring and brownfield adoption. Install them with:
+M21 ships with skills for spec authoring and brownfield adoption. Install them with:
 
 ```bash
-npx skills install moejay/modspec
+npx skills install moejay/m21
 ```
 
 This installs two skills:
 
-- **modspec** — helps you create and maintain spec files, dependencies, and feature files
-- **modspec-init** — analyzes an existing codebase and generates specs + features from it (brownfield adoption)
+- **m21** — helps you create and maintain spec files, dependencies, and feature files
+- **m21-init** — analyzes an existing codebase and generates specs + features from it (brownfield adoption)
 
 ## Quick start
 
@@ -150,28 +150,28 @@ Feature: project-scaffolding
     Then the build succeeds
 ```
 
-### 5. Run modspec
+### 5. Run M21
 
 ```bash
 # Start the dev server (default: http://localhost:3333)
-npx @moejay/modspec ./spec/
+npx @moejay/m21 ./spec/
 
 # Auto-create the spec directory
-npx @moejay/modspec ./spec/ -y
+npx @moejay/m21 ./spec/ -y
 
 # Custom port
-npx @moejay/modspec ./spec/ --port 4000
+npx @moejay/m21 ./spec/ --port 4000
 
 # Export a static HTML file instead
-npx @moejay/modspec ./spec/ --output graph.html
+npx @moejay/m21 ./spec/ --output graph.html
 
 # Overlay test results (auto-detected from results/, reports/, test-results/ when omitted)
-npx @moejay/modspec ./spec/ --results results/cucumber.json
+npx @moejay/m21 ./spec/ --results results/cucumber.json
 ```
 
 ### Visualizing test results
 
-modspec never runs your tests — it ingests a test report and overlays the outcomes. Two formats are accepted, auto-detected by shape:
+M21 never runs your tests — it ingests a test report and overlays the outcomes. Two formats are accepted, auto-detected by shape:
 
 - **Cucumber JSON** — emitted by every Gherkin runner (`cucumber-js`, `cucumber-jvm`, `behave`, `cucumber-ruby`, `godog`, Reqnroll, `cucumber-rs`), so it stays language-agnostic.
 - **Jest / vitest JSON** — the `--reporter=json` output common across the JS ecosystem. For `vitest-cucumber`/`jest-cucumber` runs the `Feature:`/`Scenario:` titles join directly; for plain `describe`/`it` suites the top-level `describe` is the feature and the `it` is the scenario.
@@ -179,7 +179,7 @@ modspec never runs your tests — it ingests a test report and overlays the outc
 ```bash
 # vitest / jest example
 npx vitest run --reporter=json --outputFile=results/vitest-results.json
-npx @moejay/modspec ./spec/          # auto-detected
+npx @moejay/m21 ./spec/          # auto-detected
 ```
 
 Results join onto specs by feature name and scenario name: each node is ringed green (all passing), red (any failing), or amber (pending/skipped) and shows a `passed/total` count (e.g. `15/19`) inside the circle, and the side panel shows per-scenario ✓/✗ pills plus a `passed / total` summary. A legend appears whenever any spec has test data. In dev-server mode the overlay live-updates as the report file changes.
@@ -189,7 +189,7 @@ Results join onto specs by feature name and scenario name: each node is ringed g
 - **Interactive graph** — D3 dependency visualization with zoom, pan, and drag
 - **Group clustering** — Specs in the same group are visually clustered with colored hulls
 - **Feature tracking** — See which features flow along each dependency edge
-- **Test results overlay** — Point modspec at a Cucumber JSON **or** Jest/vitest JSON report and the graph colours each node by pass/fail, shows a `passed/total` count inside every circle, and lists per-scenario status pills in the side panel. Click a scenario to inspect step statuses and, for source-backed Jest/vitest reports, the Given/When/Then definition snippets. Auto-detected from `results/`, `reports/`, `test-results/`, or pass `--results <file>`. Live-updates as tests re-run
+- **Test results overlay** — Point M21 at a Cucumber JSON **or** Jest/vitest JSON report and the graph colours each node by pass/fail, shows a `passed/total` count inside every circle, and lists per-scenario status pills in the side panel. Click a scenario to inspect step statuses and, for source-backed Jest/vitest reports, the Given/When/Then definition snippets. Auto-detected from `results/`, `reports/`, `test-results/`, or pass `--results <file>`. Live-updates as tests re-run
 - **Tree-and-groups layout** — Default architecture view combines dependency depth with group clustering. Nodes start unlocked for manual positioning, group labels drag whole groups, and checkboxes can lock nodes or reverse the tree direction
 - **Side panel** — Click any node to see description, group, tags, dependencies with used features, rendered markdown body, and Gherkin scenarios
 - **Composable specs** — Specs are modules with clear interfaces defined by their features
@@ -201,12 +201,12 @@ Results join onto specs by feature name and scenario name: each node is ringed g
 ## CLI reference
 
 ```
-npx @moejay/modspec <directory>                       Start dev server with live reload (default)
-npx @moejay/modspec <directory> --output <file>       Save graph to a static HTML file
-npx @moejay/modspec <directory> --port <number>       Custom port for dev server (default: 3333)
-npx @moejay/modspec <directory> --results <file>      Overlay Cucumber, Jest, or vitest JSON test results
-npx @moejay/modspec <directory> -y                    Auto-create spec directory if missing
-npx @moejay/modspec --help                            Show help
+npx @moejay/m21 <directory>                       Start dev server with live reload (default)
+npx @moejay/m21 <directory> --output <file>       Save graph to a static HTML file
+npx @moejay/m21 <directory> --port <number>       Custom port for dev server (default: 3333)
+npx @moejay/m21 <directory> --results <file>      Overlay Cucumber, Jest, or vitest JSON test results
+npx @moejay/m21 <directory> -y                    Auto-create spec directory if missing
+npx @moejay/m21 --help                            Show help
 ```
 
 ### Read-only subcommands (for humans and coding agents)
@@ -214,27 +214,27 @@ npx @moejay/modspec --help                            Show help
 Each subcommand also accepts `--json` for machine-readable output.
 
 ```
-npx @moejay/modspec list <directory>                  Print all specs (group, dep count, feature count)
-npx @moejay/modspec show <directory> <name>           Print one spec's full info — deps, dependents, features, body
-npx @moejay/modspec features <directory> [<name>]     List features (across all specs, or scoped to one)
-npx @moejay/modspec deps <directory> <name>           Print forward + reverse dependency tree
-npx @moejay/modspec validate <directory>              Lint specs: broken refs, missing feature dirs, cycles
+npx @moejay/m21 list <directory>                  Print all specs (group, dep count, feature count)
+npx @moejay/m21 show <directory> <name>           Print one spec's full info — deps, dependents, features, body
+npx @moejay/m21 features <directory> [<name>]     List features (across all specs, or scoped to one)
+npx @moejay/m21 deps <directory> <name>           Print forward + reverse dependency tree
+npx @moejay/m21 validate <directory>              Lint specs: broken refs, missing feature dirs, cycles
 ```
 
 ## Brownfield adoption
 
-Already have a codebase? Install the skills (`npx skills install moejay/modspec`) and use `modspec-init` to analyze your existing code and generate spec + feature files automatically. It identifies modules, their dependencies, and public interfaces from your project structure and import patterns.
+Already have a codebase? Install the skills (`npx skills install moejay/m21`) and use `m21-init` to analyze your existing code and generate spec + feature files automatically. It identifies modules, their dependencies, and public interfaces from your project structure and import patterns.
 
 ## Development
 
-modspec is itself spec-driven: every module has a spec in `spec/` and Gherkin scenarios in `features/`, and **every feature file is bound to executable tests** (via `@amiceli/vitest-cucumber`), so the scenarios are the contract.
+M21 is itself spec-driven: every module has a spec in `spec/` and Gherkin scenarios in `features/`, and **every feature file is bound to executable tests** (via `@amiceli/vitest-cucumber`), so the scenarios are the contract.
 
 ```bash
 npm test          # run the suite once; also writes results/vitest-results.json
 npm run test:watch
 ```
 
-`npm test` emits a `results/vitest-results.json` report, so you can dogfood the overlay on modspec itself:
+`npm test` emits a `results/vitest-results.json` report, so you can dogfood the overlay on M21 itself:
 
 ```bash
 npm test
@@ -245,14 +245,14 @@ Requires Node ≥ 20.
 
 ## Programmatic API
 
-modspec can be used as a library. Entry points are exposed through the package `exports` map:
+M21 can be used as a library. Entry points are exposed through the package `exports` map:
 
 ```js
-import { parseSpecDirectory } from "@moejay/modspec";           // parse specs + features
-import { generateHTML } from "@moejay/modspec/generator";       // render the graph HTML
-import { createModspecServer } from "@moejay/modspec/server";   // run the dev server
-import { parseResultsFile, mergeResults } from "@moejay/modspec/results"; // overlay test results
-import { analyzeGraph } from "@moejay/modspec/cycles";          // dependency + cycle analysis
+import { parseSpecDirectory } from "@moejay/m21";           // parse specs + features
+import { generateHTML } from "@moejay/m21/generator";       // render the graph HTML
+import { createM21Server } from "@moejay/m21/server";   // run the dev server
+import { parseResultsFile, mergeResults } from "@moejay/m21/results"; // overlay test results
+import { analyzeGraph } from "@moejay/m21/cycles";          // dependency + cycle analysis
 
 // Parse a spec directory and render a self-contained graph.
 const specs = await parseSpecDirectory("./spec", { projectRoot: "." });
@@ -264,12 +264,12 @@ if (lookup) mergeResults(specs, lookup);
 const withStatus = generateHTML(specs);
 
 // Start the dev server (loopback-only by default).
-const server = await createModspecServer({ specDir: "./spec", port: 3333 });
+const server = await createM21Server({ specDir: "./spec", port: 3333 });
 console.log(server.address);
 await server.close();
 ```
 
-The default import (`@moejay/modspec`) is the parser. `generateHTML` produces a fully self-contained document — the rendering libraries are inlined, so it works offline.
+The default import (`@moejay/m21`) is the parser. `generateHTML` produces a fully self-contained document — the rendering libraries are inlined, so it works offline.
 
 ## License
 

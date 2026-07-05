@@ -23,8 +23,8 @@ function normalizeDep(entry) {
 }
 
 /**
- * Parse a single markdown file and extract modspec frontmatter.
- * Returns null if the file lacks valid modspec frontmatter (must have `name`).
+ * Parse a single markdown file and extract M21 frontmatter.
+ * Returns null if the file lacks valid M21 frontmatter (must have `name`).
  */
 export async function parseSpecFile(filePath) {
   const content = await readFile(filePath, "utf-8");
@@ -169,8 +169,8 @@ export async function parseFeatureDirectory(dirPath, options = {}) {
 }
 
 /**
- * Parse all .md files in a directory and return an array of valid modspec entries.
- * Files without valid modspec frontmatter are silently skipped.
+ * Parse all .md files in a directory and return an array of valid M21 entries.
+ * Files without valid M21 frontmatter are silently skipped.
  *
  * @param {string} dirPath - path to the spec directory
  * @param {Object} [options]

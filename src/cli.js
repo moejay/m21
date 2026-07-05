@@ -6,7 +6,7 @@ function isSubcommandKeyword(arg) {
 }
 
 /**
- * Parse CLI arguments for modspec.
+ * Parse CLI arguments for M21.
  *
  * @param {string[]} args - process.argv.slice(2)
  * @returns {Object} parsed options

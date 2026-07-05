@@ -12,7 +12,7 @@ const fixturesDir = join(__dirname, "..", "fixtures");
 
 const tmpDirs = [];
 function makeTmpDir() {
-  const dir = mkdtempSync(join(tmpdir(), "modspec-spec-"));
+  const dir = mkdtempSync(join(tmpdir(), "m21-spec-"));
   tmpDirs.push(dir);
   return dir;
 }
@@ -335,7 +335,7 @@ describeFeature(specFormat, ({ Scenario }) => {
   let adjacency;
 
   Scenario("Valid frontmatter structure", ({ Given, When, Then, And }) => {
-    Given("a markdown file following the modspec format", () => {
+    Given("a markdown file following the m21 format", () => {
       const dir = makeTmpDir();
       filePath = writeSpec(
         dir,

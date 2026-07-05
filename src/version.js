@@ -26,7 +26,7 @@ export async function checkForUpdate() {
 
   try {
     const res = await fetch(
-      "https://registry.npmjs.org/@moejay/modspec/latest",
+      "https://registry.npmjs.org/@moejay/m21/latest",
       { signal: controller.signal },
     );
     clearTimeout(timeout);
@@ -39,7 +39,7 @@ export async function checkForUpdate() {
     if (latest && latest !== current) {
       console.log(
         `\n  Update available: ${current} → ${latest}` +
-        `\n  Run \`npm install -g @moejay/modspec\` to upgrade\n`,
+        `\n  Run \`npm install -g @moejay/m21\` to upgrade\n`,
       );
     }
   } catch {

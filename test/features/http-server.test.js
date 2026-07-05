@@ -1,6 +1,6 @@
 import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
-import { createModspecServer } from "../../src/server.js";
+import { createM21Server } from "../../src/server.js";
 import { mkdtemp, writeFile, mkdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -20,7 +20,7 @@ async function cleanup() {
 }
 
 async function makeProject() {
-  tmpRoot = await mkdtemp(join(tmpdir(), "modspec-http-"));
+  tmpRoot = await mkdtemp(join(tmpdir(), "m21-http-"));
   await mkdir(join(tmpRoot, "features", "demo"), { recursive: true });
   await writeFile(
     join(tmpRoot, "demo.md"),
@@ -66,7 +66,7 @@ describeFeature(routing, ({ Scenario, AfterEachScenario }) => {
   Scenario("Serve HTML on GET /", ({ Given, When, Then }) => {
     Given("the server is running", async () => {
       const root = await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: root,
         projectRoot: root,
         port: 0,
@@ -90,7 +90,7 @@ describeFeature(routing, ({ Scenario, AfterEachScenario }) => {
   Scenario("Serve HTML on GET /index.html", ({ Given, When, Then }) => {
     Given("the server is running", async () => {
       const root = await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: root,
         projectRoot: root,
         port: 0,
@@ -113,7 +113,7 @@ describeFeature(routing, ({ Scenario, AfterEachScenario }) => {
   Scenario("Serve specs JSON on GET /api/specs", ({ Given, When, Then }) => {
     Given("the server is running", async () => {
       const root = await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: root,
         projectRoot: root,
         port: 0,
@@ -139,7 +139,7 @@ describeFeature(routing, ({ Scenario, AfterEachScenario }) => {
         async () => {
           const root = await makeProject();
           const reportPath = await writeResults(root);
-          server = await createModspecServer({
+          server = await createM21Server({
             specDir: root,
             projectRoot: root,
             port: 0,
@@ -165,7 +165,7 @@ describeFeature(routing, ({ Scenario, AfterEachScenario }) => {
   Scenario("Return 404 for unknown routes", ({ Given, When, Then }) => {
     Given("the server is running", async () => {
       const root = await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: root,
         projectRoot: root,
         port: 0,
@@ -187,7 +187,7 @@ describeFeature(routing, ({ Scenario, AfterEachScenario }) => {
     ({ Given, When, Then }) => {
       Given("the server is running", async () => {
         const root = await makeProject();
-        server = await createModspecServer({
+        server = await createM21Server({
           specDir: root,
           projectRoot: root,
           port: 0,
@@ -212,7 +212,7 @@ describeFeature(routing, ({ Scenario, AfterEachScenario }) => {
   Scenario("Reject an oversized request body", ({ Given, When, Then }) => {
     Given("the server is running", async () => {
       const root = await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: root,
         projectRoot: root,
         port: 0,
@@ -249,7 +249,7 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
       chosenPort = 38333;
     });
     When("the server is started", async () => {
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: chosenPort,
@@ -273,7 +273,7 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
       await makeProject();
     });
     When("the server is started", async () => {
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -297,7 +297,7 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
         "the server is running with active SSE clients and a file watcher",
         async () => {
           const root = await makeProject();
-          server = await createModspecServer({
+          server = await createM21Server({
             specDir: root,
             projectRoot: root,
             port: 0,
@@ -355,7 +355,7 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
       await makeProject();
     });
     When("the promise resolves", async () => {
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -374,7 +374,7 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
         await makeProject();
       });
       When("the server is started", async () => {
-        server = await createModspecServer({
+        server = await createM21Server({
           specDir: tmpRoot,
           projectRoot: tmpRoot,
           port: 0,
@@ -393,7 +393,7 @@ describeFeature(lifecycle, ({ Scenario, AfterEachScenario }) => {
       await makeProject();
     });
     When("the server is started", async () => {
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,

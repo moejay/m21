@@ -1,6 +1,6 @@
 import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
-import { createModspecServer } from "../../src/server.js";
+import { createM21Server } from "../../src/server.js";
 import { mkdtemp, writeFile, mkdir, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -20,7 +20,7 @@ async function cleanup() {
 }
 
 async function makeProject() {
-  tmpRoot = await mkdtemp(join(tmpdir(), "modspec-sse-"));
+  tmpRoot = await mkdtemp(join(tmpdir(), "m21-sse-"));
   await mkdir(join(tmpRoot, "features", "demo"), { recursive: true });
   await writeFile(
     join(tmpRoot, "demo.md"),
@@ -87,7 +87,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let controller;
     Given("a browser requests GET /api/events", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -154,7 +154,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let sse;
     Given("a browser is connected via SSE", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -190,7 +190,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let clients;
     Given("three browsers are connected via SSE", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -231,7 +231,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let good;
     Given("a client connection has broken", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -266,7 +266,7 @@ describeFeature(feature, ({ Scenario, AfterEachScenario }) => {
     let clients;
     Given("active SSE connections exist", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,

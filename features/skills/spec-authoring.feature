@@ -1,9 +1,9 @@
 Feature: spec-authoring
-  Guide AI assistants in creating and maintaining modspec-compatible spec files.
+  Guide AI assistants in creating and maintaining m21-compatible spec files.
 
   Scenario: Create a new spec file
     Given the user asks to add a module spec
-    When the modspec skill is invoked
+    When the m21 skill is invoked
     Then a .md file is created with valid YAML frontmatter (name, description, group, tags, depends_on, features) and a markdown body
 
   Scenario: Add dependency with feature references
@@ -23,7 +23,7 @@ Feature: spec-authoring
 
   Scenario: Guide what belongs in a spec body
     Given the user is writing or editing a spec body
-    When the modspec skill is consulted
+    When the m21 skill is consulted
     Then it explains that a spec describes responsibilities, non-goals, and invariants in domain language
     And it lists implementation details that do not belong in a spec body
 

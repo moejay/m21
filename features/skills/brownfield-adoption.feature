@@ -3,7 +3,7 @@ Feature: brownfield-adoption
 
   Scenario: Identify modules from project structure
     Given an existing codebase with directory and package boundaries
-    When the modspec-init skill analyzes the project
+    When the m21-init skill analyzes the project
     Then modules are identified based on entry points, export patterns, and configuration boundaries
 
   Scenario: Detect inter-module dependencies

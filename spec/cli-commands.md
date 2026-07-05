@@ -15,7 +15,7 @@ features: features/cli-commands/
 
 # CLI Commands
 
-Five read-only subcommands that let humans and coding agents explore a modspec project without spinning up the dev server. Each handler takes the parsed specs and options and returns its output — exit codes and printing flow back through the orchestrator.
+Five read-only subcommands that let humans and coding agents explore an M21 project without spinning up the dev server. Each handler takes the parsed specs and options and returns its output — exit codes and printing flow back through the orchestrator.
 
 Every command supports `--json` for machine-readable output; default output is concise human-readable text.
 

@@ -1,5 +1,5 @@
 /**
- * Cycle analysis for modspec dependency graphs.
+ * Cycle analysis for M21 dependency graphs.
  *
  * Specs may form cycles (A depends on B, B depends on A). This module
  * detects them via Tarjan's SCC algorithm and computes a cycle-safe depth

@@ -15,7 +15,7 @@ const bootstrapDir = join(fixturesDir, "features", "bootstrap");
 
 const tmpDirs = [];
 function makeTmpDir() {
-  const dir = mkdtempSync(join(tmpdir(), "modspec-feature-"));
+  const dir = mkdtempSync(join(tmpdir(), "m21-feature-"));
   tmpDirs.push(dir);
   return dir;
 }
@@ -494,7 +494,7 @@ describeFeature(featureFormat, ({ Scenario }) => {
   });
 
   Scenario("Kebab-case naming convention", ({ Given, When, Then }) => {
-    Given("feature files follow modspec conventions", () => {
+    Given("feature files follow m21 conventions", () => {
       const dir = makeTmpDir();
       filePath = join(dir, "data-querying.feature");
       writeFileSync(

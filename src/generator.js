@@ -270,13 +270,13 @@ export function generateHTML(specs, options = {}) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>modspec — Dependency Graph</title>
+  <title>M21 — Dependency Graph</title>
   <style>
 ${STYLES}
   </style>
 </head>
 <body>
-  <div class="title-bar"><span>modspec</span> dependency graph <span id="cycle-badge" class="cycle-badge" style="display:none;"></span></div>
+  <div class="title-bar"><span>M21</span> dependency graph <span id="cycle-badge" class="cycle-badge" style="display:none;"></span></div>
   <div class="layout-toolbar">
     <label class="layout-lock">
       <input type="checkbox" id="lock-nodes">

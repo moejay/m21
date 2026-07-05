@@ -17,7 +17,7 @@ function steps(statuses) {
 
 const tmpDirs = [];
 function makeProject(files) {
-  const root = mkdtempSync(join(tmpdir(), "modspec-results-"));
+  const root = mkdtempSync(join(tmpdir(), "m21-results-"));
   tmpDirs.push(root);
   for (const rel of files) {
     const full = join(root, rel);
@@ -183,7 +183,7 @@ describeFeature(parsing, ({ Scenario }) => {
 
   Scenario("Include vitest step details from source", ({ Given, When, Then }) => {
     Given("a vitest JSON report for a step backed by a test source file", () => {
-      const root = mkdtempSync(join(tmpdir(), "modspec-results-source-"));
+      const root = mkdtempSync(join(tmpdir(), "m21-results-source-"));
       tmpDirs.push(root);
       const testPath = join(root, "login.test.js");
       writeFileSync(

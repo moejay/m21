@@ -104,7 +104,7 @@ describe("parseSpecDirectory", () => {
     expect(names).toEqual(["Bootstrap", "Minimal", "Persistence", "Repos"]);
   });
 
-  it("skips files without valid modspec frontmatter", async () => {
+  it("skips files without valid m21 frontmatter", async () => {
     const results = await parseSpecDirectory(fixturesDir);
 
     const names = results.map((r) => r.name);

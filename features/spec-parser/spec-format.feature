@@ -2,7 +2,7 @@ Feature: spec-format
   Define the canonical spec file format consumed by the parser.
 
   Scenario: Valid frontmatter structure
-    Given a markdown file following the modspec format
+    Given a markdown file following the m21 format
     When it is valid
     Then it has YAML frontmatter with name (required), description, group, tags, depends_on, features
     And a markdown body below the frontmatter fences

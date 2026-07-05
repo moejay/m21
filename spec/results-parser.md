@@ -15,11 +15,11 @@ Ingests a test report and merges per-scenario pass/fail status onto the parsed s
 
 ### Non-goals
 
-modspec never runs tests — it consumes a results artifact produced by whatever runner the project uses.
+M21 never runs tests — it consumes a results artifact produced by whatever runner the project uses.
 
 ### Decisions
 
-**Cucumber JSON is the primary format** because it is emitted by Gherkin runners in every major language ecosystem, keeping the feature language-agnostic. It also maps 1:1 onto modspec's existing `feature → scenario` model.
+**Cucumber JSON is the primary format** because it is emitted by Gherkin runners in every major language ecosystem, keeping the feature language-agnostic. It also maps 1:1 onto M21's existing `feature → scenario` model.
 
 ### Supported formats
 
@@ -70,7 +70,7 @@ A scenario passes only when every step passes. A scenario with no steps is `unde
 
 ### Auto-detection
 
-When no explicit `--results` path is given, modspec looks for a report in conventional places. Root-level report filenames are checked first, then the same filenames inside common results directories:
+When no explicit `--results` path is given, M21 looks for a report in conventional places. Root-level report filenames are checked first, then the same filenames inside common results directories:
 
 - **Filenames:** `cucumber.json`, `cucumber-report.json`, `cucumber_report.json`, `vitest-results.json`, `jest-results.json`, `test-results.json`, `results.json`
 - **Directories:** `results/`, `reports/`, `test-results/`, `cucumber/`

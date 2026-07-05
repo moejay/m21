@@ -1,6 +1,6 @@
 # TODO — improvement backlog
 
-All ten items below are done, each routed through the modspec workflow
+All ten items below are done, each routed through the M21 workflow
 (spec/feature update first, then red/green). Commit hashes in `git log`.
 
 ## Done
@@ -33,7 +33,7 @@ All ten items below are done, each routed through the modspec workflow
 - **Extract the client JS** (tail of item 3) — move `src/client/app.js` out of the
   generator template by injecting data + a `liveReload` flag as globals rather than
   compile-time interpolation, and dedupe the Tarjan SCC code shared with `src/cycles.js`.
-- `modspec init` scaffolding subcommand (skills cover agents, not CLI users).
+- `m21 init` scaffolding subcommand (skills cover agents, not CLI users).
 - Recursive spec-directory support (`parseSpecDirectory` reads one level).
 - Greenfield spec-elicitation flow + handover-readiness check in the skill
   (discussed with the maintainer; not yet built).

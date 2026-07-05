@@ -8,7 +8,7 @@ import { generateHTML } from "./generator.js";
 import { resolveResultsPath, parseResultsFile, mergeResults } from "./results.js";
 
 /**
- * Create a modspec dev server with file watching and SSE.
+ * Create an M21 dev server with file watching and SSE.
  *
  * @param {Object} options
  * @param {string} options.specDir - Path to the spec directory
@@ -16,7 +16,7 @@ import { resolveResultsPath, parseResultsFile, mergeResults } from "./results.js
  * @param {string} [options.resultsPath] - Explicit path to a Cucumber JSON results file
  * @returns {Promise<{port: number, address: string, close: () => Promise<void>}>}
  */
-export async function createModspecServer({ specDir, port = 3333, host = null, projectRoot: explicitRoot, resultsPath = null } = {}) {
+export async function createM21Server({ specDir, port = 3333, host = null, projectRoot: explicitRoot, resultsPath = null } = {}) {
   // Project root is explicit or parent of the spec directory
   const projectRoot = explicitRoot || dirname(resolve(specDir));
 

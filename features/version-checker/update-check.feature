@@ -1,5 +1,5 @@
 Feature: update-check
-  Check npm registry for newer versions of @moejay/modspec.
+  Check npm registry for newer versions of @moejay/m21.
 
   Scenario: Notify when update is available
     Given the current version is "0.2.1" and npm latest is "0.3.0"

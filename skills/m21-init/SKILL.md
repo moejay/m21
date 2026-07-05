@@ -1,15 +1,15 @@
 ---
-name: modspec-init
-description: Generate modspec spec files and Gherkin features from an existing codebase. Use for brownfield adoption — analyze existing code structure and create specs that reflect the project's modules and their dependencies. Add --interactive to get some verification and chance to chat it out 
+name: m21-init
+description: Generate M21 spec files and Gherkin features from an existing codebase. Use for brownfield adoption — analyze existing code structure and create specs that reflect the project's modules and their dependencies. Add --interactive to get some verification and chance to chat it out 
 license: MIT
 metadata:
-  author: modspec
+  author: m21
   version: "1.0"
 ---
 
-# modspec-init — Brownfield Spec Generator
+# M21-init — Brownfield Spec Generator
 
-You are helping the user generate modspec specification files from an existing codebase. This is for **brownfield adoption** — the project already has code and you need to create specs that reflect its current structure.
+You are helping the user generate M21 specification files from an existing codebase. This is for **brownfield adoption** — the project already has code and you need to create specs that reflect its current structure.
 
 ## Goal
 
@@ -222,5 +222,5 @@ Feature: data-querying
 2. Present the identified modules and their dependencies for review - Default: Accept
 3. Ask if they want feature files generated too - Default: Yes
 4. Generate the files
-5. Suggest running `modspec ./spec/` to visualize the result
+5. Suggest running `m21 ./spec/` to visualize the result
 6. Iterate — the user may want to adjust groupings, split/merge modules, or refine features

@@ -1,6 +1,6 @@
 import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
-import { createModspecServer } from "../../src/server.js";
+import { createM21Server } from "../../src/server.js";
 import { mkdtemp, writeFile, readFile, mkdir, rm, chmod } from "fs/promises";
 import matter from "gray-matter";
 import { tmpdir } from "os";
@@ -30,7 +30,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Build a project with an "auth" spec and a feature file under features/auth/.
 async function makeProject() {
-  tmpRoot = await mkdtemp(join(tmpdir(), "modspec-editor-"));
+  tmpRoot = await mkdtemp(join(tmpdir(), "m21-editor-"));
   await mkdir(join(tmpRoot, "features", "auth"), { recursive: true });
   await writeFile(
     join(tmpRoot, "auth.md"),
@@ -79,7 +79,7 @@ describeFeature(specWriteBack, ({ Scenario, AfterEachScenario }) => {
       'a PUT request to /api/specs/auth/body with { body: "# New content" }',
       async () => {
         await makeProject();
-        server = await createModspecServer({
+        server = await createM21Server({
           specDir: tmpRoot,
           projectRoot: tmpRoot,
           port: 0,
@@ -114,7 +114,7 @@ describeFeature(specWriteBack, ({ Scenario, AfterEachScenario }) => {
         await makeProject();
         const content = await readFile(specFile(), "utf-8");
         originalData = matter(content).data;
-        server = await createModspecServer({
+        server = await createM21Server({
           specDir: tmpRoot,
           projectRoot: tmpRoot,
           port: 0,
@@ -144,7 +144,7 @@ describeFeature(specWriteBack, ({ Scenario, AfterEachScenario }) => {
   Scenario("Return 404 for unknown spec name", ({ Given, When, Then }) => {
     Given("a PUT request for a spec name not in the file map", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -170,7 +170,7 @@ describeFeature(specWriteBack, ({ Scenario, AfterEachScenario }) => {
   Scenario("Return 500 on write failure", ({ Given, When, Then }) => {
     Given("the file system write fails", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -212,7 +212,7 @@ describeFeature(featureWriteBack, ({ Scenario, AfterEachScenario }) => {
       'a PUT request to /api/features/auth/login.feature with { content: "Feature: ..." }',
       async () => {
         await makeProject();
-        server = await createModspecServer({
+        server = await createM21Server({
           specDir: tmpRoot,
           projectRoot: tmpRoot,
           port: 0,
@@ -247,7 +247,7 @@ describeFeature(featureWriteBack, ({ Scenario, AfterEachScenario }) => {
         "the spec name doesn't exist or has no features path",
         async () => {
           await makeProject();
-          server = await createModspecServer({
+          server = await createM21Server({
             specDir: tmpRoot,
             projectRoot: tmpRoot,
             port: 0,
@@ -278,7 +278,7 @@ describeFeature(featureWriteBack, ({ Scenario, AfterEachScenario }) => {
   Scenario("Return 500 on write failure", ({ Given, When, Then }) => {
     Given("the file system write fails", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -312,7 +312,7 @@ describeFeature(featureWriteBack, ({ Scenario, AfterEachScenario }) => {
         "a PUT request whose filename contains path separators or parent references",
         async () => {
           await makeProject();
-          server = await createModspecServer({
+          server = await createM21Server({
             specDir: tmpRoot,
             projectRoot: tmpRoot,
             port: 0,
@@ -348,7 +348,7 @@ describeFeature(featureWriteBack, ({ Scenario, AfterEachScenario }) => {
     let ssePromise;
     Given("a feature file is written", async () => {
       await makeProject();
-      server = await createModspecServer({
+      server = await createM21Server({
         specDir: tmpRoot,
         projectRoot: tmpRoot,
         port: 0,
@@ -421,7 +421,7 @@ describeFeature(specCreation, ({ Scenario, AfterEachScenario }) => {
 
   async function startServer() {
     await makeProject();
-    server = await createModspecServer({
+    server = await createM21Server({
       specDir: tmpRoot,
       projectRoot: tmpRoot,
       port: 0,
