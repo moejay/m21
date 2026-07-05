@@ -1,27 +1,27 @@
 ---
 name: m21-init
-description: Generate M21 spec files and Gherkin features from an existing codebase. Use for brownfield adoption — analyze existing code structure and create specs that reflect the project's modules and their dependencies. Add --interactive to get some verification and chance to chat it out 
+description: Generate M21 spec files and Gherkin features from an existing codebase. Use for brownfield adoption — analyze existing code structure and context to create specs that reflect the project's modules, durable contract concerns, and dependencies. Add --interactive to get some verification and chance to chat it out 
 license: MIT
 metadata:
   author: m21
-  version: "1.0"
+  version: "1.1"
 ---
 
 # M21-init — Brownfield Spec Generator
 
-You are helping the user generate M21 specification files from an existing codebase. This is for **brownfield adoption** — the project already has code and you need to create specs that reflect its current structure.
+You are helping the user generate M21 specification files from an existing codebase. This is for **brownfield adoption** — the project already has code and context, and you need to create specs that reflect its current modules, durable contract concerns, and dependencies.
 
 ## Goal
 
 Analyze the existing codebase and generate:
-1. **Spec files** (`.md` with YAML frontmatter) only for meaningful module boundaries
-2. **Feature files** (`.feature` with Gherkin scenarios) only when the user wants executable behavior contracts for observable outcomes
+1. **Spec files** (`.md` with YAML frontmatter) only for meaningful contract boundaries: code modules, design systems, external services, deployments, observability, tracing, scale architecture, or other durable project concerns
+2. **Feature files** (`.feature` with Gherkin scenarios) only when the user wants executable behavior contracts or evidence-backed guarantees for observable outcomes
 
 ## Process
 
 ### Step 1: Analyze the codebase
 
-Examine the project structure to identify modules. Look for:
+Examine the project structure to identify meaningful contract concerns. Most are modules, but some projects also need design-system, external-service, deployment, observability, tracing, or scale-architecture specs. Look for:
 
 - **Package/directory boundaries**: Distinct directories or packages that represent separate concerns
 - **Entry points**: Main files that serve as the module's public surface
@@ -31,8 +31,8 @@ Examine the project structure to identify modules. Look for:
 
 ### Step 2: Identify dependencies
 
-For each module, determine:
-- Which other modules it imports from or depends on
+For each spec concern, determine:
+- Which other modules, services, deployments, or shared contracts it depends on
 - Which specific functionality (features) it uses from each dependency
 - Whether the dependency is direct or transitive
 
@@ -83,6 +83,16 @@ Feature: feature-name-in-kebab-case
     Then expected outcome
 ```
 
+### Step 6: Validate the graph
+
+After generating or editing spec/feature files, run:
+
+```bash
+npx @moejay/m21 validate ./spec --json
+```
+
+Fix or discuss any broken spec references, broken `uses` references, missing feature directories, or cycles before considering the generated M21 graph ready.
+
 ## Guidelines
 
 ### Technology-agnostic specs or not
@@ -112,13 +122,16 @@ If the user explicitly mentions to keep the tech stack as part of the spec, then
 
 ### Groups
 
-Assign groups based on architectural layers or domains:
-- `foundation` — bootstrap, configuration, shared primitives
-- `infrastructure` — data persistence, caching, messaging, external integrations
+Assign groups based on architectural layers, domains, or durable project context. Groups are view labels, not a fixed taxonomy:
+- `foundation` / `core` — `bootstrap`, configuration, shared primitives, startup/scaffolding guarantees
+- `infrastructure` — data persistence, caching, messaging, filesystem/network concerns, external integrations
 - `domain` — core business logic modules
-- `interface` — APIs, user-facing endpoints, external service contracts
-- `presentation` — UI components, pages, layouts
+- `interface` — APIs, CLIs, protocols, public service contracts
+- `experience` / `ui` — `visual-language`, design system, accessibility baseline, UI components, pages, layouts, interaction contracts
+- `operations` — deployment topology, runtime configuration, observability, tracing, scale architecture, failure-mode behavior
 - Or use domain-specific groupings that match the project
+
+Useful potential specs to consider when they carry real contracts: `bootstrap`, `visual-language`, `design-system`, `external-services`, `deployment-topology`, `observability`, `tracing`, and `scale-architecture`. Do not create them as checklists; create them only when other specs consume their guarantees or the project needs those contracts preserved.
 
 ### Feature identification heuristics
 
@@ -223,5 +236,6 @@ Feature: data-querying
 2. Present the identified modules and their dependencies for review - Default: Accept
 3. Ask if they want executable feature files generated too - Default: No unless clear observable contracts were found
 4. Generate the files
-5. Suggest running `m21 ./spec/` to visualize the result
-6. Iterate — the user may want to adjust groupings, split/merge modules, or refine features
+5. Run `npx @moejay/m21 validate ./spec --json` to catch broken dependency references, broken `uses` references, missing feature directories, and cycles
+6. Suggest running `npx @moejay/m21 ./spec/` to visualize the result
+7. Iterate — the user may want to adjust groupings, split/merge modules, or refine features

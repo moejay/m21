@@ -4,24 +4,24 @@ description: Spec-driven development workflow for M21 projects. Use whenever you
 license: MIT
 metadata:
   author: m21
-  version: "2.0"
+  version: "2.1"
 ---
 
 # M21 — Spec-Driven Development Workflow
 
-This skill defines the workflow for working in an M21 project: authoring specs, editing them, and implementing code. M21 uses markdown spec files with YAML frontmatter to define meaningful modules, their dependencies, and optional links to Gherkin `.feature` files. Features are for executable behavior contracts only — not every spec needs features, and not every repository concern needs a spec.
+This skill defines the workflow for working in an M21 project: authoring specs, editing them, and implementing code. M21 uses markdown spec files with YAML frontmatter to define contract-bearing concerns, their dependencies, and optional links to Gherkin `.feature` files. Specs often describe code modules, but they may also describe durable project concerns such as design systems, external services, deployments, observability, tracing, or scale architecture when those concerns provide or consume explicit contracts. Features are for executable behavior or evidence-backed guarantees only — not every spec needs features, and not every repository concern needs a spec.
 
 ## The contract — use judgment
 
-When a change affects a module's durable contract, follow this flow:
+When a change affects a spec's durable contract, follow this flow:
 
-1. **Phase 1 — Update the spec and/or features first.** If the change alters module responsibility, dependency contracts, invariants, or externally observable behavior, update the owning spec and any relevant `.feature` scenarios before implementation.
+1. **Phase 1 — Update the spec and/or features first.** If the change alters responsibility, dependency contracts, invariants, external assumptions, deployment/operational guarantees, or externally observable behavior, update the owning spec and any relevant `.feature` scenarios before implementation.
 
 2. **Phase 2 — Red/green TDD for executable scenarios.** New or modified scenarios should fail first, then implementation makes them pass, then the full feature suite checks regressions.
 
-Do **not** create specs or features just to mirror files, folders, helper functions, repo chores, or implementation mechanics. Specs are load-bearing only when they describe architecture or behavior that should survive regeneration. Features are load-bearing only when they describe an observable outcome that can be tested.
+Do **not** create specs or features just to mirror files, folders, helper functions, repo chores, checklists, or implementation mechanics. Specs are load-bearing only when they describe architecture, behavior, external assumptions, or operational guarantees that should survive regeneration. Features are load-bearing only when they describe an observable outcome that can be tested or verified by evidence.
 
-> If the user requests a code-only maintenance change with no contract change — dependency bumps, refactors that preserve behavior, generated assets, CI plumbing, docs-only edits — do not invent a scenario. If the change reveals a missing behavioral contract, pause and add the smallest useful scenario.
+> If the user requests a code-only maintenance change with no contract change — dependency bumps, refactors that preserve behavior, generated assets, CI plumbing, docs-only edits — do not invent a scenario. If the change reveals a missing behavioral or operational contract, pause and add the smallest useful scenario.
 
 ## Test runner contract
 
@@ -54,15 +54,33 @@ project/
 
 ---
 
+## Use the M21 CLI while working
+
+Use the M21 tool as a feedback loop for spec work. Prefer the published package command in user projects:
+
+```bash
+npx @moejay/m21 validate ./spec --json
+npx @moejay/m21 list ./spec --json
+npx @moejay/m21 show ./spec <name> --json
+npx @moejay/m21 features ./spec [<name>] --json
+npx @moejay/m21 deps ./spec <name> --json
+```
+
+On entering an M21 project, run `npx @moejay/m21 validate ./spec --json` after locating the spec directory. Use `list`, `show`, `features`, and `deps` to understand the existing graph before editing. After changing specs or features, run `validate` again and treat broken dependency references, broken `uses` references, missing feature directories, and cycles as work to resolve or explicitly discuss with the user.
+
+In the M21 repository itself, `npx . validate ./spec --json` or `node bin/m21.js validate ./spec --json` may be used to exercise the local checkout instead of the published package.
+
+---
+
 ## What belongs in a spec
 
 The spec body is deliberately unstructured — free markdown prose, written to be read and edited by humans. This section is guidance on **content**, not a template. Do not impose headings or sections on the user's specs.
 
 A good spec body answers, in **domain language** anyone can read:
 
-- **Responsibilities** — what this module is accountable for, stated as outcomes, not mechanisms.
+- **Responsibilities** — what this spec concern is accountable for, stated as outcomes, not mechanisms.
 - **Non-goals** — what it deliberately does *not* do. Often the highest-value sentence in the spec, because it's the thing scenarios can't express.
-- **Invariants** — what must always hold, no matter how the module is built ("edits never touch frontmatter", "no file outside the project root is ever written").
+- **Invariants** — what must always hold, no matter how the concern is built or operated ("edits never touch frontmatter", "no file outside the project root is ever written").
 - **Decisions** — constraints the user deliberately chose, recorded with the reason. A decision may name a technology ("local-first storage using SQLite — no server dependency"): that is a **constraint the user owns**, not a description of the code. This is the *only* place implementation vocabulary belongs.
 
 ### The regeneration test
@@ -85,29 +103,41 @@ When editing a spec that already contains these, flag them to the user and offer
 
 If a sentence in the spec body describes behavior with an **observable outcome** ("when the results file changes, the graph updates"), it belongs in a scenario — that's the executable contract. Spec prose that restates scenarios drifts; spec prose should carry what scenarios can't: purpose, non-goals, invariants, decisions.
 
+### Specs beyond code modules
+
+M21 specs can describe any durable contract provider or consumer, not only implementation modules. Use this when the project needs to preserve architectural context that would otherwise live in scattered docs or assumptions:
+
+- **Design systems / visual language** — tokens, components, accessibility baseline, interaction patterns, information hierarchy.
+- **External services** — APIs, managed platforms, registries, payment providers, identity providers, telemetry backends.
+- **Deployments and runtime topology** — what runs where, required infrastructure contracts, rollout and rollback expectations.
+- **Observability and tracing** — logs, metrics, spans, correlation IDs, alertable symptoms, diagnostic affordances.
+- **Scale and failure modes** — expected load shape, degradation behavior, backpressure, durability or recovery guarantees.
+
+Keep these specs contract-shaped. A deployment spec is not a checklist; it describes guarantees the deployed system depends on or provides. An observability spec is not a tool inventory; it describes evidence the system emits so operators can understand it.
+
 ---
 
 ## Phase 1 — Update the spec and features
 
-Use this phase when the user asks to add, change, or remove behavior, responsibilities, dependencies, invariants, or other durable contract information.
+Use this phase when the user asks to add, change, or remove behavior, responsibilities, dependencies, invariants, external assumptions, operational guarantees, or other durable contract information.
 
 ### 1.1 Understand the request
 - *What* is being added/changed/removed? (spec, feature, scenario, dependency)
-- *Which module* owns it? If unclear, present candidates — don't guess.
+- *Which spec concern* owns it? If unclear, present candidates — don't guess.
 
 ### 1.2 Find the right spec
 - Named explicitly by the user → use that
 - Fits an existing spec's responsibility → use the best fit (match by `description`, `group`, existing features)
-- Represents a new durable module concern not covered by any spec → create a new spec
+- Represents a new durable contract concern not covered by any spec → create a new spec
 - Is a repo chore, generated asset, helper-only refactor, or implementation detail → no new spec; keep it out of the M21 contract
 
 ### 1.3 Read current state before changing
 Read the target spec, all its existing feature files, and any specs that depend on it. This prevents duplicate features, conflicting scenarios, and broken dependency contracts.
 
 ### 1.4 Make the changes
-- **Add a feature** → only when the module exposes observable behavior worth testing as a public contract. Create a new `.feature` file in `features/<spec>/` and add the `features` field to spec frontmatter if missing.
-- **Add a scenario** → only for an observable outcome. Append to the existing `.feature` file, matching the surrounding step phrasing and detail level.
-- **New spec** → create the spec for a meaningful module boundary. Do not add a `features` directory unless it has real executable behavior to describe.
+- **Add a feature** → only when the spec exposes observable behavior or an evidence-backed guarantee worth treating as a public contract. Create a new `.feature` file in `features/<spec>/` and add the `features` field to spec frontmatter if missing.
+- **Add a scenario** → only for an observable outcome or verifiable guarantee. Append to the existing `.feature` file, matching the surrounding step phrasing and detail level.
+- **New spec** → create the spec for a meaningful contract boundary. Do not add a `features` directory unless it has real executable behavior or evidence-backed guarantees to describe.
 - **Modify dependencies** → update `depends_on`. If new `uses` references don't exist yet, offer to add them as scenarios.
 - **Remove a feature/spec** → check downstream `uses` first. Warn the user about broken contracts before deleting.
 
@@ -126,7 +156,7 @@ Summarize files created/modified/deleted. Flag downstream specs that may need at
 Use this phase to make the new or modified executable feature scenarios pass. If no feature changed, run the project's normal validation for the code change instead.
 
 ### 2.1 Read the spec
-- What is this module responsible for? (`description`, body)
+- What is this spec concern responsible for? (`description`, body)
 - What does it depend on? (`depends_on` and `uses`)
 - Where do its features live? (`features` field)
 
@@ -148,7 +178,7 @@ Run the feature suite. Every scenario for this spec must fail because the implem
 If the spec declares `uses` against a dependency, the implementation must actually consume those features. If it doesn't, either the implementation is wrong or the spec needs updating — flag it and return to Phase 1 if the user agrees.
 
 ### 2.6 Run the full feature suite
-After implementing one spec, run *all* features — not just the one you worked on. Implementation of one spec must not break another's.
+After implementing one spec, run *all* features — not just the one you worked on. Implementation of one spec must not break another's. Then run `npx @moejay/m21 validate ./spec --json` to confirm the contract graph still resolves.
 
 ### Phase 2 rules
 - Features are the contract. A passing suite means the implementation is correct; a failing scenario means the implementation is wrong (not the feature).
@@ -234,8 +264,19 @@ The `uses` array references `Feature:` names declared in the parent spec's `.fea
 - Cycles are allowed but visualized as cycles.
 - Roots (no `depends_on`) appear at the top in tree layout.
 
-### Groups
-Specs sharing a `group` value are clustered with a colored hull. Use them for domain organization (`infrastructure`, `data`, `api`, `ui`).
+### Groups and candidate spec boundaries
+Specs sharing a `group` value are clustered with a colored hull. Groups are view labels, not a fixed taxonomy. Choose names that help a maintainer see the system's shape.
+
+Useful starting groups and specs:
+
+- `foundation` / `core` — `bootstrap`, configuration, shared contracts, startup or initialization guarantees.
+- `domain` — business rules and core product capabilities.
+- `infrastructure` — persistence, caching, messaging, filesystem, network, external integrations.
+- `interface` — CLI, API, protocol boundaries, public service contracts.
+- `experience` / `ui` — `visual-language`, design system, accessibility baseline, interaction and presentation contracts.
+- `operations` — deployment topology, runtime configuration, observability, tracing, scale architecture, failure-mode behavior.
+
+Prefer a `bootstrap` spec when the project has startup/scaffolding/setup guarantees that many specs rely on. Prefer a `visual-language` or design-system spec when UI behavior depends on shared visual, interaction, or accessibility contracts. Prefer operations specs only when they carry durable guarantees, not as a dumping ground for release checklists.
 
 ---
 
@@ -277,18 +318,38 @@ Feature: feature-name-in-kebab-case
 
 ## Reference: CLI
 
+Use `npx @moejay/m21` in projects unless the user has a local/global `m21` command they prefer.
+
 ```bash
-m21 ./spec/                       # Dev server with live reload (default)
-m21 ./spec/ -y                    # Auto-create spec dir if missing
-m21 ./spec/ --port 4000           # Custom port
-m21 ./spec/ --output graph.html   # Static HTML export
+npx @moejay/m21 ./spec/                         # Dev server with live reload (default)
+npx @moejay/m21 ./spec/ -y                      # Auto-create spec dir if missing
+npx @moejay/m21 ./spec/ --port 4000             # Custom port
+npx @moejay/m21 ./spec/ --host 127.0.0.1        # Explicit host binding
+npx @moejay/m21 ./spec/ --output graph.html     # Static HTML export
+npx @moejay/m21 ./spec/ --results results.json  # Overlay Cucumber, Jest, or vitest JSON results
 ```
+
+Read-only subcommands for humans and agents:
+
+```bash
+npx @moejay/m21 list ./spec/                    # Print all specs
+npx @moejay/m21 show ./spec/ <name>             # Print one spec's deps, dependents, features, body
+npx @moejay/m21 features ./spec/ [<name>]       # List features across all specs or one spec
+npx @moejay/m21 deps ./spec/ <name>             # Print forward + reverse dependency tree
+npx @moejay/m21 validate ./spec/                # Lint broken refs, missing feature dirs, cycles
+```
+
+Each read-only subcommand accepts `--json`; agents should prefer JSON output when parsing command results.
 
 | Flag | Description |
 |------|-------------|
 | `--output`, `-o` | Save HTML to path instead of serving |
 | `--port` | Dev server port (default 3333) |
+| `--host` | Host/address for the dev server to bind; default is loopback only |
+| `--results` | Explicit test-results file for status overlay; otherwise conventional paths are auto-detected |
+| `--json` | Machine-readable output for read-only subcommands |
 | `-y`, `--yes` | Auto-create spec dir if missing |
 | `--help`, `-h` | Show help |
+| `--version`, `-v` | Show version |
 
-The dev server watches spec and feature files for changes and pushes updates to the browser in real time.
+The dev server watches spec, feature, and result files for changes and pushes updates to the browser in real time.
