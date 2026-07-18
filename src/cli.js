@@ -1,4 +1,4 @@
-const SUBCOMMANDS = ["list", "show", "features", "deps", "validate"];
+const SUBCOMMANDS = ["list", "show", "features", "deps", "validate", "model", "schema"];
 const SUBCOMMANDS_REQUIRING_NAME = new Set(["show", "deps"]);
 
 function isSubcommandKeyword(arg) {

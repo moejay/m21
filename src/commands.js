@@ -1,4 +1,9 @@
 import { analyzeGraph, buildAdjacency, formatCycle } from "./cycles.js";
+import {
+  exportContractRegistry,
+  generateJsonSchema,
+  validateContractRegistry,
+} from "./contracts.js";
 
 function findSpec(specs, name) {
   if (!name) return null;
@@ -16,6 +21,8 @@ function specSummary(spec) {
       name: d.name,
       uses: d.uses || [],
     })),
+    models: spec.models || { entities: {} },
+    interfaces: spec.interfaces || { operations: {} },
     features: (spec.featureFiles || []).map((f) => ({
       name: f.name,
       scenarios: (f.scenarios || []).map((s) => s.name),
@@ -316,8 +323,45 @@ export function depsCommand(specs, options = {}) {
   return { output: lines.join("\n"), exitCode: 0 };
 }
 
+export function modelCommand(specs, options = {}) {
+  const registry = exportContractRegistry(specs, options.name);
+  if (!registry) {
+    return { output: `Error: spec not found: ${options.name}`, exitCode: 1 };
+  }
+  if (options.json) {
+    return { output: JSON.stringify(registry, null, 2), exitCode: 0 };
+  }
+  const lines = [];
+  for (const spec of registry.specs) {
+    lines.push(`${spec.name}:`);
+    const entities = Object.keys(spec.models.entities || {});
+    const operations = Object.keys(spec.interfaces.operations || {});
+    lines.push(`  entities: ${entities.length ? entities.join(", ") : "(none)"}`);
+    lines.push(`  operations: ${operations.length ? operations.join(", ") : "(none)"}`);
+  }
+  if (registry.diagnostics.length) {
+    lines.push("");
+    lines.push(`diagnostics: ${registry.diagnostics.length}`);
+  }
+  return { output: lines.join("\n"), exitCode: 0 };
+}
+
+export function schemaCommand(specs, options = {}) {
+  const result = generateJsonSchema(specs, options.name);
+  if (!result) {
+    return { output: `Error: spec not found: ${options.name}`, exitCode: 1 };
+  }
+  if (!result.schema) {
+    return {
+      output: JSON.stringify({ ok: false, issues: result.diagnostics }, null, 2),
+      exitCode: 1,
+    };
+  }
+  return { output: JSON.stringify(result.schema, null, 2), exitCode: 0 };
+}
+
 export function validateCommand(specs, options = {}) {
-  const issues = [];
+  const issues = [...validateContractRegistry(specs)];
   const nameMap = {};
   specs.forEach((s) => {
     nameMap[s.name.toLowerCase()] = s;
@@ -428,4 +472,6 @@ export const COMMAND_HANDLERS = {
   features: featuresCommand,
   deps: depsCommand,
   validate: validateCommand,
+  model: modelCommand,
+  schema: schemaCommand,
 };

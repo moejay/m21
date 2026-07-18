@@ -41,6 +41,16 @@ Feature: subcommand-parsing
     When arguments are parsed
     Then mode is "validate" and specDir is "./spec/"
 
+  Scenario: Parse model subcommand with optional spec name
+    Given the argument array is ["model", "./spec/", "auth"]
+    When arguments are parsed
+    Then mode is "model" and specDir is "./spec/" and name is "auth"
+
+  Scenario: Parse schema subcommand for all specs
+    Given the argument array is ["schema", "./spec/"]
+    When arguments are parsed
+    Then mode is "schema" and specDir is "./spec/" and name is null
+
   Scenario: Parse --json flag with subcommand
     Given the argument array is ["list", "./spec/", "--json"]
     When arguments are parsed

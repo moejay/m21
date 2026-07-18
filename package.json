@@ -1,7 +1,7 @@
 {
   "name": "@moejay/m21",
-  "version": "0.7.1",
-  "description": "Spec-driven dependency graph visualizer with composable modules and feature tracking",
+  "version": "0.8.0",
+  "description": "Enforceable model, interface, feature, and dependency contracts visualized as a living project graph",
   "type": "module",
   "bin": {
     "m21": "bin/m21.js"
@@ -13,6 +13,7 @@
     "./generator": "./src/generator.js",
     "./results": "./src/results.js",
     "./cycles": "./src/cycles.js",
+    "./contracts": "./src/contracts.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -54,6 +55,7 @@
   "dependencies": {
     "chokidar": "^5.0.0",
     "gray-matter": "^4.0.3",
+    "js-yaml": "^4.3.0",
     "open": "^10.1.0"
   },
   "devDependencies": {

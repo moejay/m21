@@ -9,6 +9,60 @@ features: features/graph-client/
 
 # Graph Client
 
+## Data model
+
+### Graph view
+
+Specs represented as nodes, dependencies as directed links, groups as visual clusters, owned Entities and Operations as inspectable contracts, and merged test outcomes as status annotations.
+
+### View state
+
+Current node positions, lock and direction settings, zoom transform, selected spec, open panel tab, and any active edit.
+
+```m21-model
+entities:
+  GraphView:
+    fields:
+      nodes: { type: array, items: object, required: true }
+      links: { type: array, items: object, required: true }
+  ViewState:
+    fields:
+      selectedSpec: { type: string }
+      activeTab: { type: enum, values: [model, interfaces, spec, features], required: true }
+      locked: { type: boolean, required: true }
+```
+
+## Interfaces
+
+### inspect-contracts
+
+Shows normalized Entities, Fields, Operations, and Contract diagnostics separately from architectural prose and executable features.
+
+### explore-graph
+
+Allows a user to navigate, zoom, drag, group, select, and inspect the Graph view without changing project contracts.
+
+### edit-contract
+
+In live mode, allows a user to revise a spec body or feature document and save through the server; static mode provides no editing operation.
+
+### apply-project-update
+
+Replaces displayed project data while preserving compatible View state.
+
+```m21-interface
+operations:
+  inspect-contracts: { input: GraphView, output: ViewState }
+  explore-graph: { input: GraphView, output: ViewState }
+  edit-contract: { input: ViewState, output: ViewState, failures: [StaticMode, SaveFailure] }
+  apply-project-update:
+    input: GraphView
+    output: ViewState
+    effects: [Preserves compatible view state while replacing project data]
+```
+
+## Contract
+
 The interactive application that runs in the browser. It renders the spec dependency graph, lets the user explore it, and — in dev mode — edit specs and features inline.
 
 ### Default layout
@@ -27,8 +81,10 @@ The graph has a single lock control instead of layout-mode buttons. Nodes are un
 
 ### Side panel
 
-Clicking a node opens a slide-in panel with two tabs:
-- **Spec tab**: renders the spec's markdown body
+Clicking a node opens a slide-in panel with four tabs:
+- **Model tab**: renders normalized entities, fields, and model diagnostics
+- **Interfaces tab**: renders normalized operations with inputs, outputs, failures, and effects
+- **Spec tab**: renders the spec's Markdown body
 - **Features tab**: lists all associated `.feature` files with collapsible scenarios showing Given/When/Then steps. Clicking a scenario toggles available test details, including step result status, source location, and definition snippets when the results parser can resolve them from the test report.
 
 ### Test status

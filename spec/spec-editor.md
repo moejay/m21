@@ -11,6 +11,58 @@ features: features/spec-editor/
 
 # Spec Editor
 
+## Data model
+
+### Spec draft
+
+A requested spec name with optional metadata, dependencies, and Markdown body.
+
+### Body revision
+
+Replacement Markdown body content for an existing Spec; frontmatter is outside the revision and remains unchanged.
+
+### Feature revision
+
+Replacement source content for one existing feature document owned by a Spec.
+
+```m21-model
+entities:
+  SpecDraft:
+    fields:
+      name: { type: string, required: true }
+      description: { type: string }
+      body: { type: string }
+  BodyRevision:
+    fields:
+      body: { type: string, required: true }
+  FeatureRevision:
+    fields:
+      content: { type: string, required: true }
+```
+
+## Interfaces
+
+### create-spec
+
+Creates a Spec from a valid Spec draft and rejects missing, duplicate, or path-escaping names.
+
+### revise-spec-body
+
+Replaces a Spec's Body revision while preserving all frontmatter.
+
+### revise-feature
+
+Replaces one Feature revision while keeping the write inside its owning feature directory.
+
+```m21-interface
+operations:
+  create-spec: { input: SpecDraft, failures: [MissingName, DuplicateSpec, UnsafePath] }
+  revise-spec-body: { input: BodyRevision, failures: [UnknownSpec, UnsafePath] }
+  revise-feature: { input: FeatureRevision, failures: [UnknownFeature, UnsafePath] }
+```
+
+## Contract
+
 Persists edits made in the browser's inline editor back to the spec and feature files on disk.
 
 ### Spec body editing (`PUT /api/specs/:name/body`)

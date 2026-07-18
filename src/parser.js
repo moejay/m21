@@ -1,6 +1,7 @@
 import matter from "gray-matter";
 import { readFile, readdir, access } from "fs/promises";
 import { join, extname, relative, basename } from "path";
+import { parseContractBlocks } from "./contracts.js";
 
 /**
  * Normalize a depends_on entry to the canonical { name, uses } form.
@@ -38,6 +39,8 @@ export async function parseSpecFile(filePath) {
   const rawDeps = data.depends_on || [];
   const depends_on = rawDeps.map(normalizeDep).filter(Boolean);
 
+  const contract = parseContractBlocks(body, data.name);
+
   return {
     name: data.name,
     description: data.description || "",
@@ -45,6 +48,9 @@ export async function parseSpecFile(filePath) {
     tags: Array.isArray(data.tags) ? data.tags : [],
     depends_on,
     features: data.features || "",
+    models: contract.models,
+    interfaces: contract.interfaces,
+    contractDiagnostics: contract.diagnostics,
     body: body.trim() ? body.trim() + "\n" : "",
   };
 }

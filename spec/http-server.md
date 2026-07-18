@@ -21,6 +21,52 @@ features: features/http-server/
 
 # HTTP Server
 
+## Data model
+
+### Server session
+
+A locally bound development service with its address, active watch and event resources, current parsed contracts, and a close operation.
+
+### Editing request
+
+A size-limited request to create a spec or revise spec/feature content, accepted only after its structure and target path are valid.
+
+```m21-model
+entities:
+  ServerSession:
+    fields:
+      address: { type: string, required: true }
+      active: { type: boolean, required: true }
+  EditingRequest:
+    fields:
+      target: { type: string, required: true }
+      content: { type: string, required: true }
+```
+
+## Interfaces
+
+### start-server
+
+- Input: Project locations, binding options, and optional result-report location
+- Output: A Server session
+- Failures: Invalid binding or unavailable project resources
+- Effects: Serves graph and contract data, watches project files, and accepts local edits until closed
+
+### serve-contract-api
+
+Provides graph retrieval, parsed contract retrieval, event streaming, spec creation, and spec/feature revision through the endpoints below.
+
+```m21-interface
+operations:
+  start-server: { output: ServerSession, failures: [BindingFailure, UnavailableProject] }
+  serve-contract-api:
+    input: EditingRequest
+    output: ServerSession
+    failures: [InvalidRequest, UnsafePath]
+```
+
+## Contract
+
 The development server. Exposes the interactive graph, the parsed spec data, a live-update stream, and the editing endpoints. It composes the other infrastructure modules — parsing, generation, watching, broadcasting, editing — behind a single HTTP interface.
 
 ### Test results overlay

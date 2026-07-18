@@ -170,6 +170,8 @@ export function generateHTML(specs, options = {}) {
           document.getElementById("panel-group").textContent = updated.group || "\\u2014";
           document.getElementById("panel-tags").textContent = (updated.tags && updated.tags.length > 0) ? updated.tags.join(', ') : "\\u2014";
           renderPanelDeps(updated);
+          renderModel(updated);
+          renderInterfaces(updated);
           // Only re-render tab content if not actively editing
           const specEditArea = document.getElementById('spec-edit-area');
           if (!specEditArea) {
@@ -323,8 +325,16 @@ ${STYLES}
       </div>
     </div>
     <div class="panel-tabs">
-      <button class="panel-tab active" id="panel-tab-spec" onclick="switchTab('spec')">Spec</button>
+      <button class="panel-tab active" id="panel-tab-model" onclick="switchTab('model')">Model</button>
+      <button class="panel-tab" id="panel-tab-interfaces" onclick="switchTab('interfaces')">Interfaces</button>
+      <button class="panel-tab" id="panel-tab-spec" onclick="switchTab('spec')">Spec</button>
       <button class="panel-tab" id="panel-tab-features" onclick="switchTab('features')">Features</button>
+    </div>
+    <div id="panel-model-tab" class="panel-tab-content">
+      <div id="panel-model-content"></div>
+    </div>
+    <div id="panel-interfaces-tab" class="panel-tab-content">
+      <div id="panel-interfaces-content"></div>
     </div>
     <div id="panel-spec-tab" class="panel-tab-content">
       <div class="spec-edit-header">
@@ -480,22 +490,10 @@ ${STYLES}
 
     // Tab switching
     function switchTab(tab) {
-      const specTab = document.getElementById('panel-spec-tab');
-      const featuresTab = document.getElementById('panel-features-tab');
-      const specBtn = document.getElementById('panel-tab-spec');
-      const featuresBtn = document.getElementById('panel-tab-features');
-
-      if (tab === 'spec') {
-        specTab.style.display = 'block';
-        featuresTab.style.display = 'none';
-        specBtn.classList.add('active');
-        featuresBtn.classList.remove('active');
-      } else {
-        specTab.style.display = 'none';
-        featuresTab.style.display = 'block';
-        specBtn.classList.remove('active');
-        featuresBtn.classList.add('active');
-      }
+      ['model', 'interfaces', 'spec', 'features'].forEach(name => {
+        document.getElementById('panel-' + name + '-tab').style.display = name === tab ? 'block' : 'none';
+        document.getElementById('panel-tab-' + name).classList.toggle('active', name === tab);
+      });
     }
 
     // Render panel dependencies with uses tags
@@ -528,6 +526,56 @@ ${STYLES}
         html += '</div>';
       });
       depsContainer.innerHTML = html;
+    }
+
+    function renderModel(d) {
+      const container = document.getElementById('panel-model-content');
+      const entities = (d.models && d.models.entities) || {};
+      const diagnostics = d.contractDiagnostics || [];
+      let html = '';
+      diagnostics.forEach(issue => {
+        html += '<div class="contract-diagnostic">' + escapeHtml(issue.type + ': ' + issue.message) + '</div>';
+      });
+      Object.entries(entities).forEach(([name, entity]) => {
+        html += '<div class="contract-card"><h3>' + escapeHtml(name) + '</h3>';
+        if (entity.identity) html += '<div class="contract-detail">identity: <code>' + escapeHtml(entity.identity) + '</code></div>';
+        const fields = entity.fields || {};
+        if (Object.keys(fields).length) {
+          html += '<table class="contract-table"><thead><tr><th>Field</th><th>Type</th><th>Rules</th></tr></thead><tbody>';
+          Object.entries(fields).forEach(([fieldName, field]) => {
+            const type = field.type === 'reference' ? 'reference → ' + (field.ref || '?') : field.type;
+            const rules = [];
+            if (field.required) rules.push('required');
+            if (field.format) rules.push('format: ' + field.format);
+            if (field.values) rules.push(field.values.join(' | '));
+            html += '<tr><td><code>' + escapeHtml(fieldName) + '</code></td><td>' + escapeHtml(type || '') + '</td><td>' + escapeHtml(rules.join(', ')) + '</td></tr>';
+          });
+          html += '</tbody></table>';
+        }
+        (entity.constraints || []).forEach(rule => { html += '<div class="contract-constraint">' + escapeHtml(rule) + '</div>'; });
+        html += '</div>';
+      });
+      if (!html) html = '<p class="no-features-msg">No machine-readable model declared</p>';
+      container.innerHTML = html;
+    }
+
+    function renderInterfaces(d) {
+      const container = document.getElementById('panel-interfaces-content');
+      const operations = (d.interfaces && d.interfaces.operations) || {};
+      let html = '';
+      Object.entries(operations).forEach(([name, operation]) => {
+        html += '<div class="contract-card"><h3>' + escapeHtml(name) + '</h3>';
+        if (operation.purpose) html += '<p>' + escapeHtml(operation.purpose) + '</p>';
+        ['input', 'output'].forEach(key => {
+          if (operation[key]) html += '<div class="contract-detail"><strong>' + key + ':</strong> <code>' + escapeHtml(Array.isArray(operation[key]) ? operation[key].join(', ') : operation[key]) + '</code></div>';
+        });
+        ['failures', 'effects', 'emits', 'consumes'].forEach(key => {
+          if (operation[key] && operation[key].length) html += '<div class="contract-detail"><strong>' + key + ':</strong> ' + escapeHtml(operation[key].join(', ')) + '</div>';
+        });
+        html += '</div>';
+      });
+      if (!html) html = '<p class="no-features-msg">No machine-readable interfaces declared</p>';
+      container.innerHTML = html;
     }
 
     // Render features tab content
@@ -849,17 +897,19 @@ ${STYLES}
 
       renderPanelDeps(d);
 
-      // Render spec body
+      // Render the contract stack
+      renderModel(d);
+      renderInterfaces(d);
       renderSpecBody(d);
       document.getElementById('spec-edit-btn').style.display = '';
 
       // Render features
       renderFeatures(d);
 
-      // Only reset to spec tab if panel is not already open
+      // Only reset to model tab if panel is not already open
       const panel = document.getElementById("info-panel");
       if (!panel.classList.contains("open")) {
-        switchTab('spec');
+        switchTab('model');
       }
 
       panel.classList.add("open");

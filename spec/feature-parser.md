@@ -9,6 +9,63 @@ features: features/feature-parser/
 
 # Feature Parser
 
+## Data model
+
+### Feature document
+
+A named behavioral capability with tags, optional background steps, scenarios, source identity, and preserved source content.
+
+### Scenario
+
+A named executable example with tags and an ordered sequence of Steps. A scenario outline remains one Scenario rather than expanding its examples.
+
+### Step
+
+A Given, When, Then, And, or But statement belonging to a background or Scenario.
+
+```m21-model
+entities:
+  Step:
+    fields:
+      text: { type: string, required: true }
+  Scenario:
+    fields:
+      name: { type: string, required: true }
+      steps: { type: array, items: Step, required: true }
+      tags: { type: array, items: string }
+  FeatureDocument:
+    fields:
+      name: { type: string, required: true }
+      scenarios: { type: array, items: Scenario, required: true }
+      content: { type: string, required: true }
+```
+
+## Interfaces
+
+### parse-feature
+
+- Input: One Gherkin feature document and an optional base location
+- Output: A normalized Feature document
+- Failures: Unreadable source
+
+### parse-feature-directory
+
+- Input: A directory containing feature documents
+- Output: All parseable Feature documents, or an empty collection when the directory is absent
+- Effects: Reads documents without modifying them
+
+```m21-interface
+operations:
+  parse-feature:
+    output: FeatureDocument
+    failures: [UnreadableFeature]
+  parse-feature-directory:
+    output: FeatureDocument
+    failures: [UnreadableDirectory]
+```
+
+## Contract
+
 Reads `.feature` files and extracts structured scenario data.
 
 ### Single file parsing

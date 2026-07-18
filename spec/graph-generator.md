@@ -5,11 +5,43 @@ group: domain
 tags: [visualization, html-generation, template]
 depends_on:
   - name: graph-client
-    uses: [layout-positioning, side-panel, layout-modes, group-clustering, test-status]
+    uses: [layout-positioning, side-panel, layout-modes, group-clustering, test-status, contract-tabs]
 features: features/graph-generator/
 ---
 
 # Graph Generator
+
+## Data model
+
+### Graph document
+
+A self-contained, read-only or live-enabled representation of parsed project contracts—including normalized models, interfaces, and diagnostics—presentation assets, and the graph application.
+
+```m21-model
+entities:
+  GraphDocument:
+    fields:
+      content: { type: string, required: true }
+      liveEnabled: { type: boolean, required: true }
+```
+
+## Interfaces
+
+### generate-graph-document
+
+- Input: Parsed project contracts and rendering options
+- Output: A complete Graph document
+- Failures: Required presentation assets cannot be read
+- Effects: None beyond reading packaged assets
+
+```m21-interface
+operations:
+  generate-graph-document:
+    output: GraphDocument
+    failures: [UnreadablePresentationAsset]
+```
+
+## Contract
 
 Produces a complete HTML document, as a single string, that renders the interactive dependency graph. The same generator serves both the dev server (live mode) and static export.
 

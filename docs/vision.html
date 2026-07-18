@@ -245,12 +245,20 @@
     <p>A software project can be easier to understand and safer to change when its structure is captured in a small set of living artifacts:</p>
     <div class="card-grid">
       <div class="card">
-        <h3>Specs describe intent</h3>
-        <p>A spec explains what a module owns, what it depends on, and what it deliberately does not own.</p>
+        <h3>Data models define meaning</h3>
+        <p>Each concern owns enforceable domain concepts, fields, relationships, states, and structural constraints.</p>
       </div>
       <div class="card">
-        <h3>Features define contracts</h3>
-        <p>Gherkin scenarios describe the observable behavior a module offers to the rest of the system.</p>
+        <h3>Interfaces define the surface</h3>
+        <p>Semantic operations make inputs, outputs, failures, effects, and events explicit without choosing a language.</p>
+      </div>
+      <div class="card">
+        <h3>Specs describe intent</h3>
+        <p>The architectural contract explains ownership, dependencies, non-goals, invariants, and decisions.</p>
+      </div>
+      <div class="card">
+        <h3>Features demonstrate behavior</h3>
+        <p>Gherkin scenarios provide executable examples of interfaces and evidence-backed guarantees.</p>
       </div>
       <div class="card">
         <h3>Dependencies are explicit</h3>
@@ -266,7 +274,7 @@
   <section>
     <h2>Why this matters</h2>
     <p>Modern codebases often fail quietly. The code may still run, but the architecture becomes implicit, onboarding becomes oral tradition, tests drift from intent, and changes become risky because nobody can see the contracts between parts.</p>
-    <p>M21 aims to make those contracts durable. A maintainer should be able to open a project and quickly answer what the major modules are, what each one promises, what each one depends on, which behavior is tested, where the risky relationships are, and what is safe to change.</p>
+    <p>M21 aims to make those contracts durable. A maintainer should be able to identify each concern's owned data, semantic interfaces, promises, dependencies, tested behavior, risky relationships, and safe change boundaries.</p>
   </section>
 
   <section>
@@ -282,7 +290,7 @@
       </div>
       <div class="card">
         <h3>Living documentation</h3>
-        <p>Specs, features, test results, and the graph should reinforce each other instead of drifting apart.</p>
+        <p>Models, interfaces, specs, features, test results, and the graph should reinforce each other instead of drifting apart.</p>
       </div>
       <div class="card">
         <h3>Professional software hygiene</h3>
@@ -294,11 +302,11 @@
   <section>
     <h2>The long-term direction</h2>
     <ol>
-      <li>Describe the system as modules and contracts.</li>
-      <li>Visualize the relationships and risks.</li>
-      <li>Bind behavior to executable scenarios.</li>
-      <li>Use tooling and agents to safely evolve the system from the specs.</li>
-      <li>Keep documentation, tests, and implementation from drifting apart.</li>
+      <li>Define each concern's enforceable data model.</li>
+      <li>Define semantic interfaces over those models.</li>
+      <li>Capture architectural intent and demonstrate behavior with executable scenarios.</li>
+      <li>Validate references, export schemas, and visualize relationships and risks.</li>
+      <li>Evolve model → interfaces → spec → features → implementation in order.</li>
     </ol>
     <div class="callout">
       <p>The experiment succeeds if M21 helps builders move faster without making the system harder to understand later.</p>

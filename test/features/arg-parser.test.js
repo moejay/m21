@@ -134,6 +134,30 @@ describeFeature(feature, ({ Scenario }) => {
     });
   });
 
+  Scenario("Parse model subcommand with optional spec name", ({ Given, When, Then }) => {
+    Given('the argument array is ["model", "./spec/", "auth"]', () => {
+      args = ["model", "./spec/", "auth"];
+    });
+    When("arguments are parsed", () => {
+      result = parseCliArgs(args);
+    });
+    Then('mode is "model" and specDir is "./spec/" and name is "auth"', () => {
+      expect(result).toMatchObject({ mode: "model", specDir: "./spec/", name: "auth" });
+    });
+  });
+
+  Scenario("Parse schema subcommand for all specs", ({ Given, When, Then }) => {
+    Given('the argument array is ["schema", "./spec/"]', () => {
+      args = ["schema", "./spec/"];
+    });
+    When("arguments are parsed", () => {
+      result = parseCliArgs(args);
+    });
+    Then('mode is "schema" and specDir is "./spec/" and name is null', () => {
+      expect(result).toMatchObject({ mode: "schema", specDir: "./spec/", name: null });
+    });
+  });
+
   Scenario("Parse --json flag with subcommand", ({ Given, When, Then }) => {
     Given('the argument array is ["list", "./spec/", "--json"]', () => {
       args = ["list", "./spec/", "--json"];

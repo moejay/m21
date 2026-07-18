@@ -9,11 +9,47 @@ features: features/arg-parser/
 
 # Arg Parser
 
-A pure function from the raw argument list to a structured options object. No I/O, no framework, no external dependencies.
+## Data model
+
+### Invocation
+
+An ordered argument list interpreted as a mode, spec directory, optional spec name, and mode-specific options. Read-only modes include contract registry and JSON Schema export. Invalid combinations carry a descriptive error instead of causing process termination.
+
+```m21-model
+entities:
+  Invocation:
+    fields:
+      mode: { type: enum, values: [serve, static, list, show, features, deps, validate, model, schema], required: true }
+      specDir: { type: string }
+      name: { type: string }
+      json: { type: boolean }
+      error: { type: string }
+```
+
+## Interfaces
+
+### parse-invocation
+
+- Input: A raw command-line argument list
+- Output: A normalized Invocation
+- Failures: Invalid or incomplete options are represented in the result
+- Effects: None
+
+```m21-interface
+operations:
+  parse-invocation:
+    input: Invocation
+    output: Invocation
+    failures: [InvalidInvocation]
+```
+
+## Contract
+
+A pure transformation from the raw argument list to a structured options object. No I/O, no framework, no external dependencies.
 
 Supports:
 
-- **Subcommand keyword** (optional first non-flag arg): one of `list`, `show`, `features`, `deps`, `validate`. When present, sets `mode` to that keyword and shifts subsequent positional args (specDir, then optional spec name).
+- **Subcommand keyword** (optional first non-flag arg): one of `list`, `show`, `features`, `deps`, `validate`, `model`, `schema`. When present, sets `mode` to that keyword and shifts subsequent positional args (specDir, then optional spec name).
 - **Positional `specDir`**: in subcommand mode, the second positional arg; otherwise the first non-flag arg.
 - **Positional `name`**: third positional arg, used by `show` / `features` / `deps`. Required for `show` and `deps`; optional for `features` (omit to list features for all specs).
 - **`--output` / `-o`**: switches `mode` to `static`, captures output file path. Mutually exclusive with subcommands.
@@ -36,7 +72,9 @@ Supports:
 | `show` | Print one spec's full info. |
 | `features` | Print features (all or for one spec). |
 | `deps` | Print dependency tree (forward + reverse) for one spec. |
-| `validate` | Lint specs and features for broken refs / cycles / orphans. |
+| `validate` | Lint specs, models, interfaces, and features. |
+| `model` | Export the machine-readable contract registry. |
+| `schema` | Export JSON Schema for declared entities. |
 
 ### Disambiguating subcommand vs. spec dir
 

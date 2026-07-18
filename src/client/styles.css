@@ -257,12 +257,61 @@
       overflow-y: auto;
     }
 
-    #panel-spec-tab {
+    #panel-model-tab {
       display: block;
     }
 
+    #panel-interfaces-tab,
+    #panel-spec-tab,
     #panel-features-tab {
       display: none;
+    }
+
+    .contract-card {
+      border: 1px solid #0f3460;
+      border-radius: 5px;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: #0d0d1a;
+    }
+
+    .contract-card h3 {
+      color: #e94560;
+      margin: 0 0 8px;
+    }
+
+    .contract-detail, .contract-constraint {
+      color: #aaa;
+      font-size: 12px;
+      margin: 5px 0;
+    }
+
+    .contract-constraint::before {
+      content: "constraint: ";
+      color: #d29922;
+    }
+
+    .contract-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 11px;
+    }
+
+    .contract-table th, .contract-table td {
+      border-bottom: 1px solid #22223a;
+      padding: 5px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .contract-diagnostic {
+      border-left: 3px solid #f85149;
+      background: #2a1115;
+      color: #f0a0a8;
+      margin-bottom: 8px;
+      padding: 8px;
+      font-size: 11px;
     }
 
     /* Spec tab body area */

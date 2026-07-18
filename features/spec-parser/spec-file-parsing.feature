@@ -26,6 +26,11 @@ Feature: spec-file-parsing
     When the spec file is parsed
     Then the entry is preserved as { name: "auth", uses: ["login", "session"] }
 
+  Scenario: Attach machine-readable contracts
+    Given a spec body contains m21-model and m21-interface blocks
+    When the spec file is parsed
+    Then normalized entities, operations, and contract diagnostics are attached to the spec
+
   Scenario: Filter invalid dependency entries
     Given depends_on contains an object without a name field
     When the spec file is parsed

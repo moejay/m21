@@ -164,6 +164,25 @@ describeFeature(specFileParsing, ({ Scenario }) => {
     );
   });
 
+  Scenario("Attach machine-readable contracts", ({ Given, When, Then }) => {
+    Given("a spec body contains m21-model and m21-interface blocks", () => {
+      const dir = makeTmpDir();
+      filePath = writeSpec(dir, "contracts.md", [
+        "---", "name: Contracts", "---", "", "# Contracts", "",
+        "```m21-model", "entities:", "  User:", "    fields:", "      id: { type: string, required: true }", "```", "",
+        "```m21-interface", "operations:", "  get-user: { output: User }", "```", "",
+      ].join("\n"));
+    });
+    When("the spec file is parsed", async () => {
+      result = await parseSpecFile(filePath);
+    });
+    Then("normalized entities, operations, and contract diagnostics are attached to the spec", () => {
+      expect(result.models.entities).toHaveProperty("User");
+      expect(result.interfaces.operations).toHaveProperty("get-user");
+      expect(result.contractDiagnostics).toEqual([]);
+    });
+  });
+
   Scenario("Filter invalid dependency entries", ({ Given, When, Then }) => {
     Given("depends_on contains an object without a name field", () => {
       const dir = makeTmpDir();

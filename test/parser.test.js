@@ -23,6 +23,9 @@ describe("parseSpecFile", () => {
       tags: ["setup", "init"],
       depends_on: [],
       features: "features/bootstrap/",
+      models: { entities: {} },
+      interfaces: { operations: {} },
+      contractDiagnostics: [],
       body: "# Bootstrap\n\nThis is the bootstrap spec.\n",
     });
   });

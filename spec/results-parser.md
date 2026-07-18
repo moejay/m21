@@ -11,6 +11,67 @@ features: features/results-parser/
 
 # Results Parser
 
+## Data model
+
+### Scenario result
+
+A normalized status for one named scenario, optionally carrying source-backed step evidence.
+
+### Result lookup
+
+Scenario results grouped by behavioral capability, with source identity retained when available to disambiguate equal names.
+
+### Result summary
+
+The highest-severity status and passed, failed, and total counts attached at scenario, feature, and spec levels.
+
+```m21-model
+entities:
+  ScenarioResult:
+    fields:
+      name: { type: string, required: true }
+      status: { type: enum, values: [passed, failed, ambiguous, undefined, pending, skipped], required: true }
+  ResultLookup:
+    fields:
+      features: { type: object, required: true }
+  ResultSummary:
+    fields:
+      status: { type: enum, values: [passed, failed, ambiguous, undefined, pending, skipped] }
+      passed: { type: integer, required: true }
+      failed: { type: integer, required: true }
+      total: { type: integer, required: true }
+```
+
+## Interfaces
+
+### normalize-results
+
+- Input: A supported test-report value or its JSON representation
+- Output: A Result lookup, or no result for an unsupported or malformed report
+
+### discover-results
+
+- Input: A project root and optional explicit report location
+- Output: The selected report location, preferring an explicit location
+
+### merge-results
+
+- Input: Parsed project contracts and a Result lookup
+- Output: The same contracts annotated with Scenario results and Result summaries
+- Effects: Updates the supplied parsed records; never changes source contract files
+
+```m21-interface
+operations:
+  normalize-results: { output: ResultLookup, failures: [UnsupportedReport] }
+  discover-results: { output: ResultLookup }
+  merge-results:
+    input: ResultLookup
+    output: ResultSummary
+    effects: [Annotates parsed project records without changing source files]
+```
+
+## Contract
+
 Ingests a test report and merges per-scenario pass/fail status onto the parsed spec model, so the graph can visualize test outcomes.
 
 ### Non-goals

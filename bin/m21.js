@@ -27,7 +27,9 @@ Subcommands (read-only — for humans and coding agents):
   m21 show <directory> <name>           Print one spec's full info
   m21 features <directory> [<name>]     List features (all, or for one spec)
   m21 deps <directory> <name>           Print forward + reverse dependency tree
-  m21 validate <directory>              Lint specs and features
+  m21 validate <directory>              Lint specs, models, interfaces, and features
+  m21 model <directory> [<name>]        Export normalized model and interface contracts
+  m21 schema <directory> [<name>]       Export entity contracts as JSON Schema
 
 Options:
   --output, -o  Save the HTML file to the specified path instead of serving
@@ -45,6 +47,8 @@ Examples:
   m21 list ./spec/
   m21 show ./spec/ auth --json
   m21 validate ./spec/
+  m21 model ./spec/ auth --json
+  m21 schema ./spec/ auth
 `;
 
 function printSpecSummary(specs, dirPath) {

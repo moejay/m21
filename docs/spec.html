@@ -246,7 +246,7 @@
 
 <div class="content">
   <h1>The M21 Spec Format</h1>
-  <p class="subtitle">A spec is a markdown file with YAML frontmatter. It's the source of truth for your project's module structure, dependencies, and feature contracts.</p>
+  <p class="subtitle">A spec combines machine-readable data models and semantic interfaces with architectural prose and executable behavioral features.</p>
 
   <h2>Anatomy of a spec file</h2>
 
@@ -264,8 +264,41 @@
     <br>
     <div class="body"># Persistence</div>
     <br>
-    <div class="body">Handles the database abstraction layer.</div>
-    <div class="body">Uses SQLite for local-first storage.</div>
+    <div class="body">## Data model</div>
+    <div class="body">```m21-model</div>
+    <div><span class="key">entities:</span></div>
+    <div>&nbsp;&nbsp;<span class="key">Record:</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">identity:</span> <span class="val">id</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">fields:</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">id:</span> <span class="val">{ type: string, required: true }</span></div>
+    <div class="body">```</div>
+    <br>
+    <div class="body">## Interfaces</div>
+    <div class="body">```m21-interface</div>
+    <div><span class="key">operations:</span></div>
+    <div>&nbsp;&nbsp;<span class="key">store-record:</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">input:</span> <span class="val">Record</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">output:</span> <span class="val">Record</span></div>
+    <div class="body">```</div>
+    <br>
+    <div class="body">## Contract</div>
+    <div class="body">Provides durable local storage without owning record content.</div>
+  </div>
+
+  <h2>The ordered contract stack</h2>
+  <ol>
+    <li><strong>Data model</strong> — entities, fields, relationships, states, and structural constraints.</li>
+    <li><strong>Interfaces</strong> — operations, inputs, outputs, failures, effects, and events.</li>
+    <li><strong>Contract</strong> — responsibilities, non-goals, invariants, dependencies, and decisions.</li>
+    <li><strong>Features</strong> — executable examples of observable behavior.</li>
+  </ol>
+  <p>Sections are optional when irrelevant, but present sections follow this order. Use fenced <code>m21-model</code> and <code>m21-interface</code> YAML blocks for declarations that M21 must enforce.</p>
+
+  <h3>Supported structural field types</h3>
+  <p><code>string</code>, <code>number</code>, <code>integer</code>, <code>boolean</code>, <code>object</code>, <code>array</code>, <code>enum</code>, and <code>reference</code>. Local references use an entity name; cross-spec references use <code>spec-name.Entity</code> and require a declared dependency.</p>
+
+  <div class="callout">
+    <p><code>m21 validate ./spec</code> checks block syntax, identifiers, field types, entity references, and cross-spec model dependencies. <code>m21 model ./spec --json</code> exports the normalized registry; <code>m21 schema ./spec</code> emits JSON Schema.</p>
   </div>
 
   <h2>Frontmatter fields</h2>
@@ -345,7 +378,7 @@
 
   <h2>Feature files</h2>
 
-  <p>Features are defined in Gherkin <code>.feature</code> files. They serve as the <strong>public interface</strong> of a spec — other specs declare which features they depend on via <code>uses</code>.</p>
+  <p>Features are defined in Gherkin <code>.feature</code> files. They provide executable examples of semantic interfaces and guarantees. Other specs use feature names as behavioral capability identifiers through <code>uses</code>.</p>
 
   <h3>Naming rules</h3>
   <ul>
@@ -382,7 +415,7 @@
   <p>Specs are designed as composable modules. The dependency graph captures not just <em>what</em> depends on <em>what</em>, but <em>which features</em> each module needs from its dependencies.</p>
 
   <ol>
-    <li><strong>Provider spec</strong> declares features via <code>.feature</code> files</li>
+    <li><strong>Provider spec</strong> owns models and semantic interfaces, then demonstrates behavior through <code>.feature</code> files</li>
     <li><strong>Consumer spec</strong> declares which features it needs via <code>uses</code></li>
     <li>The graph visualizes these contracts as <strong>labeled edges</strong></li>
   </ol>

@@ -11,6 +11,44 @@ features: features/file-watcher/
 
 # File Watcher
 
+## Data model
+
+### Watch set
+
+The current spec directory, referenced feature directories, and optional test-results document observed for contract changes.
+
+### Change batch
+
+One or more nearby file changes collapsed into a single refresh request.
+
+```m21-model
+entities:
+  WatchSet:
+    fields:
+      locations: { type: array, items: string, required: true }
+  ChangeBatch:
+    fields:
+      locations: { type: array, items: string, required: true }
+```
+
+## Interfaces
+
+### watch-project
+
+- Input: Initial Watch set and a refresh callback
+- Output: A running watch session with a close operation
+- Effects: Expands the Watch set as new feature directories appear and emits debounced Change batches
+
+```m21-interface
+operations:
+  watch-project:
+    input: WatchSet
+    output: ChangeBatch
+    effects: [Observes new contract locations and emits debounced changes]
+```
+
+## Contract
+
 Monitors the spec directory and all referenced feature directories for file changes, so edits made in any editor show up in the graph without a restart.
 
 ### Watch configuration

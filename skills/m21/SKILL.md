@@ -4,20 +4,26 @@ description: Spec-driven development workflow for M21 projects. Use whenever you
 license: MIT
 metadata:
   author: m21
-  version: "2.1"
+  version: "3.0"
 ---
 
 # M21 — Spec-Driven Development Workflow
 
-This skill defines the workflow for working in an M21 project: authoring specs, editing them, and implementing code. M21 uses markdown spec files with YAML frontmatter to define contract-bearing concerns, their dependencies, and optional links to Gherkin `.feature` files. Specs often describe code modules, but they may also describe durable project concerns such as design systems, external services, deployments, observability, tracing, or scale architecture when those concerns provide or consume explicit contracts. Features are for executable behavior or evidence-backed guarantees only — not every spec needs features, and not every repository concern needs a spec.
+This skill defines the workflow for working in an M21 project: authoring contracts, editing them, and implementing code. An M21 contract has four ordered layers: the concern's data model, its semantic interfaces, its architectural spec, and its executable Gherkin features. Specs often describe code modules, but they may also describe durable project concerns such as design systems, external services, deployments, observability, tracing, or scale architecture when those concerns provide or consume explicit contracts. Not every concern needs every layer.
 
-## The contract — use judgment
+## The contract stack — always work top-down
 
-When a change affects a spec's durable contract, follow this flow:
+For every durable contract change, inspect and update these layers in order:
 
-1. **Phase 1 — Update the spec and/or features first.** If the change alters responsibility, dependency contracts, invariants, external assumptions, deployment/operational guarantees, or externally observable behavior, update the owning spec and any relevant `.feature` scenarios before implementation.
+1. **Data model** — domain concepts, attributes, relationships, states, and constraints.
+2. **Interfaces** — capabilities, operations, commands, queries, and events expressed through the data model.
+3. **Architectural spec** — responsibilities, non-goals, invariants, dependencies, decisions, assumptions, and operational guarantees.
+4. **Features** — executable examples of observable behavior or evidence-backed guarantees.
+5. **Tests and implementation** — red/green delivery of the contract.
 
-2. **Phase 2 — Red/green TDD for executable scenarios.** New or modified scenarios should fail first, then implementation makes them pass, then the full feature suite checks regressions.
+A layer may be skipped when the requested change does not affect it, but it must be evaluated before moving to the next layer. A feature change therefore requires an interface review first; an interface change requires a data-model review first. Do not modify a downstream layer and then silently retrofit an upstream contract around the implementation.
+
+When changing several concerns, apply this order across the affected dependency graph: update owned models before interfaces that consume them, then architectural specs, then features, then implementation. Check downstream consumers before renaming or removing any model concept, interface, feature, or spec.
 
 Do **not** create specs or features just to mirror files, folders, helper functions, repo chores, checklists, or implementation mechanics. Specs are load-bearing only when they describe architecture, behavior, external assumptions, or operational guarantees that should survive regeneration. Features are load-bearing only when they describe an observable outcome that can be tested or verified by evidence.
 
@@ -64,9 +70,11 @@ npx @moejay/m21 list ./spec --json
 npx @moejay/m21 show ./spec <name> --json
 npx @moejay/m21 features ./spec [<name>] --json
 npx @moejay/m21 deps ./spec <name> --json
+npx @moejay/m21 model ./spec [<name>] --json
+npx @moejay/m21 schema ./spec [<name>]
 ```
 
-On entering an M21 project, run `npx @moejay/m21 validate ./spec --json` after locating the spec directory. Use `list`, `show`, `features`, and `deps` to understand the existing graph before editing. After changing specs or features, run `validate` again and treat broken dependency references, broken `uses` references, missing feature directories, and cycles as work to resolve or explicitly discuss with the user.
+On entering an M21 project, run `npx @moejay/m21 validate ./spec --json` after locating the spec directory. Use `list`, `show`, `features`, `deps`, and `model` to understand the existing graph and contract registry before editing. After changing specs or features, run `validate` again and treat broken dependency references, broken `uses` references, missing feature directories, and cycles as work to resolve or explicitly discuss with the user.
 
 In the M21 repository itself, `npx . validate ./spec --json` or `node bin/m21.js validate ./spec --json` may be used to exercise the local checkout instead of the published package.
 
@@ -74,9 +82,77 @@ In the M21 repository itself, `npx . validate ./spec --json` or `node bin/m21.js
 
 ## What belongs in a spec
 
-The spec body is deliberately unstructured — free markdown prose, written to be read and edited by humans. This section is guidance on **content**, not a template. Do not impose headings or sections on the user's specs.
+The Markdown body is human-owned but has an optional canonical order. Include only sections that carry useful contract information; never generate empty boilerplate. When present, sections MUST appear in this order:
 
-A good spec body answers, in **domain language** anyone can read:
+```markdown
+# Concern Name
+
+## Data model
+...
+
+## Interfaces
+...
+
+## Contract
+...
+```
+
+Existing unsectioned specs remain valid. When a contract-bearing spec is materially edited, migrate the affected content into this order without inventing missing concepts.
+
+### Data model
+
+Describe domain meaning, not storage or language structures:
+
+- entities, value objects, records, messages, and other named concepts
+- attributes and their meaning, identity, cardinality, and optionality
+- relationships and ownership
+- valid states, transitions, and lifecycle
+- constraints that valid data must satisfy
+
+Each concept has one owning spec. Other specs reference that concept through a declared dependency rather than redefining it. Database tables, ORM mappings, serialized field trivia, and language type declarations do not belong here unless the user records them as deliberate constraints.
+
+When model structure must be enforced, declare it in fenced `m21-model` YAML. Prose may explain the model but cannot override the block:
+
+```m21-model
+entities:
+  User:
+    identity: id
+    fields:
+      id: { type: string, required: true }
+      email: { type: string, format: email, required: true }
+      status: { type: enum, values: [active, suspended] }
+```
+
+Supported structural types are `string`, `number`, `integer`, `boolean`, `object`, `array`, `enum`, and `reference`. Local references use `Entity`; cross-spec references use `spec-name.Entity` and require `depends_on` for that spec. Textual constraints are documentation until backed by a structural declaration, state model, executable feature, or supported constraint language.
+
+### Interfaces
+
+Describe stable semantic surfaces, not source-level signatures. An interface may be a capability, operation, command, query, event, protocol interaction, or user interaction. Give it a stable kebab-case identifier when other contracts need to reference it, and define as applicable:
+
+- purpose
+- inputs and preconditions, using data-model concepts
+- outputs and postconditions
+- expected failures
+- state changes and other effects
+- events emitted or consumed
+
+Conceptual notation such as `create-user(UserRegistration) → User | DuplicateIdentity` is acceptable. Enforceable interfaces use fenced `m21-interface` YAML and reference declared entities:
+
+```m21-interface
+operations:
+  create-user:
+    purpose: Register a new user.
+    input: UserRegistration
+    output: User
+    failures: [DuplicateIdentity, InvalidRegistration]
+    effects: [The user becomes available for authentication]
+```
+
+Operation identifiers must be kebab-case. Language declarations, source paths, framework handlers, and incidental helper functions are not. Public implementation behavior must be covered by an interface; private implementation helpers must not be promoted into the contract.
+
+### Contract
+
+The architectural contract answers, in **domain language** anyone can read:
 
 - **Responsibilities** — what this spec concern is accountable for, stated as outcomes, not mechanisms.
 - **Non-goals** — what it deliberately does *not* do. Often the highest-value sentence in the spec, because it's the thing scenarios can't express.
@@ -99,9 +175,9 @@ These do not belong in a spec body (or in scenarios). Each one couples the spec 
 
 When editing a spec that already contains these, flag them to the user and offer to remove them — don't update them to match the code, delete them.
 
-### Prose vs. scenario
+### Interface vs. scenario
 
-If a sentence in the spec body describes behavior with an **observable outcome** ("when the results file changes, the graph updates"), it belongs in a scenario — that's the executable contract. Spec prose that restates scenarios drifts; spec prose should carry what scenarios can't: purpose, non-goals, invariants, decisions.
+Interfaces define the available surface and its rules; scenarios demonstrate selected observable outcomes. Do not use Gherkin as the only declaration of inputs, outputs, failures, or effects, and do not duplicate every scenario in prose. If a contract statement is best understood as an example of behavior ("when the results file changes, the graph updates"), it belongs in a scenario tied to the relevant interface or guarantee.
 
 ### Specs beyond code modules
 
@@ -117,37 +193,51 @@ Keep these specs contract-shaped. A deployment spec is not a checklist; it descr
 
 ---
 
-## Phase 1 — Update the spec and features
+## Phase 1 — Update the contract stack
 
-Use this phase when the user asks to add, change, or remove behavior, responsibilities, dependencies, invariants, external assumptions, operational guarantees, or other durable contract information.
+Use this phase when the user asks to add, change, or remove data, interfaces, behavior, responsibilities, dependencies, invariants, assumptions, operational guarantees, or other durable contract information.
 
-### 1.1 Understand the request
-- *What* is being added/changed/removed? (spec, feature, scenario, dependency)
-- *Which spec concern* owns it? If unclear, present candidates — don't guess.
+### 1.1 Understand and locate ownership
+- Identify what changes and which concern owns it. If ownership is unclear, present candidates rather than guessing.
+- Reuse an existing meaningful boundary when it fits; create a new spec only for a new durable contract concern.
+- Keep repo chores, generated assets, helper-only refactors, and implementation details out of the M21 contract.
 
-### 1.2 Find the right spec
-- Named explicitly by the user → use that
-- Fits an existing spec's responsibility → use the best fit (match by `description`, `group`, existing features)
-- Represents a new durable contract concern not covered by any spec → create a new spec
-- Is a repo chore, generated asset, helper-only refactor, or implementation detail → no new spec; keep it out of the M21 contract
+### 1.2 Read the current stack and consumers
+Read the target spec's data model, interfaces, contract, and feature files. Read dependencies whose concepts/interfaces it consumes and downstream specs that depend on it. Use `show`, `features`, and `deps` before editing.
 
-### 1.3 Read current state before changing
-Read the target spec, all its existing feature files, and any specs that depend on it. This prevents duplicate features, conflicting scenarios, and broken dependency contracts.
+### 1.3 Update the data model first, if affected
+- Add or change owned concepts, attributes, relationships, states, and constraints in prose and any enforceable `m21-model` blocks.
+- Resolve naming and ownership before describing operations over the concepts.
+- Run `m21 validate` after this layer; do not proceed with invalid or unresolved model references.
+- Before removal or rename, find interfaces and downstream specs that reference the concept.
+- If unaffected, leave it unchanged and continue; do not add filler.
 
-### 1.4 Make the changes
-- **Add a feature** → only when the spec exposes observable behavior or an evidence-backed guarantee worth treating as a public contract. Create a new `.feature` file in `features/<spec>/` and add the `features` field to spec frontmatter if missing.
-- **Add a scenario** → only for an observable outcome or verifiable guarantee. Append to the existing `.feature` file, matching the surrounding step phrasing and detail level.
-- **New spec** → create the spec for a meaningful contract boundary. Do not add a `features` directory unless it has real executable behavior or evidence-backed guarantees to describe.
-- **Modify dependencies** → update `depends_on`. If new `uses` references don't exist yet, offer to add them as scenarios.
-- **Remove a feature/spec** → check downstream `uses` first. Warn the user about broken contracts before deleting.
+### 1.4 Update interfaces second, if affected
+- Define or revise semantic inputs, outputs, failures, effects, and events using the current data model and any `m21-interface` blocks.
+- Keep stable identifiers stable unless the contract intentionally breaks.
+- Run `m21 validate` after this layer; use `m21 schema` when structural compatibility matters.
+- Check downstream consumers before removing or changing an interface.
+- If unaffected, leave it unchanged and continue.
 
-### 1.5 Show what changed
-Summarize files created/modified/deleted. Flag downstream specs that may need attention.
+### 1.5 Update the architectural contract third, if affected
+- Update responsibilities, non-goals, invariants, decisions, dependencies, assumptions, and operational guarantees.
+- Update `depends_on` when model or interface consumption changes.
+- Do not restate the model, interface definitions, or scenarios in prose.
+
+### 1.6 Update features fourth, if affected
+- Add or change a feature only for an observable interface outcome or evidence-backed guarantee worth making executable.
+- Create `.feature` files under `features/<spec>/`, matching surrounding phrasing and detail.
+- Feature names remain dependency-level capability identifiers used by `depends_on[].uses`; scenarios exercise one or more declared interfaces or architectural guarantees.
+- Before removing a feature, check downstream `uses` references.
+
+### 1.7 Validate and report
+Run M21 validation, fix or discuss graph issues, summarize files changed, and flag downstream consumers requiring migration.
 
 ### Phase 1 rules
-- Don't change features without asking, specs are owned by the user.
-- Match existing style (step phrasing, scenario detail, naming).
-- Check downstream before removing.
+- Contract files are user-owned; obtain approval before changing their meaning. Approval of a requested contract change covers the necessary ordered layers.
+- Match existing style while preserving model → interfaces → contract ordering where sections are present.
+- Never change a downstream layer first merely because it is easier to infer from code.
+- Skip unaffected layers rather than manufacturing content.
 
 ---
 
@@ -155,10 +245,11 @@ Summarize files created/modified/deleted. Flag downstream specs that may need at
 
 Use this phase to make the new or modified executable feature scenarios pass. If no feature changed, run the project's normal validation for the code change instead.
 
-### 2.1 Read the spec
-- What is this spec concern responsible for? (`description`, body)
-- What does it depend on? (`depends_on` and `uses`)
-- Where do its features live? (`features` field)
+### 2.1 Read the complete contract
+- Which data concepts and constraints does this concern own or consume?
+- Which interfaces must the implementation provide or call?
+- What is the concern responsible for, and what does it depend on?
+- Which executable features demonstrate the behavior?
 
 If implementing multiple specs, walk the dependency graph: start with specs that have no `depends_on` (roots) and work down. The features a spec `uses` from a dependency must already pass before that spec is implemented.
 
@@ -172,7 +263,7 @@ Run the feature suite. Every scenario for this spec must fail because the implem
 4. Move to the next scenario.
 5. Refactor only after all scenarios in a feature pass.
 
-**Do not** add functionality that contradicts an existing scenario. If new externally observable behavior seems missing from the contract → return to Phase 1, add the smallest useful scenario, then implement.
+**Do not** add public data, interfaces, or behavior absent from the contract stack. If something is missing, return to Phase 1 and update model → interfaces → contract → features in order, skipping unaffected layers, then implement.
 
 ### 2.5 Verify dependency contracts
 If the spec declares `uses` against a dependency, the implementation must actually consume those features. If it doesn't, either the implementation is wrong or the spec needs updating — flag it and return to Phase 1 if the user agrees.
@@ -190,7 +281,7 @@ After implementing one spec, run *all* features — not just the one you worked 
 
 ## Reference: spec file format
 
-Each spec is a `.md` file inside the spec directory with YAML frontmatter and an optional markdown body.
+Each spec is a `.md` file inside the spec directory with YAML frontmatter and an optional markdown body. The parser keeps the body as Markdown; M21 authoring convention gives its optional sections the semantic order Data model → Interfaces → Contract.
 
 ### Frontmatter fields
 
@@ -228,11 +319,37 @@ features: features/persistence/
 
 # Persistence
 
-This spec covers the database abstraction layer.
+## Data model
 
-## Decisions
-- Use SQLite for local-first storage
-- Migrations managed via versioned SQL files
+A Record is a persistable domain value with stable identity and validated content.
+
+```m21-model
+entities:
+  Record:
+    identity: id
+    fields:
+      id: { type: string, required: true }
+      content: { type: object, required: true }
+```
+
+## Interfaces
+
+```m21-interface
+operations:
+  data-storage:
+    input: Record
+    output: Record
+    failures: [InvalidRecord, StorageUnavailable]
+    effects: [Makes the Record available to later retrieval]
+```
+
+## Contract
+
+Provides durable local storage without owning domain-specific record content.
+
+### Decisions
+
+- Use SQLite for local-first storage — avoids a server dependency
 ```
 
 
@@ -282,7 +399,7 @@ Prefer a `bootstrap` spec when the project has startup/scaffolding/setup guarant
 
 ## Reference: Gherkin feature files
 
-Feature files use standard Gherkin. They live in the directory referenced by `features:`. Feature names are the **public interface** of a spec — other specs declare which features they `uses`.
+Feature files use standard Gherkin. They live in the directory referenced by `features:`. Feature names are **behavioral capability identifiers** — other specs declare which capabilities they `uses`. The semantic interface itself is declared in the owning spec's Interfaces section; scenarios provide executable examples of its observable behavior.
 
 ### Structure
 ```gherkin
@@ -336,7 +453,9 @@ npx @moejay/m21 list ./spec/                    # Print all specs
 npx @moejay/m21 show ./spec/ <name>             # Print one spec's deps, dependents, features, body
 npx @moejay/m21 features ./spec/ [<name>]       # List features across all specs or one spec
 npx @moejay/m21 deps ./spec/ <name>             # Print forward + reverse dependency tree
-npx @moejay/m21 validate ./spec/                # Lint broken refs, missing feature dirs, cycles
+npx @moejay/m21 validate ./spec/                # Lint graph, model, interface, and feature contracts
+npx @moejay/m21 model ./spec/ [<name>]           # Export normalized model/interface registry
+npx @moejay/m21 schema ./spec/ [<name>]          # Export entity contracts as JSON Schema
 ```
 
 Each read-only subcommand accepts `--json`; agents should prefer JSON output when parsing command results.

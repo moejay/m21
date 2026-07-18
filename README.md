@@ -4,13 +4,13 @@ Markdown-driven spec files with dependency graphs, feature tracking, and group c
 
 ## What is M21?
 
-M21 lets you define project specs as simple markdown files with YAML frontmatter. Each spec declares its name, dependencies, group, tags, and an optional path to Gherkin `.feature` files. Specs are composable modules — child specs declare which features they use from parent specs, creating traceable contracts between modules. M21 renders everything as a live, interactive dependency graph in the browser.
+M21 lets you define project contracts as Markdown files with YAML frontmatter. A spec can define a concern's data model, semantic interfaces, architectural contract, dependencies, and optional Gherkin `.feature` files. Dependent specs declare which behavioral capabilities they use, creating traceable contracts between concerns. M21 renders everything as a live, interactive dependency graph in the browser.
 
 ## Vision
 
-M21 is an experiment in higher-level software tooling for building maintainable, extensible, reliable, professional, clean, and understandable software. It treats a project as a network of purposeful modules with explicit responsibilities, dependencies, and executable feature contracts.
+M21 is an experiment in higher-level software tooling for building maintainable, extensible, reliable, professional, clean, and understandable software. It treats a project as a network of purposeful concerns with explicit models, interfaces, responsibilities, dependencies, and executable behavior.
 
-The goal is living architecture: specs describe intent, Gherkin features define contracts, dependency edges explain which capabilities are used, and test results close the loop so documentation, behavior, and implementation stay aligned.
+The goal is living architecture: data models define shared meaning, interfaces define semantic surfaces, specs describe intent, Gherkin scenarios demonstrate behavior, dependency edges explain which capabilities are used, and test results close the loop.
 
 Read the full vision in [VISION.md](VISION.md).
 
@@ -76,9 +76,32 @@ features: features/bootstrap/
 
 # Bootstrap
 
-This is the bootstrap spec. Any markdown content goes here —
-it renders in the side panel when you click a node.
+## Data model
+
+```m21-model
+entities:
+  ProjectConfiguration:
+    fields:
+      root: { type: string, required: true }
+      ready: { type: boolean, required: true }
 ```
+
+## Interfaces
+
+```m21-interface
+operations:
+  project-scaffolding:
+    input: ProjectConfiguration
+    output: ProjectConfiguration
+    failures: [InvalidProjectRoot]
+```
+
+## Contract
+
+Describe responsibilities, non-goals, invariants, dependencies, decisions, and guarantees.
+```
+
+The sections are optional, but when present they follow **Data model → Interfaces → Contract**. Fenced `m21-model` and `m21-interface` YAML blocks are parsed and enforced; surrounding prose remains human-owned. Skip empty sections. Existing free-form Markdown bodies remain valid.
 
 ### 3. Declare dependencies with feature tracking
 
@@ -138,7 +161,7 @@ depends_on:
 
 ### 4. Write Gherkin features
 
-Feature names must be **kebab-case**:
+Features provide executable examples of observable interface behavior or evidence-backed guarantees; they do not replace model or interface definitions. Feature names must be **kebab-case**:
 
 ```gherkin
 Feature: project-scaffolding
@@ -192,7 +215,10 @@ Results join onto specs by feature name and scenario name: each node is ringed g
 - **Test results overlay** — Point M21 at a Cucumber JSON **or** Jest/vitest JSON report and the graph colours each node by pass/fail, shows a `passed/total` count inside every circle, and lists per-scenario status pills in the side panel. Click a scenario to inspect step statuses and, for source-backed Jest/vitest reports, the Given/When/Then definition snippets. Auto-detected from `results/`, `reports/`, `test-results/`, or pass `--results <file>`. Live-updates as tests re-run
 - **Tree-and-groups layout** — Default architecture view combines dependency depth with group clustering. Nodes start unlocked for manual positioning, group labels drag whole groups, and checkboxes can lock nodes or reverse the tree direction
 - **Side panel** — Click any node to see description, group, tags, dependencies with used features, rendered markdown body, and Gherkin scenarios
-- **Composable specs** — Specs are modules with clear interfaces defined by their features
+- **Enforceable models** — Parse and validate language-neutral `m21-model` and `m21-interface` blocks, including cross-spec references
+- **Schema export** — Export normalized contracts or JSON Schema for runtime validation, generators, and CI
+- **Ordered contract stack** — Evolve data model → semantic interfaces → architectural spec → executable features before implementation
+- **Composable specs** — Specs own clear model and interface contracts; dependencies identify the behavioral capabilities they consume
 - **Live reload** — Dev server watches your spec and feature files, pushes changes via SSE instantly
 - **Inline editing** — Edit spec bodies and feature files directly in the browser (dev server mode)
 - **Static export** — Generate a self-contained HTML file with `--output`
@@ -218,12 +244,14 @@ npx @moejay/m21 list <directory>                  Print all specs (group, dep co
 npx @moejay/m21 show <directory> <name>           Print one spec's full info — deps, dependents, features, body
 npx @moejay/m21 features <directory> [<name>]     List features (across all specs, or scoped to one)
 npx @moejay/m21 deps <directory> <name>           Print forward + reverse dependency tree
-npx @moejay/m21 validate <directory>              Lint specs: broken refs, missing feature dirs, cycles
+npx @moejay/m21 validate <directory>              Lint graph, model, interface, and feature contracts
+npx @moejay/m21 model <directory> [<name>]         Export normalized models and interfaces
+npx @moejay/m21 schema <directory> [<name>]        Export entity contracts as JSON Schema
 ```
 
 ## Brownfield adoption
 
-Already have a codebase? Install the skills (`npx skills install moejay/m21`) and use `m21-init` to analyze your existing code and generate spec + feature files automatically. It identifies modules, their dependencies, and public interfaces from your project structure and import patterns.
+Already have a codebase? Install the skills (`npx skills install moejay/m21`) and use `m21-init` to analyze your existing code. It discovers model ownership first, semantic interfaces second, architectural concerns and dependencies third, and executable features last.
 
 ## Development
 
@@ -257,9 +285,12 @@ import { generateHTML } from "@moejay/m21/generator";       // render the graph 
 import { createM21Server } from "@moejay/m21/server";   // run the dev server
 import { parseResultsFile, mergeResults } from "@moejay/m21/results"; // overlay test results
 import { analyzeGraph } from "@moejay/m21/cycles";          // dependency + cycle analysis
+import { validateContractRegistry, generateJsonSchema } from "@moejay/m21/contracts";
 
 // Parse a spec directory and render a self-contained graph.
 const specs = await parseSpecDirectory("./spec", { projectRoot: "." });
+const issues = validateContractRegistry(specs);
+const { schema } = generateJsonSchema(specs);
 const html = generateHTML(specs);
 
 // Overlay Cucumber/vitest results onto the specs, then render.
