@@ -1,13 +1,12 @@
 #!/usr/bin/env sh
 set -eu
 
-changed=$(git diff --cached --name-only --diff-filter=ACMRD -- spec/ features/ || true)
+changed=$(git diff --cached --name-only --diff-filter=ACMRD -- features/ okf/ src/ test/ web/ || true)
 
 if [ -z "$changed" ]; then
   exit 0
 fi
 
-echo "M21 specs/features changed; refreshing static export with test overlay..."
+echo "M21 product definition changed; validating contracts and build..."
 npm test
-npm run docs:graph
-git add docs/graph-export.html
+npm run build

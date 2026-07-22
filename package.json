@@ -1,0 +1,41 @@
+{
+  "name": "m21",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI-native product engineering workspace backed by OKF",
+  "scripts": {
+    "dev": "tsx watch src/server/main.ts --dev",
+    "start": "tsx src/server/main.ts",
+    "build": "tsc --noEmit && vite build",
+    "test": "npm run test:features && npm run test:unit",
+    "test:features": "tsx node_modules/@cucumber/cucumber/bin/cucumber.js --import 'test/steps/**/*.ts' 'features/**/*.feature'",
+    "test:unit": "vitest run",
+    "visualize:okf": ".venv/bin/python scripts/visualize-okf.py"
+  },
+  "dependencies": {
+    "cytoscape": "^3.33.1",
+    "express": "^5.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^12.2.0",
+    "@types/cytoscape": "^3.21.9",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

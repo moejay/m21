@@ -1,0 +1,2 @@
+# Google Cloud's reference OKF visualizer, pinned for reproducible output.
+reference-agent @ git+https://github.com/GoogleCloudPlatform/knowledge-catalog.git@d44368c15e38e7c92481c5992e4f9b5b421a801d#subdirectory=okf

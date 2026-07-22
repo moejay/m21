@@ -1,0 +1,84 @@
+# M21
+
+M21 is an AI-native product engineering workspace built around a shared, living [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf) graph.
+
+The product is being specified by dogfooding its own OKF project before and during implementation.
+
+- [Browse the product knowledge](okf/index.md)
+- [Read the vision](okf/vision.md)
+- [Read the MVP definition](okf/product/mvp.md)
+- [Read the system architecture](okf/architecture/systems/m21-workspace.md)
+
+## First vertical slice
+
+The current workspace can:
+
+- Drive work through Business → Product → Design → System → Application → Components → Code Design → Implementation → Deployment
+- Keep definition-layer participation many-to-many with concept types
+- Open an OKF bundle as a typed graph
+- Search, filter, navigate, and focus concepts
+- Give AI guidance the selected definition layer and its contract as context
+- Create reviewable direct-edit and AI proposals
+- Explain deterministic directional impact
+- Accept proposals into canonical OKF while preserving extensions
+- Validate broken relationships and capability traceability
+- Generate a traceable Markdown project summary
+
+## Run the workspace
+
+Requires Node.js 22 or newer.
+
+```bash
+npm install
+npm run build
+npm start -- okf --port 3333
+```
+
+Open <http://127.0.0.1:3333>.
+
+For development with live reload:
+
+```bash
+npm run dev
+```
+
+Development uses one HTTP server. Vite runs as middleware inside the local project service rather than listening on a second port.
+
+### AI provider
+
+Without configuration, M21 uses a deterministic development provider so the proposal workflow remains testable. To use an OpenAI-compatible chat-completions provider:
+
+```bash
+export M21_AI_BASE_URL="https://provider.example/v1"
+export M21_AI_API_KEY="..."
+export M21_AI_MODEL="model-name"
+npm start -- okf
+```
+
+AI output is always returned as a proposal; it is never persisted without explicit acceptance.
+
+## Executable contracts
+
+```bash
+npm test          # Gherkin scenarios and focused unit tests
+npm run build     # Type checking and production browser build
+```
+
+The executable behavior source lives in `features/`.
+
+## Google reference OKF visualization
+
+Install the pinned Google Cloud reference viewer:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install --index-url https://pypi.org/simple/ -r requirements-okf-viewer.txt
+```
+
+Generate `okf/viz.html`:
+
+```bash
+npm run visualize:okf
+```
+
+The upstream viewer discovers edges from Markdown links. M21 stores canonical typed relationships in OKF extension frontmatter, so `scripts/visualize-okf.py` creates a temporary projection with equivalent Markdown links before invoking the upstream renderer. Source concepts are not modified.
