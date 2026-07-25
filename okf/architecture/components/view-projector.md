@@ -3,17 +3,22 @@ type: Component
 title: Generated View Projector
 description: Produces reproducible documents and diagrams from selected graph knowledge.
 tags: [architecture, component, generation, views]
-status: draft
-sdlc: [application, components, code-design, implementation]
-system:
-  kind: component
-  group: project-service
+status: active
+sdlc: [components, implementation]
 components:
-  application: project-service
+  section: components
+  kind: application-service
   group: projection
+  layer: application
+  visibility: internal
+  features:
+    - features/generated-views.feature
+    - features/design-visual-language.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
+  - type: realizes
+    target: /architecture/systems/view-generation-pipeline.md
   - type: realizes
     target: /product/capabilities/generated-views.md
   - type: depends-on

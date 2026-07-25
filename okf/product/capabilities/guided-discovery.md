@@ -4,7 +4,7 @@ title: AI-Guided Product Discovery
 description: Develop an incomplete idea through contextual questions, challenges, explanations, and proposed graph changes.
 tags: [mvp, ai, discovery, coaching]
 status: draft
-sdlc: [product, design, system, application]
+sdlc: [product]
 product:
   section: capabilities
 relationships:

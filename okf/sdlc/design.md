@@ -1,7 +1,7 @@
 ---
 type: Definition Layer
-title: Design and Visual Language
-short_title: Design
+title: Visual Design
+short_title: Visual Design
 stage: design
 order: 30
 description: Define the experience, brand, visual language, interaction patterns, and design system that realize the product.
@@ -19,7 +19,7 @@ relationships:
 
 # Purpose
 
-Define how the product is understood, experienced, and visually expressed without separating design from product or engineering knowledge.
+Define how the product is understood, experienced, navigated, interacted with, and visually expressed. The stable layer and namespace identifier remains `design`.
 
 # Defines
 
@@ -37,4 +37,4 @@ Connect design to personas and product outcomes, expose missing upstream assumpt
 
 # Workspace theming
 
-When a project has an active visual-language theme, M21 may apply its safe semantic tokens to the workspace as a live dogfooded preview. The knowledge remains canonical; the theme is a generated projection.
+When a project has an active Visual Language, M21 applies its safe semantic color, typography, shape, and elevation tokens to the workspace as a live dogfooded preview. M21 also generates a standalone HTML component catalog from active Component Story concepts. The OKF knowledge remains canonical; both the workspace theme and preview catalog are generated projections.

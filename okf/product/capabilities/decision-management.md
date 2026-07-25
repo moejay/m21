@@ -4,7 +4,7 @@ title: Decision Management
 description: Preserve significant product, design, and architecture decisions as connected knowledge.
 tags: [mvp, decisions, adr, rationale]
 status: draft
-sdlc: [product, design, system, application, components, code-design, implementation, deployment]
+sdlc: [product, components, code-design, implementation, deployment]
 product:
   section: capabilities
 relationships:

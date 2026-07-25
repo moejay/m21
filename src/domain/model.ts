@@ -53,6 +53,7 @@ export interface ConceptRevision {
   body?: string;
   status?: ConceptStatus;
   relationships?: TypedRelationship[];
+  design?: Record<string, unknown>;
 }
 
 export interface ReviseConceptOperation {

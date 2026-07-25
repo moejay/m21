@@ -11,9 +11,16 @@ Feature: purpose-built-layer-projections
       | business       | documents                |
       | product        | documents                |
       | design         | design-system            |
-      | system         | grouped-topology         |
+      | system         | system-architecture      |
+      | architecture   | application-portfolio     |
       | application    | application-architecture |
       | components     | component-dependencies   |
       | code-design    | contract-registry        |
       | implementation | implementation-handoff   |
       | deployment     | deployment-definition    |
+
+  Scenario: Open a layer's documents as a separate relationship graph
+    Given the definition layer is business
+    When I choose its graph alternative
+    Then the projection is knowledge-graph
+    And the active definition layer remains business

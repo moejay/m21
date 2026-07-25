@@ -4,7 +4,7 @@ title: Progressive Architecture
 description: Model systems, applications, interfaces, and components with traceability to product and design intent.
 tags: [mvp, architecture, systems, applications, components]
 status: draft
-sdlc: [product, system, application, components, code-design, implementation, deployment]
+sdlc: [product, components, code-design, implementation, deployment]
 product:
   section: capabilities
 relationships:

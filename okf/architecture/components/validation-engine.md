@@ -3,17 +3,21 @@ type: Component
 title: Graph Validation Engine
 description: Evaluates structural validity, traceability, decisions, constraints, ownership, and unresolved impact.
 tags: [architecture, component, validation, diagnostics]
-status: draft
-sdlc: [application, components, code-design, implementation]
-system:
-  kind: component
-  group: project-service
+status: active
+sdlc: [components, implementation]
 components:
-  application: project-service
+  section: components
+  kind: domain-service
   group: domain
+  layer: domain
+  visibility: internal
+  features:
+    - features/graph-validation.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
+  - type: realizes
+    target: /architecture/systems/product-knowledge-runtime.md
   - type: realizes
     target: /product/capabilities/graph-validation.md
   - type: depends-on

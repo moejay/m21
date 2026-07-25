@@ -3,17 +3,21 @@ type: Component
 title: OKF Repository
 description: Losslessly reads and safely writes product concepts in an OKF bundle.
 tags: [architecture, component, okf, persistence]
-status: draft
-sdlc: [application, components, code-design, implementation, deployment]
-system:
-  kind: component
-  group: project-service
+status: active
+sdlc: [components, implementation, deployment]
 components:
-  application: project-service
+  section: components
+  kind: adapter
   group: persistence
+  layer: infrastructure
+  visibility: internal
+  features:
+    - features/project-workspace.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
+  - type: realizes
+    target: /architecture/systems/okf-project-store.md
   - type: realizes
     target: /product/capabilities/project-workspace.md
   - type: constrained-by

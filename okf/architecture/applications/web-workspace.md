@@ -3,20 +3,24 @@ type: Application
 title: Browser Workspace
 description: The accessible interactive client for graph navigation, concept focus, agent guidance, and change review.
 tags: [architecture, application, browser, ui]
-status: draft
-sdlc: [system, application, components, code-design, implementation, deployment]
-system:
-  kind: application
+status: active
+sdlc: [architecture, application, components, code-design, implementation, deployment]
+architecture:
+  section: applications
+  kind: web-client
   group: workspace
-  boundary: owned
+  runtime: [browser]
+  deployable: true
 application:
-  group: workspace
-  architecture_style: browser-client
+  section: architecture
+  architecture_style: component-based
 relationships:
   - type: part-of
     target: /architecture/systems/m21-workspace.md
+  - type: realizes
+    target: /architecture/systems/knowledge-workspace.md
   - type: depends-on
-    target: /architecture/applications/project-service.md
+    target: /architecture/applications/project-api.md
   - type: realizes
     target: /experience/screens/graph-workspace.md
   - type: realizes
@@ -29,12 +33,13 @@ relationships:
 
 - Present SDLC definition layers as the primary navigation and selected AI context
 - Scope graph, list, diagnostics, and generated views by definition-layer participation without changing concept identity
-- Render graph and structured-list navigation from project snapshots
-- Maintain selection, focus, filters, and local draft state
+- Render purpose-built workspaces and an optional separate relationship-graph presentation from the same scoped project snapshots
+- Maintain selection, focus, filters, presentation mode, and local draft state
 - Present canonical concepts without conflating them with proposals
 - Collect direct edits and AI requests
 - Show semantic change, impact, diagnostics, and acceptance controls
 - Present generated views with source traceability
+- Expose graph switching as a quiet top-right workspace action without making it compete with document content
 
 # Non-responsibilities
 

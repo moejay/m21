@@ -4,9 +4,7 @@ title: M21 MVP
 description: An OKF-native workspace for collaboratively defining, designing, architecting, and validating a product through a living graph.
 tags: [mvp, product]
 status: draft
-sdlc: [design, system, application, components, code-design, implementation, deployment]
-product:
-  section: definition
+sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: realizes
     target: /vision.md

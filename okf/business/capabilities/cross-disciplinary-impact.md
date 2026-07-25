@@ -18,7 +18,7 @@ relationships:
 
 # Capability
 
-Assess directional change impact across Business, Product, Design, System, Application, Components, Code Design, Implementation, and Deployment while preserving human review and decision authority.
+Assess directional change impact across Business, Product, Visual Design, System Design, Architecture, Application Architecture, Components, Code Design, Implementation, and Deployment while preserving human review and decision authority.
 
 # Product realization
 

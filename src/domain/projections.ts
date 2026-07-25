@@ -3,18 +3,24 @@ import type { Concept } from "./model.js";
 export type ProjectionKind =
   | "documents"
   | "design-system"
+  | "system-architecture"
+  | "application-portfolio"
   | "grouped-topology"
   | "application-architecture"
   | "component-dependencies"
   | "contract-registry"
   | "implementation-handoff"
-  | "deployment-definition";
+  | "deployment-definition"
+  | "knowledge-graph";
+
+export type WorkspacePresentation = "purpose-built" | "graph";
 
 const PROJECTIONS: Record<string, ProjectionKind> = {
   business: "documents",
   product: "documents",
   design: "design-system",
-  system: "grouped-topology",
+  system: "system-architecture",
+  architecture: "application-portfolio",
   application: "application-architecture",
   components: "component-dependencies",
   "code-design": "contract-registry",
@@ -22,8 +28,9 @@ const PROJECTIONS: Record<string, ProjectionKind> = {
   deployment: "deployment-definition",
 };
 
-export function projectionForLayer(layer: string): ProjectionKind | undefined {
-  return PROJECTIONS[layer];
+export function projectionForLayer(layer: string, presentation: WorkspacePresentation = "purpose-built"): ProjectionKind | undefined {
+  if (!PROJECTIONS[layer]) return undefined;
+  return presentation === "graph" ? "knowledge-graph" : PROJECTIONS[layer];
 }
 
 export function mainArtifactsForLayer(concepts: Concept[], layer: string): Concept[] {
@@ -32,6 +39,23 @@ export function mainArtifactsForLayer(concepts: Concept[], layer: string): Conce
 
 export function productCapabilityArtifacts(concepts: Concept[]): Concept[] {
   return mainArtifactsForLayer(concepts, "product").filter((concept) => concept.type === "Product Capability");
+}
+
+export function systemArchitectureArtifacts(concepts: Concept[]): Concept[] {
+  return mainArtifactsForLayer(concepts, "system").filter((concept) => {
+    const metadata = concept.metadata.system;
+    return metadata !== undefined && typeof metadata === "object" && !Array.isArray(metadata);
+  });
+}
+
+export function componentFeatureFiles(concepts: Concept[]): string[] {
+  return [...new Set(concepts.flatMap((concept) => {
+    if (concept.type !== "Component" || concept.status !== "active") return [];
+    const metadata = concept.metadata.components;
+    if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return [];
+    const features = (metadata as Record<string, unknown>).features;
+    return Array.isArray(features) ? features.filter((feature): feature is string => typeof feature === "string") : [];
+  }))].sort();
 }
 
 export function projectionGroup(concept: Concept, layer: string): string {

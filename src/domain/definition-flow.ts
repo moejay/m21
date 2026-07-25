@@ -1,5 +1,7 @@
 import type { Concept, ProjectSnapshot } from "./model.js";
 
+export const APPLICATION_SCOPED_LAYERS = ["application", "components", "code-design", "implementation", "deployment"] as const;
+
 export interface DefinitionLayer {
   id: string;
   conceptId: string;
@@ -29,6 +31,42 @@ export function definitionLayers(concepts: Concept[]): DefinitionLayer[] {
 
 export function conceptsForLayer(concepts: Concept[], layer: string): Concept[] {
   return concepts.filter((concept) => concept.sdlc.includes(layer));
+}
+
+export function applicationScopes(concepts: Concept[]): Concept[] {
+  return concepts
+    .filter((concept) => concept.type === "Application" && concept.sdlc.includes("architecture"))
+    .sort((left, right) => left.title.localeCompare(right.title));
+}
+
+export function snapshotForApplicationLayer(snapshot: ProjectSnapshot, applicationId: string, layer: string): ProjectSnapshot {
+  const application = snapshot.concepts.find((concept) => concept.id === applicationId && concept.type === "Application" && concept.sdlc.includes("architecture"));
+  if (!application) {
+    return { ...snapshot, name: `${snapshot.name} · unknown Application · ${layer}`, concepts: [], edges: [], diagnostics: [] };
+  }
+
+  const ownedIds = new Set([applicationId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const edge of snapshot.edges) {
+      if (!["part-of", "realizes"].includes(edge.type) || !ownedIds.has(edge.targetId) || ownedIds.has(edge.source)) continue;
+      ownedIds.add(edge.source);
+      changed = true;
+    }
+  }
+
+  const concepts = snapshot.concepts.filter((concept) => ownedIds.has(concept.id) && concept.sdlc.includes(layer));
+  const ids = new Set(concepts.map((concept) => concept.id));
+  return {
+    ...snapshot,
+    name: `${snapshot.name} · ${application.title} · ${layer}`,
+    concepts,
+    edges: snapshot.edges.filter((edge) => ids.has(edge.source) && ids.has(edge.targetId)),
+    diagnostics: snapshot.diagnostics.filter(
+      (diagnostic) => diagnostic.conceptIds.length === 0 || diagnostic.conceptIds.some((id) => ids.has(id)),
+    ),
+  };
 }
 
 export function snapshotForLayer(snapshot: ProjectSnapshot, layer: string): ProjectSnapshot {

@@ -66,7 +66,7 @@ relationships:
 Valid `sdlc` identifiers are:
 
 ```yaml
-[business, product, design, system, application, components, code-design, implementation, deployment]
+[business, product, design, system, architecture, application, components, code-design, implementation, deployment]
 ```
 
 # Primary artifact rule
@@ -116,7 +116,7 @@ A layer MAY refine these slots but MUST NOT convert a reference into a primary a
 
 # Namespace rule
 
-For every identifier in `sdlc`, the matching namespaced object MUST exist and satisfy that layer's schema.
+For every identifier in `sdlc`, the matching namespaced object MUST exist and satisfy that layer's schema. Canonical `Definition Layer` documents are the sole exception because they describe a layer rather than contributing a primary artifact to it.
 
 ```yaml
 sdlc: [system, deployment]
@@ -134,7 +134,27 @@ deployment:
 
 A layer namespace SHOULD NOT exist when the concept is not tagged for that layer. Semantic ownership and dependencies remain relationships; namespace metadata controls organization, filtering, and presentation and MUST NOT duplicate relationship meaning.
 
-# Business metadata
+# Common body contract
+
+Every active primary artifact MUST have a non-empty Markdown body that explains the concept in the language of its layer, states material scope and boundaries, distinguishes accepted knowledge from assumptions and evidence, and records rationale for consequential choices. Bodies use typed relationships instead of copied ID lists and avoid current source files, symbols, framework mechanics, and generated-view details unless they are explicit constraints.
+
+There is no mandatory empty-heading template. Body headings fit the concept type; repeated frontmatter values are not a substitute for durable meaning.
+
+# Shared agent posture
+
+For every product-wide layer, the agent starts from accepted knowledge, asks bounded questions, distinguishes evidence from assumptions, suggests frontmatter and body changes together, and identifies missing context, contradictions, weak boundaries, and likely impact. All output remains a reviewable proposal. The agent MUST NOT invent evidence, priority, ownership, certainty, status, or acceptance.
+
+# Business
+
+## What it is
+
+Business defines why the product should exist, who is affected, what outcomes and enduring business capabilities matter, and which organizational, regulatory, policy, and commercial constraints apply. It owns problem and outcome meaning, not product features or technical solutions.
+
+## Agent assistance
+
+The agent helps elicit stakeholders, current conditions, desired outcomes, evidence, capabilities, regulation, assumptions, risks, and exclusions. It challenges solution-shaped problems, unsupported certainty, unmeasurable outcomes, and personas disconnected from observed needs. It proposes typed links among problems, personas, capabilities, outcomes, constraints, and evidence without inventing or accepting them.
+
+## Frontmatter
 
 ```yaml
 business:
@@ -149,9 +169,23 @@ business:
 | `evidence` | optional | `unknown`, `assumption`, `hypothesis`, `observed`, `validated`, `not-applicable` |
 | `priority` | optional | `critical`, `high`, `medium`, `low`, `unranked` |
 
-Business presents structured documents grouped by `section`.
+Business presents structured documents grouped by `section`. `evidence` is strongly expected for problems, outcomes, and consequential claims. `priority` records reviewed business importance and MUST NOT be inferred solely by the agent.
 
-# Product metadata
+## Body expectation
+
+The body explains the present condition, affected people or operations, evidence and uncertainty, consequences, desired outcome, and boundaries. Capability bodies define an enduring business ability and accountability. Metrics define what is measured and why. Regulatory and constraint bodies identify source, obligation, applicability, and consequence. Business bodies MUST NOT prescribe Product features or Application topology.
+
+# Product
+
+## What it is
+
+Product translates accepted Business context into the value, behavior, capabilities, policies, boundaries, and measurable user outcomes the product promises. It defines what the product must enable without choosing visual treatment or technical realization.
+
+## Agent assistance
+
+The agent connects Product capabilities to Business problems, personas, and outcomes; separates outcomes from feature requests; finds overlap; clarifies scope and policies; surfaces edge cases; and challenges requirements with no traceable value. It proposes acceptance-oriented language while avoiding Visual Design and technical decisions.
+
+## Frontmatter
 
 ```yaml
 product:
@@ -164,9 +198,25 @@ product:
 | `section` | required | `proposition`, `users`, `outcomes`, `capabilities`, `behavior`, `policies`, `metrics`, `boundaries`, `constraints`, `risks`, `decisions` |
 | `priority` | optional | `critical`, `high`, `medium`, `low`, `unranked` |
 
-Product presents structured product-definition documents grouped by `section`.
+Product presents structured product-definition documents grouped by `section`. Active capabilities SHOULD trace through typed relationships to the Business knowledge they realize or support.
 
-# Design and Visual Language metadata
+## Body expectation
+
+The body states the user or Product outcome, provided capability or behavior, scope boundaries, governing policies, important scenarios and failure outcomes, measures of success, assumptions, and unresolved decisions. Product bodies remain solution-neutral: interaction belongs to Visual Design, conceptual technical responsibility to System Design, and executable boundaries to Architecture.
+
+# Visual Design
+
+The stable layer and namespace identifier remains `design`.
+
+## What it is
+
+Visual Design defines how the product is understood, navigated, interacted with, and visually expressed through experience principles, journeys, information architecture, screens and states, content, accessibility, visual language, tokens, reusable patterns, and component stories.
+
+## Agent assistance
+
+The agent traces journeys and screens to Product outcomes and personas; asks about hierarchy, content, feedback, states, responsive behavior, and accessibility; finds inconsistent patterns and token use; and proposes variants and reviewable Visual Language changes. Generated previews and agent suggestions remain non-canonical until accepted.
+
+## Frontmatter
 
 ```yaml
 design:
@@ -180,11 +230,26 @@ design:
 | `section` | required | `brand`, `principles`, `journeys`, `information-architecture`, `screens`, `visual-language`, `tokens`, `patterns`, `components`, `content`, `accessibility`, `decisions` |
 | `platforms` | optional | List containing `web`, `ios`, `android`, `desktop`, `email`, `print`, `cross-platform`, or producer extension values. |
 | `group` | optional | Stable producer-defined grouping identifier. |
-| `theme` | optional | Semantic token map; valid only for visual-language or design-system concepts. |
+| `theme` | optional | Semantic token map; valid only for visual-language or design-system concepts. Color, typography, shape, and elevation tokens are strings. |
+| `preview` | optional | Component-story preview contract containing a supported `kind` and optional `variants` list. |
 
-Design presents brand and token boards, journeys, screens, patterns, component stories, accessibility, and generated Storybook-compatible handoffs.
+Visual Design presents brand and token boards, journeys, screens, patterns, component stories, accessibility, and generated Storybook-compatible handoffs. `platforms` is required when behavior or presentation varies by platform and recommended otherwise. An active Visual Language is the source of both the preview theme and M21's own workspace theme. AI-generated theme metadata remains a proposal until accepted; only accepted metadata may restyle the workspace or generated catalog.
 
-# System metadata
+## Body expectation
+
+The body describes user intent, experience flow, information hierarchy, interaction and content behavior, required states and variants, accessibility constraints, responsive or platform differences, and rationale. Visual Language and token bodies define semantic roles and usage rather than isolated values. Component stories define states and examples without becoming source-code component specifications.
+
+# System Design
+
+## What it is
+
+System Design defines the conceptual technical system needed to satisfy Product and Visual Design contracts: logical responsibilities, actors, information flows, data ownership, trust boundaries, external dependencies, qualities, constraints, risks, and failure modes. It does not choose the number of Applications or deployable units.
+
+## Agent assistance
+
+The agent derives responsibilities from Product capabilities, identifies actors and external systems, traces information and ownership, exposes trust boundaries and missing failure behavior, and asks for measurable quality needs. It challenges technology-first decomposition and moves monolith, service, frontend/backend, and deployability decisions to Architecture.
+
+## Frontmatter
 
 ```yaml
 system:
@@ -196,19 +261,33 @@ system:
 
 | Field | Requirement | Values |
 |---|---|---|
-| `kind` | required | `system`, `actor`, `application`, `service`, `database`, `data-store`, `queue`, `external-system`, `infrastructure`, `network`, `other` |
+| `kind` | required | `system`, `subsystem`, `actor`, `application`, `service`, `database`, `data-store`, `queue`, `external-system`, `infrastructure`, `network`, `other` |
 | `group` | optional | Stable topology group identifier; defaults to `ungrouped`. |
 | `boundary` | required | `owned`, `managed`, `external`, `user`, `unknown` |
 | `criticality` | optional | `critical`, `high`, `medium`, `low`, `unknown` |
 
-System presents a grouped topology graph. Only primary System artifacts become topology nodes; connected Product, Design, Decision, Constraint, and Risk concepts appear as references.
+System Design presents a conceptual responsibility and information-flow map. `criticality` is recommended for owned or managed responsibilities and data stores whose failure affects Product outcomes. Connected Product, Visual Design, Decision, Constraint, and Risk concepts appear as references.
 
-# Application metadata
+## Body expectation
+
+The body states the conceptual responsibility, provided and consumed information, ownership of data and decisions, actors and external dependencies, trust boundaries, quality expectations, failure and degradation behavior, constraints, risks, and rationale. It avoids source modules and claims about which Application owns the responsibility.
+
+# Architecture
+
+## What it is
+
+Architecture turns conceptual System Design responsibilities into the actual portfolio of owned executable Applications. It decides whether the product uses one monolith or full-stack Application or several web, mobile, backend, worker, CLI, local-service, or integration Applications without decomposing their internals.
+
+## Agent assistance
+
+The agent proposes the simplest topology that satisfies accepted constraints, compares combination and separation trade-offs, maps every owned System Design responsibility to at least one Application, and detects orphan responsibilities, accidental distribution, hidden coupling, unclear data ownership, and ambiguous deployment boundaries.
+
+## Frontmatter
 
 ```yaml
-application:
+architecture:
   section: applications
-  architecture_style: hexagonal
+  kind: full-stack
   group: product-platform
   runtime: [nodejs, browser]
   deployable: true
@@ -216,13 +295,32 @@ application:
 
 | Field | Requirement | Contract |
 |---|---|---|
-| `section` | required | `applications`, `architecture`, `interfaces`, `data`, `security`, `operations`, `constraints`, `risks`, `decisions` |
-| `architecture_style` | optional | Stable descriptive identifier such as `layered`, `hexagonal`, `mvc`, or `event-driven`. |
-| `group` | optional | Application portfolio or suite identifier. |
-| `runtime` | optional | List of descriptive runtime identifiers. |
-| `deployable` | optional | Whether the concept represents an independently deployable application. |
+| `section` | required | `applications`, `topology`, `communication`, `data`, `security`, `constraints`, `risks`, `decisions` |
+| `kind` | required for Applications | Executable boundary kind such as `full-stack`, `web-client`, `backend-service`, `api`, `worker`, `cli`, or `local-service`. |
+| `group` | optional | Application portfolio or deployment grouping identifier. |
+| `runtime` | required for active Applications | Non-empty list of descriptive runtime identifiers. |
+| `deployable` | required for active Applications | Whether the Application is independently deployable. |
 
-Application presents an application selector and an application-local architecture workspace. Membership and ownership MUST be represented by relationships rather than repeated application IDs.
+For every active Application, `kind`, `runtime`, and `deployable` are required. Architecture defines the actual owned Application topology that realizes conceptual System Design responsibilities. One Application may realize many responsibilities, and one responsibility may be realized by several Applications. Ownership and realization MUST use typed relationships rather than copied IDs in metadata.
+
+## Body expectation
+
+The body explains the Application or topology boundary, System Design responsibilities realized, rationale for combining or separating responsibilities, runtime and deployability assumptions, communication and trust boundaries, data authority, external dependencies, operational consequences, constraints, risks, and rejected alternatives. Internal modules, ports, state models, and dependency rules belong to Application Architecture.
+
+# Application Architecture metadata
+
+```yaml
+application:
+  section: architecture
+  architecture_style: hexagonal
+```
+
+| Field | Requirement | Contract |
+|---|---|---|
+| `section` | required | `architecture`, `interfaces`, `data`, `security`, `operations`, `constraints`, `risks`, `decisions` |
+| `architecture_style` | optional | Stable internal style such as `layered`, `hexagonal`, `mvc`, `component-based`, or `event-driven`. |
+
+Application Architecture presents the selected Application's internal responsibilities, interfaces, data, security, operations, and dependency rules. Membership and ownership MUST be represented by relationships rather than repeated Application IDs.
 
 # Components metadata
 
@@ -233,6 +331,8 @@ components:
   group: persistence
   layer: infrastructure
   visibility: internal
+  features:
+    - features/project-workspace.feature
 ```
 
 | Field | Requirement | Contract |
@@ -242,8 +342,9 @@ components:
 | `group` | optional | Stable grouping identifier within the owning application. |
 | `layer` | optional | Architectural layer identifier. |
 | `visibility` | optional | `public`, `internal`, or `private`. |
+| `features` | required for active Components | Non-empty list of repository-relative executable Gherkin feature files that verify the Component's public behavior and durable guarantees. |
 
-Components presents an application-local dependency graph. The owning Application is determined through typed relationships, not duplicated metadata.
+Components presents an application-local dependency graph. The owning Application is determined through typed relationships, not duplicated metadata. Gherkin features are the primary implementation testing contract; focused unit or adapter tests may supplement them but MUST NOT replace their observable guarantees.
 
 # Code Design metadata
 

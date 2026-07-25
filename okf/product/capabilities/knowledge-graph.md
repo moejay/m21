@@ -4,7 +4,7 @@ title: Non-Linear Knowledge Graph
 description: Explore and evolve connected product knowledge from any point without following a mandatory sequence.
 tags: [mvp, graph, navigation, traceability]
 status: draft
-sdlc: [product, design, system, application, components, code-design, implementation, deployment]
+sdlc: [product, components, code-design, implementation, deployment]
 product:
   section: capabilities
 relationships:

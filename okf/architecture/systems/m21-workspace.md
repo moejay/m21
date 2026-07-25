@@ -3,12 +3,13 @@ type: System
 title: M21 Product Engineering Workspace
 description: The local-first system through which users develop and reason over an OKF product graph.
 tags: [architecture, system, workspace]
-status: draft
+status: active
 sdlc: [system, deployment]
 system:
   kind: system
-  group: m21-workspace
+  group: platform
   boundary: owned
+  criticality: high
 relationships:
   - type: realizes
     target: /product/mvp.md
@@ -16,6 +17,10 @@ relationships:
     target: /decisions/local-first-workspace.md
   - type: constrained-by
     target: /experience/accessibility.md
+  - type: serves
+    target: /people/product-builder.md
+  - type: serves
+    target: /people/product-team.md
 ---
 
 # Responsibilities

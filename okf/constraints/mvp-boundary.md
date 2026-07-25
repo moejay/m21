@@ -4,14 +4,14 @@ title: MVP Boundary
 description: Keep the first release focused on creating, reasoning over, and projecting shared product knowledge.
 tags: [mvp, scope]
 status: active
-sdlc: [business, design, system, application, components, code-design, implementation, deployment]
+sdlc: [business, components, code-design, implementation, deployment]
 business:
   section: constraints
 ---
 
 # Included depth
 
-The MVP must prove connected reasoning from Business through Product, Design, System, Application, Components, and Code Design. It defines Implementation and Deployment handoffs while delegating execution to external coding or delivery agents. It includes lightweight ownership and impact review because non-linear work cannot remain coherent without them.
+The MVP must prove connected reasoning from Business through Product, Visual Design, System Design, Architecture, Application Architecture, Components, and Code Design. It defines Implementation and Deployment handoffs while delegating execution to external coding or delivery agents. It includes lightweight ownership and impact review because non-linear work cannot remain coherent without them.
 
 # Explicitly excluded
 

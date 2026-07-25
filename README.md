@@ -13,7 +13,8 @@ The product is being specified by dogfooding its own OKF project before and duri
 
 The current workspace can:
 
-- Drive work through Business → Product → Design → System → Application → Components → Code Design → Implementation → Deployment
+- Drive work through Business → Product → Visual Design → System Design → Architecture → Application Architecture → Components → Code Design → Implementation → Deployment
+- Keep System Design conceptual, choose actual Application boundaries in Architecture, and scope downstream work to one owned Application
 - Keep definition-layer participation many-to-many with concept types
 - Open an OKF bundle as a typed graph
 - Search, filter, navigate, and focus concepts
@@ -57,14 +58,21 @@ npm start -- okf
 
 AI output is always returned as a proposal; it is never persisted without explicit acceptance.
 
-## Executable contracts
+## Engineering contracts
+
+- Product knowledge and architecture: [`okf/`](okf/index.md)
+- Product-wide workflow, metadata, and authoring spec: [`spec/product-definition-workflow.md`](spec/product-definition-workflow.md)
+- Regeneration-quality workspace implementation spec: [`spec/m21-workspace.md`](spec/m21-workspace.md)
+- Executable behavior: [`features/`](features/)
+- Project-local coding-agent skill: [`.agents/skills/m21-workspace/SKILL.md`](.agents/skills/m21-workspace/SKILL.md)
 
 ```bash
+npx @moejay/m21 validate ./spec --json
 npm test          # Gherkin scenarios and focused unit tests
 npm run build     # Type checking and production browser build
 ```
 
-The executable behavior source lives in `features/`.
+The Product Definition Workflow spec defines Business through Architecture documents, frontmatter, body content, and agent assistance. The workspace implementation spec consumes that contract; Gherkin remains the executable behavior source.
 
 ## Google reference OKF visualization
 

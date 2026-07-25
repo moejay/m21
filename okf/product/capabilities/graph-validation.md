@@ -4,7 +4,7 @@ title: Continuous Graph Validation
 description: Detect incomplete, inconsistent, risky, or untraceable product knowledge without forcing false completeness.
 tags: [mvp, validation, risk, traceability]
 status: draft
-sdlc: [product, design, system, application, components, code-design, implementation, deployment]
+sdlc: [product, components, code-design, implementation, deployment]
 product:
   section: capabilities
 relationships:

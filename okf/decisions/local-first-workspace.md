@@ -4,7 +4,7 @@ title: Local-First OKF Workspace for the MVP
 description: Run the initial workspace locally against a user-owned OKF directory while keeping interfaces suitable for future collaboration services.
 tags: [decision, local-first, okf, architecture]
 status: proposed
-sdlc: [system, application, deployment]
+sdlc: [deployment]
 relationships:
   - type: governs
     target: /architecture/systems/m21-workspace.md

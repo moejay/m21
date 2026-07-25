@@ -9,9 +9,9 @@ Feature: sdlc-definition-flow
     And the project contains only one copy of the decision
 
   Scenario: A deeper definition layer remains available while upstream knowledge is incomplete
-    Given a draft screen contributes to Design
+    Given a draft screen contributes to Visual Design
     And product definition remains incomplete
-    When I open the Design definition view
+    When I open the Visual Design definition view
     Then the draft screen is available for work
     And the product definition diagnostic remains visible when relevant
 
@@ -23,8 +23,8 @@ Feature: sdlc-definition-flow
     And the agent returns a reviewable change proposal
 
   Scenario: Generated views follow the selected definition layer
-    Given a draft screen contributes to Design
+    Given a draft screen contributes to Visual Design
     And a business goal contributes only to Business
-    When I generate the project summary for Design
+    When I generate the project summary for Visual Design
     Then the summary includes the draft screen
     And the summary excludes the Business-only business goal

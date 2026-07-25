@@ -6,9 +6,10 @@ import { After, Before, Given, Then, When, setWorldConstructor, World } from "@c
 import YAML from "yaml";
 import { DevelopmentAiProvider, type AiProvider, type AiSuggestion } from "../../src/application/ai.js";
 import { ProjectService } from "../../src/application/project-service.js";
-import { snapshotForLayer } from "../../src/domain/definition-flow.js";
-import { mainArtifactsForLayer, productCapabilityArtifacts, projectionForLayer, type ProjectionKind } from "../../src/domain/projections.js";
+import { applicationScopes, snapshotForApplicationLayer, snapshotForLayer } from "../../src/domain/definition-flow.js";
+import { componentFeatureFiles, mainArtifactsForLayer, productCapabilityArtifacts, projectionForLayer, systemArchitectureArtifacts, type ProjectionKind } from "../../src/domain/projections.js";
 import { projectTheme, type ProjectTheme } from "../../src/domain/theme.js";
+import { generateDesignPreview } from "../../src/domain/design-preview.js";
 import type { ChangeProposal, Concept, ProjectSnapshot } from "../../src/domain/model.js";
 
 class M21World extends World {
@@ -26,6 +27,16 @@ class M21World extends World {
   projection: ProjectionKind | undefined = undefined;
   mainArtifacts: Concept[] = [];
   productArtifacts: Concept[] = [];
+  designPreview = "";
+  systemArtifacts: Concept[] = [];
+  systemSnapshot?: ProjectSnapshot;
+  applicationScopes: Concept[] = [];
+  applicationSnapshot?: ProjectSnapshot;
+  engineeringSkill = "";
+  canonicalComponents: Concept[] = [];
+  invalidComponentFeatures: string[] = [];
+  implementationFeatures: string[] = [];
+  productDefinitionSpec = "";
 }
 
 setWorldConstructor(M21World);
@@ -64,6 +75,101 @@ async function activeVision(world: M21World): Promise<void> {
     status: "active",
   }, "# Mission\n\nBuild a coherent product.\n");
 }
+
+Given("two conceptual System Design responsibilities", async function (this: M21World) {
+  await writeConcept(this, "systems/workspace.md", { type: "System Service", title: "Workspace", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" } });
+  await writeConcept(this, "systems/runtime.md", { type: "System Service", title: "Runtime", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" } });
+});
+
+Given("one full-stack Application realizes both responsibilities", async function (this: M21World) {
+  await writeConcept(this, "applications/full-stack.md", { type: "Application", title: "Full-Stack Application", sdlc: ["architecture", "application"], architecture: { section: "applications", kind: "full-stack", runtime: ["nodejs", "browser"], deployable: true }, application: { section: "architecture", architecture_style: "modular-monolith" }, relationships: [{ type: "realizes", target: "/systems/workspace.md" }, { type: "realizes", target: "/systems/runtime.md" }] });
+});
+
+Given("product knowledge exists for several Applications", async function (this: M21World) {
+  await writeConcept(this, "applications/one.md", { type: "Application", title: "One", sdlc: ["architecture", "application", "components"], architecture: { section: "applications", kind: "web-client" }, application: { section: "architecture" } });
+  await writeConcept(this, "applications/two.md", { type: "Application", title: "Two", sdlc: ["architecture", "application", "components"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" } });
+  await writeConcept(this, "components/one.md", { type: "Component", title: "One Component", sdlc: ["components"], components: { section: "components", kind: "module", features: ["features/architecture-topology.feature"] }, relationships: [{ type: "part-of", target: "/applications/one.md" }] });
+});
+
+Given("a selected Application Component declares a Gherkin feature", async function (this: M21World) {
+  await writeConcept(this, "applications/service.md", { type: "Application", title: "Service", status: "active", sdlc: ["architecture", "application", "implementation"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" } });
+  await writeConcept(this, "components/engine.md", { type: "Component", title: "Engine", status: "active", sdlc: ["components", "implementation"], components: { section: "components", kind: "domain-service", features: ["features/engine.feature"] }, relationships: [{ type: "part-of", target: "/applications/service.md" }] });
+});
+
+Given("the product-level definition workflow specification", async function (this: M21World) {
+  this.productDefinitionSpec = await readFile(path.join(process.cwd(), "spec/product-definition-workflow.md"), "utf8");
+});
+
+Given("the canonical M21 Component definitions", async function (this: M21World) {
+  const project = await ProjectService.open(path.join(process.cwd(), "okf"));
+  this.canonicalComponents = project.snapshot().concepts.filter((concept) => concept.type === "Component" && concept.status === "active");
+});
+
+Given("an Application owns a Component with a Code Design contract", async function (this: M21World) {
+  await writeConcept(this, "applications/service.md", { type: "Application", title: "Service", sdlc: ["architecture", "application", "components", "code-design"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" } });
+  await writeConcept(this, "components/engine.md", { type: "Component", title: "Engine", sdlc: ["components"], components: { section: "components", kind: "domain-service", group: "domain", layer: "domain" }, relationships: [{ type: "part-of", target: "/applications/service.md" }] });
+  await writeConcept(this, "contracts/snapshot.md", { type: "Code Contract", title: "Snapshot Contract", sdlc: ["code-design"], "code-design": { section: "contracts", kind: "immutable-snapshot" }, relationships: [{ type: "part-of", target: "/components/engine.md" }] });
+});
+
+Given("two owned Applications realize System responsibilities", async function (this: M21World) {
+  await writeConcept(this, "systems/knowledge.md", { type: "System Service", title: "Knowledge Workspace", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" } });
+  await writeConcept(this, "systems/runtime.md", { type: "System Service", title: "Knowledge Runtime", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" } });
+  await writeConcept(this, "applications/browser.md", {
+    type: "Application", title: "Browser Workspace", sdlc: ["architecture", "application", "components", "code-design"], architecture: { section: "applications", kind: "web-client" }, application: { section: "architecture" }, relationships: [{ type: "realizes", target: "/systems/knowledge.md" }],
+  });
+  await writeConcept(this, "applications/project-service.md", {
+    type: "Application", title: "Project Service", sdlc: ["architecture", "application", "components", "code-design"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" }, relationships: [{ type: "realizes", target: "/systems/runtime.md" }],
+  });
+});
+
+Given("two owned Applications with separate Components", async function (this: M21World) {
+  await writeConcept(this, "applications/browser.md", { type: "Application", title: "Browser Workspace", sdlc: ["architecture", "application", "components", "code-design"], architecture: { section: "applications", kind: "web-client" }, application: { section: "architecture" } });
+  await writeConcept(this, "applications/project-service.md", { type: "Application", title: "Project Service", sdlc: ["architecture", "application", "components", "code-design"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" } });
+  await writeConcept(this, "components/browser-shell.md", {
+    type: "Component", title: "Browser Shell", sdlc: ["components"], components: { section: "components", group: "interface" }, relationships: [{ type: "part-of", target: "/applications/browser.md" }],
+  });
+  await writeConcept(this, "components/graph-engine.md", {
+    type: "Component", title: "Graph Engine", sdlc: ["components"], components: { section: "components", group: "domain" }, relationships: [{ type: "part-of", target: "/applications/project-service.md" }],
+  });
+  await writeConcept(this, "contracts/browser-navigation.md", { type: "Code Contract", title: "Browser Navigation", sdlc: ["code-design"], "code-design": { section: "contracts" }, relationships: [{ type: "part-of", target: "/components/browser-shell.md" }] });
+  await writeConcept(this, "contracts/graph-query.md", { type: "Code Contract", title: "Graph Query", sdlc: ["code-design"], "code-design": { section: "contracts" }, relationships: [{ type: "part-of", target: "/components/graph-engine.md" }] });
+});
+
+Given("an owned conceptual System subsystem", async function (this: M21World) {
+  await writeConcept(this, "runtime.md", {
+    type: "System Service",
+    title: "Product Knowledge Runtime",
+    sdlc: ["system"],
+    system: { kind: "subsystem", group: "knowledge", boundary: "owned" },
+  });
+});
+
+Given("an Application realizes that subsystem without System membership", async function (this: M21World) {
+  await writeConcept(this, "application.md", {
+    type: "Application",
+    title: "Project Service",
+    sdlc: ["architecture", "application"],
+    architecture: { section: "applications", kind: "backend-service" },
+    application: { section: "architecture" },
+    relationships: [{ type: "realizes", target: "/runtime.md" }],
+  });
+});
+
+Given("two linked conceptual System parts", async function (this: M21World) {
+  await writeConcept(this, "workspace.md", {
+    type: "System",
+    title: "Workspace",
+    sdlc: ["system"],
+    system: { kind: "system", group: "platform", boundary: "owned" },
+  });
+  await writeConcept(this, "store.md", {
+    type: "System Data Store",
+    title: "OKF Store",
+    sdlc: ["system"],
+    system: { kind: "data-store", group: "data", boundary: "managed" },
+    relationships: [{ type: "part-of", target: "/workspace.md" }],
+  });
+});
 
 Given("a product capability is tagged for Product", async function (this: M21World) {
   await writeConcept(this, "capability.md", {
@@ -126,13 +232,53 @@ Given("the definition layer is {word}", function (this: M21World, layer: string)
   this.definitionLayer = layer;
 });
 
+Given("an active visual language without a theme", async function (this: M21World) {
+  await writeConcept(this, "visual-language.md", {
+    type: "Visual Language",
+    title: "Project Visual Language",
+    status: "active",
+    sdlc: ["design"],
+    design: { section: "visual-language" },
+  });
+});
+
+Given("an AI provider that proposes a semantic Visual Design theme", function (this: M21World) {
+  this.aiProvider = {
+    async suggest(): Promise<AiSuggestion> {
+      return {
+        summary: "Generate semantic theme",
+        changes: {
+          design: {
+            section: "visual-language",
+            theme: { accent: "#7357a6", canvas: "#f8f6fb", "font-sans": "Inter, sans-serif" },
+          },
+        },
+      };
+    },
+  };
+});
+
 Given("an active visual language defines an accent theme token", async function (this: M21World) {
   await writeConcept(this, "visual-language.md", {
     type: "Visual Language",
     title: "Project Visual Language",
     status: "active",
     sdlc: ["design"],
-    theme: { accent: "#4455aa" },
+    design: { section: "visual-language", theme: { accent: "#4455aa" } },
+  });
+});
+
+Given("an active component story defines an actions preview", async function (this: M21World) {
+  await writeConcept(this, "actions.md", {
+    type: "Component Story",
+    title: "Actions",
+    description: "Primary and secondary controls.",
+    status: "active",
+    sdlc: ["design"],
+    design: {
+      section: "components",
+      preview: { kind: "actions", variants: ["primary", "secondary"] },
+    },
   });
 });
 
@@ -142,7 +288,7 @@ Given("a draft visual language defines an accent theme token", async function (t
     title: "Draft Visual Language",
     status: "draft",
     sdlc: ["design"],
-    theme: { accent: "#4455aa" },
+    design: { section: "visual-language", theme: { accent: "#4455aa" } },
   });
 });
 
@@ -154,7 +300,7 @@ Given("a decision contributes to Product and System", async function (this: M21W
   });
 });
 
-Given("a draft screen contributes to Design", async function (this: M21World) {
+Given("a draft screen contributes to Visual Design", async function (this: M21World) {
   await writeConcept(this, "screen.md", {
     type: "Screen",
     title: "Draft Workspace",
@@ -292,6 +438,74 @@ Given("I have proposed a revision to the vision", async function (this: M21World
   });
 });
 
+When("I list the Architecture Applications", async function (this: M21World) {
+  const service = await open(this);
+  this.applicationScopes = applicationScopes(service.snapshot().concepts);
+  this.applicationSnapshot = service.snapshot();
+});
+
+When("I request Components for an unknown Application", async function (this: M21World) {
+  const service = await open(this);
+  this.applicationSnapshot = snapshotForApplicationLayer(service.snapshot(), "applications/missing", "components");
+});
+
+When("I scope Code Design to that Application", async function (this: M21World) {
+  const service = await open(this);
+  this.applicationSnapshot = snapshotForApplicationLayer(service.snapshot(), "applications/service", "code-design");
+});
+
+When("I inspect the product-wide layer contracts", function (this: M21World) {
+  assert(this.productDefinitionSpec.length > 0);
+});
+
+When("I assemble the Application Implementation feature set", async function (this: M21World) {
+  const service = await open(this);
+  const scoped = snapshotForApplicationLayer(service.snapshot(), "applications/service", "implementation");
+  this.implementationFeatures = componentFeatureFiles(scoped.concepts);
+});
+
+When("I inspect their executable feature sets", async function (this: M21World) {
+  this.invalidComponentFeatures = [];
+  for (const component of this.canonicalComponents) {
+    const metadata = component.metadata.components as Record<string, unknown> | undefined;
+    const features = Array.isArray(metadata?.features) ? metadata.features.filter((feature): feature is string => typeof feature === "string") : [];
+    if (features.length === 0) this.invalidComponentFeatures.push(`${component.id}: no features`);
+    for (const feature of features) {
+      try { await readFile(path.join(process.cwd(), feature), "utf8"); }
+      catch { this.invalidComponentFeatures.push(`${component.id}: missing ${feature}`); }
+    }
+  }
+});
+
+When("I open the project engineering SKILL", async function (this: M21World) {
+  this.engineeringSkill = await readFile(path.join(process.cwd(), ".agents/skills/m21-workspace/SKILL.md"), "utf8");
+});
+
+When("I list the Application scopes", async function (this: M21World) {
+  const service = await open(this);
+  this.applicationScopes = applicationScopes(service.snapshot().concepts);
+});
+
+When("I scope Components to the Project Service Application", async function (this: M21World) {
+  const service = await open(this);
+  this.applicationSnapshot = snapshotForApplicationLayer(service.snapshot(), "applications/project-service", "components");
+});
+
+When("I move to Code Design with the same Application scope", async function (this: M21World) {
+  const service = await open(this);
+  this.applicationSnapshot = snapshotForApplicationLayer(service.snapshot(), "applications/project-service", "code-design");
+});
+
+When("I select the System architecture artifacts", async function (this: M21World) {
+  const service = await open(this);
+  this.systemArtifacts = systemArchitectureArtifacts(service.snapshot().concepts);
+});
+
+When("I select the System architecture map", async function (this: M21World) {
+  const service = await open(this);
+  this.systemSnapshot = snapshotForLayer(service.snapshot(), "system");
+});
+
 When("I select the Product capability artifacts", async function (this: M21World) {
   const service = await open(this);
   this.productArtifacts = productCapabilityArtifacts(service.snapshot().concepts);
@@ -307,11 +521,32 @@ When("I choose its workspace projection", function (this: M21World) {
   this.projection = projectionForLayer(this.definitionLayer);
 });
 
+When("I choose its graph alternative", function (this: M21World) {
+  assert(this.definitionLayer);
+  this.projection = projectionForLayer(this.definitionLayer, "graph");
+});
+
+When("I ask the agent to generate the Visual Design theme", async function (this: M21World) {
+  const service = await open(this);
+  assert(this.aiProvider);
+  this.proposal = await service.askAgent({
+    conceptId: "visual-language",
+    instruction: "Generate the semantic theme.",
+    stage: "design",
+    provider: this.aiProvider,
+  });
+});
+
+When("I generate the Visual Design component preview", async function (this: M21World) {
+  const service = await open(this);
+  this.designPreview = generateDesignPreview(service.snapshot().concepts);
+});
+
 When("I open the project", async function (this: M21World) {
   await open(this);
 });
 
-When("I open the Design definition view", async function (this: M21World) {
+When("I open the Visual Design definition view", async function (this: M21World) {
   await open(this);
   assert(this.snapshot);
   this.lifecycleSnapshot = snapshotForLayer(this.snapshot, "design");
@@ -397,7 +632,7 @@ When("I generate the project summary", async function (this: M21World) {
   this.summaries = [service.generateSummary()];
 });
 
-When("I generate the project summary for Design", async function (this: M21World) {
+When("I generate the project summary for Visual Design", async function (this: M21World) {
   const service = await open(this);
   this.summaries = [service.generateSummary("design")];
 });
@@ -405,6 +640,97 @@ When("I generate the project summary for Design", async function (this: M21World
 When("I generate the project summary twice without changing the graph", async function (this: M21World) {
   const service = await open(this);
   this.summaries = [service.generateSummary(), service.generateSummary()];
+});
+
+Then("one owned Application is defined", function (this: M21World) {
+  assert.equal(this.applicationScopes.length, 1);
+  assert.equal(this.applicationScopes[0]?.id, "applications/full-stack");
+});
+
+Then("it realizes both System Design responsibilities", function (this: M21World) {
+  const edges = this.applicationSnapshot?.edges.filter((edge) => edge.source === "applications/full-stack" && edge.type === "realizes") ?? [];
+  assert.equal(edges.length, 2);
+});
+
+Then("no downstream artifacts are disclosed", function (this: M21World) {
+  assert.equal(this.applicationSnapshot?.concepts.length, 0);
+  assert.equal(this.applicationSnapshot?.edges.length, 0);
+});
+
+Then("the owned Code Design contract is displayed", function (this: M21World) {
+  assert(this.applicationSnapshot?.concepts.some((concept) => concept.id === "contracts/snapshot"));
+});
+
+Then("the Component is not duplicated as a Code Design artifact", function (this: M21World) {
+  assert(!this.applicationSnapshot?.concepts.some((concept) => concept.id === "components/engine"));
+});
+
+Then("the workflow orders Business, Product, Visual Design, System Design, and Architecture", function (this: M21World) {
+  const order = ["### Business", "### Product", "### Visual Design", "### System Design", "### Architecture"].map((heading) => this.productDefinitionSpec.indexOf(heading));
+  assert(order.every((index) => index >= 0));
+  assert.deepEqual([...order].sort((left, right) => left - right), order);
+});
+
+Then("every product-wide layer defines what it is, agent assistance, frontmatter, and body expectations", function (this: M21World) {
+  const headings = ["Business", "Product", "Visual Design", "System Design", "Architecture"];
+  for (const [index, heading] of headings.entries()) {
+    const start = this.productDefinitionSpec.indexOf(`### ${heading}`);
+    const end = index + 1 < headings.length ? this.productDefinitionSpec.indexOf(`### ${headings[index + 1]}`, start) : this.productDefinitionSpec.indexOf("### Cross-layer traceability", start);
+    const section = this.productDefinitionSpec.slice(start, end);
+    for (const contractHeading of ["#### What it is", "#### How the agent helps", "#### Frontmatter expectation", "#### Body expectation"]) assert(section.includes(contractHeading), `${heading} lacks ${contractHeading}`);
+  }
+});
+
+Then("Visual Design retains the stable design metadata identifier", function (this: M21World) {
+  assert.match(this.productDefinitionSpec, /stable layer and namespace identifier for Visual Design remains `design`/);
+});
+
+Then("the declared Component feature is required by Implementation", function (this: M21World) {
+  assert.deepEqual(this.implementationFeatures, ["features/engine.feature"]);
+});
+
+Then("every active Component references one or more existing Gherkin feature files", function (this: M21World) {
+  assert(this.canonicalComponents.length > 0);
+  assert.deepEqual(this.invalidComponentFeatures, []);
+});
+
+Then("it directs the agent to the M21 workspace spec", function (this: M21World) {
+  assert.match(this.engineeringSkill, /spec\/m21-workspace\.md/);
+});
+
+Then("it requires specification, feature, test, and build validation", function (this: M21World) {
+  assert.match(this.engineeringSkill, /npx @moejay\/m21 validate \.\/spec --json/);
+  assert.match(this.engineeringSkill, /npm test/);
+  assert.match(this.engineeringSkill, /npm run build/);
+});
+
+Then("both owned Applications are selectable", function (this: M21World) {
+  assert.deepEqual(this.applicationScopes.map((concept) => concept.id), ["applications/browser", "applications/project-service"]);
+});
+
+Then("only the Project Service Components are displayed", function (this: M21World) {
+  assert(this.applicationSnapshot?.concepts.some((concept) => concept.id === "components/graph-engine"));
+  assert(!this.applicationSnapshot?.concepts.some((concept) => concept.id === "components/browser-shell"));
+});
+
+Then("the Project Service Code Design remains displayed", function (this: M21World) {
+  assert(this.applicationSnapshot?.concepts.some((concept) => concept.id === "contracts/graph-query"));
+});
+
+Then("the Browser Application internals remain excluded", function (this: M21World) {
+  assert(!this.applicationSnapshot?.concepts.some((concept) => concept.id.includes("browser")));
+});
+
+Then("the System subsystem is displayed", function (this: M21World) {
+  assert(this.systemArtifacts.some((concept) => concept.id === "runtime"));
+});
+
+Then("the realizing Application is not a System architecture artifact", function (this: M21World) {
+  assert(!this.systemArtifacts.some((concept) => concept.id === "application"));
+});
+
+Then("the System architecture link is displayed", function (this: M21World) {
+  assert(this.systemSnapshot?.edges.some((edge) => edge.source === "store" && edge.targetId === "workspace" && edge.type === "part-of"));
 });
 
 Then("the product capability is displayed", function (this: M21World) {
@@ -435,6 +761,10 @@ Then("the projection is {word}", function (this: M21World, projection: string) {
   assert.equal(this.projection, projection);
 });
 
+Then("the active definition layer remains {word}", function (this: M21World, layer: string) {
+  assert.equal(this.definitionLayer, layer);
+});
+
 Then("the project theme uses the visual language as its source", function (this: M21World) {
   assert(this.snapshot);
   this.theme = projectTheme(this.snapshot.concepts);
@@ -448,6 +778,28 @@ Then("the project theme exposes the accent token", function (this: M21World) {
 Then("no project theme is active", function (this: M21World) {
   assert(this.snapshot);
   assert.equal(projectTheme(this.snapshot.concepts), undefined);
+});
+
+Then("the theme remains a reviewable proposal", async function (this: M21World) {
+  assert(this.proposal);
+  const operation = this.proposal.operations[0];
+  assert(operation?.changes.design);
+  const service = await open(this);
+  assert.equal(projectTheme(service.snapshot().concepts), undefined);
+});
+
+Then("the accepted project uses the generated theme", function (this: M21World) {
+  assert(this.snapshot);
+  assert.equal(projectTheme(this.snapshot.concepts)?.tokens.accent, "#7357a6");
+});
+
+Then("the preview contains the component story", function (this: M21World) {
+  assert.match(this.designPreview, /Actions/);
+  assert.match(this.designPreview, /Accept change/);
+});
+
+Then("the preview contains the active accent token", function (this: M21World) {
+  assert.match(this.designPreview, /--accent:#4455aa/);
 });
 
 Then("the same decision appears in the Product definition view", function (this: M21World) {

@@ -4,9 +4,11 @@ title: M21 Design System
 description: Shared interaction and presentation patterns for navigating knowledge, working with AI, and reviewing change.
 tags: [design-system, ui-components, patterns]
 status: draft
-sdlc: [design, application, components, code-design, implementation]
+sdlc: [design, components, code-design, implementation]
 design:
-  section: components-and-patterns
+  section: components
+  platforms: [web]
+  group: product-workspace
 relationships:
   - type: informed-by
     target: /experience/visual-language.md

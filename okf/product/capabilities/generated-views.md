@@ -4,7 +4,7 @@ title: Generated Views
 description: Project canonical graph knowledge into synchronized documents, diagrams, and reports.
 tags: [mvp, documents, diagrams, generation]
 status: draft
-sdlc: [product, design, system, application, components, code-design, implementation, deployment]
+sdlc: [product, components, code-design, implementation, deployment]
 product:
   section: capabilities
 relationships:

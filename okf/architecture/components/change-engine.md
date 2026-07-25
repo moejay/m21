@@ -3,19 +3,25 @@ type: Component
 title: Change and Impact Engine
 description: Creates reviewable graph changes and assesses their directional consequences.
 tags: [architecture, component, change, impact]
-status: draft
-sdlc: [application, components, code-design, implementation]
-system:
-  kind: component
-  group: project-service
+status: active
+sdlc: [components, implementation]
 components:
-  application: project-service
+  section: components
+  kind: domain-service
   group: domain
+  layer: domain
+  visibility: internal
+  features:
+    - features/change-impact.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
   - type: realizes
+    target: /architecture/systems/product-knowledge-runtime.md
+  - type: realizes
     target: /product/capabilities/change-impact.md
+  - type: depends-on
+    target: /architecture/components/graph-engine.md
   - type: constrained-by
     target: /domain/change-governance.md
   - type: constrained-by

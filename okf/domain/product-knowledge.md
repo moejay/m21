@@ -4,7 +4,7 @@ title: Product Knowledge Graph Model
 description: The canonical concepts and typed relationships that represent a product in M21.
 tags: [domain-model, graph, concepts, relationships]
 status: draft
-sdlc: [system, application, components, code-design, implementation]
+sdlc: [components, code-design, implementation]
 relationships:
   - type: governs
     target: /product/capabilities/knowledge-graph.md

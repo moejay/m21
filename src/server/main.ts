@@ -7,6 +7,7 @@ import {
   type AiProvider,
 } from "../application/ai.js";
 import { ProjectService } from "../application/project-service.js";
+import { generateDesignPreview } from "../domain/design-preview.js";
 
 interface CliOptions {
   bundle: string;
@@ -60,7 +61,7 @@ export async function createServer(
       }
       const proposal = project.proposeRevision({
         conceptId,
-        changes: changes as { title?: string; description?: string; body?: string },
+        changes: changes as { title?: string; description?: string; body?: string; design?: Record<string, unknown> },
         changeKind: changeKind as "editorial" | "internal" | "contract" | "structural",
         summary: typeof summary === "string" ? summary : "Revise concept",
       });
@@ -109,6 +110,10 @@ export async function createServer(
   app.get("/api/views/project-summary", (request, response) => {
     const stage = typeof request.query.stage === "string" ? request.query.stage : undefined;
     response.type("text/markdown").send(project.generateSummary(stage));
+  });
+
+  app.get(["/design-preview", "/api/views/design-preview"], (_request, response) => {
+    response.type("text/html").send(generateDesignPreview(project.snapshot().concepts));
   });
 
   if (options.development) {

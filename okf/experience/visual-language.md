@@ -1,23 +1,44 @@
 ---
 type: Visual Language
 title: M21 Visual Language
-description: A calm, precise visual system that makes dense product knowledge approachable and trustworthy.
-tags: [visual-language, design-system, accessibility]
+description: A calm, precise visual system that makes dense product knowledge
+  approachable and trustworthy.
+tags:
+  - visual-language
+  - design-system
+  - accessibility
 status: active
-sdlc: [design, components, code-design, implementation]
+sdlc:
+  - design
+  - components
+  - code-design
+  - implementation
 design:
-  section: visual-foundations
-theme:
-  canvas: "#f7f5f0"
-  surface: "#fffefa"
-  surface-muted: "#eeece6"
-  text: "#20252c"
-  muted: "#6b7077"
-  border: "#d5d2ca"
-  accent: "#3f4c83"
-  proposal: "#5e63b6"
-  warning: "#b16a33"
-  conflict: "#ad4949"
+  section: visual-language
+  platforms:
+    - web
+    - cross-platform
+  theme:
+    canvas: "#f7f5f0"
+    surface: "#fffefa"
+    surface-muted: "#eeece6"
+    text: "#20252c"
+    muted: "#6b7077"
+    border: "#d5d2ca"
+    accent: "#3f4c83"
+    accent-contrast: "#ffffff"
+    chrome: "#252b35"
+    chrome-text: "#f7f5f0"
+    proposal: "#5e63b6"
+    warning: "#b16a33"
+    conflict: "#ad4949"
+    success: "#3f7f72"
+    font-sans: Manrope, system-ui, sans-serif
+    font-mono: DM Mono, ui-monospace, monospace
+    radius-small: 6px
+    radius-medium: 10px
+    radius-large: 16px
+    shadow: 0 12px 36px rgba(31, 36, 43, 0.12)
 relationships:
   - type: part-of
     target: /product/capabilities/product-design.md
@@ -26,7 +47,6 @@ relationships:
   - type: constrained-by
     target: /experience/accessibility.md
 ---
-
 # Character
 
 M21 should feel like a focused working studio: intelligent without theatrical AI styling, technical without resembling an infrastructure dashboard, and structured without feeling bureaucratic.

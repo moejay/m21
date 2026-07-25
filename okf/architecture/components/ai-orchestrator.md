@@ -3,17 +3,22 @@ type: Component
 title: AI Orchestrator
 description: Builds bounded project context, invokes replaceable model providers, and validates structured agent proposals.
 tags: [architecture, component, ai, prompts]
-status: draft
-sdlc: [application, components, code-design, implementation]
-system:
-  kind: component
-  group: project-service
+status: active
+sdlc: [components, implementation]
 components:
-  application: project-service
+  section: components
+  kind: application-service
   group: intelligence
+  layer: application
+  visibility: internal
+  features:
+    - features/ai-guidance.feature
+    - features/design-visual-language.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
+  - type: realizes
+    target: /architecture/systems/ai-guidance-boundary.md
   - type: realizes
     target: /agents/m21-agent.md
   - type: depends-on

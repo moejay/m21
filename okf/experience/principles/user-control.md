@@ -4,7 +4,7 @@ title: User-Controlled Canonical Knowledge
 description: AI recommendations remain proposals until a person accepts them into the product model.
 tags: [experience, trust, ai, review]
 status: draft
-sdlc: [design, system, application, components, code-design, implementation, deployment]
+sdlc: [design, components, code-design, implementation, deployment]
 design:
   section: principles
 relationships:

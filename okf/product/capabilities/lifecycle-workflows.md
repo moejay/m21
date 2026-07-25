@@ -1,10 +1,10 @@
 ---
 type: Product Capability
 title: SDLC Definition Flow
-description: Drive product engineering through Business, Product, Design, System, Application, Components, Code Design, Implementation, and Deployment views.
+description: Drive product engineering through Business, Product, Visual Design, System Design, Architecture, Application Architecture, Components, Code Design, Implementation, and Deployment views.
 tags: [mvp, sdlc, workflow, navigation]
 status: draft
-sdlc: [product, design, system, application, components, code-design, implementation, deployment]
+sdlc: [product, components, code-design, implementation, deployment]
 product:
   section: capabilities
 relationships:
@@ -28,7 +28,7 @@ A user enters M21 through the depth of product definition they are working on ra
 
 1. **Business** — personas, business capabilities, problems, outcomes, regulations, and constraints
 2. **Product** — how the product solves those problems and what it promises
-3. **Design and Visual Language** — experience, brand, visual language, design tokens, patterns, and accessibility
+3. **Visual Design** — experience, brand, visual language, design tokens, patterns, and accessibility
 4. **System** — system-level services, databases, infrastructure, integrations, and constraints
 5. **Application** — architecture and responsibilities of every owned application
 6. **Components** — cohesive application components and their dependencies
@@ -49,7 +49,7 @@ A user enters M21 through the depth of product definition they are working on ra
 # Acceptance outcomes
 
 - A Decision can appear in Product, System, and Code Design without becoming three decisions.
-- A user can work on Design while Product questions remain open.
-- Business and Product present structured documents; Design presents visual foundations and component stories; technical layers use topology, architecture, contract, or handoff views appropriate to their purpose.
+- A user can work on Visual Design while Product questions remain open.
+- Business and Product present structured documents; Visual Design presents visual foundations and component stories; technical layers use topology, architecture, contract, or handoff views appropriate to their purpose.
 - The agent's questions and validation reflect the selected definition layer.
 - Upstream changes flag dependent deeper knowledge; internal deeper changes do not rewrite upstream contracts.

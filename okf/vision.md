@@ -4,11 +4,9 @@ title: AI-Native Product Engineering Workspace
 description: A unified environment where ideas evolve into successful operating products through a shared knowledge graph and continuous AI guidance.
 tags: [vision, product-engineering, ai, design, architecture]
 status: active
-sdlc: [business, design]
+sdlc: [business]
 business:
   section: vision
-product:
-  section: proposition
 ---
 
 # Mission
@@ -37,19 +35,19 @@ AI agents collaborate through this shared model rather than generating isolated 
 
 The primary working model follows increasing product-engineering depth:
 
-Business → Product → Design and Visual Language → System → Application → Components → Code Design → Implementation Handoff → Deployment Definition
+Business → Product → Visual Design → System Design → Architecture → Application Architecture → Components → Code Design → Implementation Handoff → Deployment Definition
 
 This flow communicates common influence and traceability, not mandatory execution. Users may enter any layer, revisit broader knowledge, and collaborate concurrently. The agent changes its questions, validation, recommendations, and handoffs according to the selected layer.
 
 The underlying knowledge remains a cross-cutting graph rather than a layer taxonomy. A Decision, Constraint, Persona, Capability, Journey, System, or Application may participate in several layers without being duplicated or changing type.
 
-Concepts form a dependency graph with directional impact: a Business change may require Product, Design, and technical review, while an internal Component or Code Design change need not alter Product knowledge if its contracts remain satisfied. Deeper work may expose an upstream contradiction through an explicit proposal rather than silently rewriting intent.
+Concepts form a dependency graph with directional impact: a Business change may require Product, Visual Design, and technical review, while an internal Component or Code Design change need not alter Product knowledge if its contracts remain satisfied. Deeper work may expose an upstream contradiction through an explicit proposal rather than silently rewriting intent.
 
 M21 defines implementation and deployment contracts, but the MVP delegates source-code changes, delivery automation, and infrastructure provisioning to external coding or delivery agents.
 
 Traceability connects goals, personas, business capabilities, product capabilities, journeys, visual systems, systems, applications, components, code design, implementation evidence, and deployment knowledge. Decisions link to the concepts they govern and preserve context, alternatives, rationale, and consequences.
 
-# Product design as shared knowledge
+# Visual Design as shared knowledge
 
 Product design is a first-class part of the model rather than a detached handoff. The graph connects:
 
@@ -64,7 +62,7 @@ Product design is a first-class part of the model rather than a detached handoff
 - Accessibility constraints
 - Design decisions and evidence
 
-Design can begin before every product question is settled and can expose missing assumptions upstream. Product, design, and engineering participants can work in parallel while seeing dependencies and changes that require their attention.
+Visual Design can begin before every product question is settled and can expose missing assumptions upstream. Product, design, and engineering participants can work in parallel while seeing dependencies and changes that require their attention.
 
 # Modular intelligence
 

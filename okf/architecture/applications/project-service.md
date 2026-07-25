@@ -3,30 +3,26 @@ type: Application
 title: Local Project Service
 description: The loopback service that coordinates OKF persistence and product-knowledge operations.
 tags: [architecture, application, service, local-first]
-status: draft
-sdlc: [system, application, components, code-design, implementation, deployment]
-system:
-  kind: application
+status: active
+sdlc: [architecture, application, components, code-design, implementation, deployment]
+architecture:
+  section: applications
+  kind: backend-service
   group: workspace
-  boundary: owned
+  runtime: [nodejs]
+  deployable: true
 application:
-  group: workspace
-  architecture_style: layered-local-service
+  section: architecture
+  architecture_style: layered
 relationships:
   - type: part-of
     target: /architecture/systems/m21-workspace.md
-  - type: depends-on
-    target: /architecture/components/okf-repository.md
-  - type: depends-on
-    target: /architecture/components/graph-engine.md
-  - type: depends-on
-    target: /architecture/components/change-engine.md
-  - type: depends-on
-    target: /architecture/components/validation-engine.md
-  - type: depends-on
-    target: /architecture/components/ai-orchestrator.md
-  - type: depends-on
-    target: /architecture/components/view-projector.md
+  - type: realizes
+    target: /architecture/systems/product-knowledge-runtime.md
+  - type: realizes
+    target: /architecture/systems/ai-guidance-boundary.md
+  - type: realizes
+    target: /architecture/systems/view-generation-pipeline.md
   - type: constrained-by
     target: /decisions/local-first-workspace.md
 ---

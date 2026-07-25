@@ -85,6 +85,7 @@ export class OkfRepository {
     if (changes.description !== undefined) metadata.description = changes.description;
     if (changes.status !== undefined) metadata.status = changes.status;
     if (changes.relationships !== undefined) metadata.relationships = changes.relationships;
+    if (changes.design !== undefined) metadata.design = changes.design;
     const body = changes.body ?? parsed.body;
     const serialized = `---\n${YAML.stringify(metadata).trimEnd()}\n---\n${body.startsWith("\n") ? body.slice(1) : body}`;
 

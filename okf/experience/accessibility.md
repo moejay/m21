@@ -4,9 +4,9 @@ title: Accessible Knowledge Navigation
 description: Core graph and AI workflows must remain understandable and operable without vision, color perception, pointer precision, or motion.
 tags: [accessibility, inclusive-design, constraint]
 status: active
-sdlc: [design, application, components, code-design, implementation]
+sdlc: [design, components, code-design, implementation]
 design:
-  section: constraints
+  section: accessibility
 relationships:
   - type: governs
     target: /experience/screens/graph-workspace.md

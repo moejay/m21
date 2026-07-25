@@ -4,7 +4,7 @@ title: Change Governance Model
 description: Proposals, impact findings, reviews, and acceptance that protect canonical product knowledge.
 tags: [domain-model, change, impact, review]
 status: draft
-sdlc: [design, system, application, components, code-design, implementation, deployment]
+sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: governs
     target: /product/capabilities/change-impact.md

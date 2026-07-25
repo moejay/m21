@@ -4,11 +4,9 @@ title: Multidisciplinary Product Team
 description: A team whose members own different parts of a product but need shared context and change visibility.
 tags: [persona, collaboration, product-team]
 status: draft
-sdlc: [business, design, system, application, components, code-design, implementation, deployment]
+sdlc: [business, components, code-design, implementation, deployment]
 business:
   section: personas
-product:
-  section: users
 ---
 
 # Context

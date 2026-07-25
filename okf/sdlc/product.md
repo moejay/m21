@@ -34,4 +34,4 @@ Ask how the product creates the intended outcome, challenge features without bus
 
 # Downstream influence
 
-Product changes commonly affect Design, System, Application, Components, and Code Design. Internal realization changes remain downstream while the product contract holds.
+Product changes commonly affect Visual Design, System Design, Architecture, Application Architecture, Components, and Code Design. Internal realization changes remain downstream while the product contract holds.

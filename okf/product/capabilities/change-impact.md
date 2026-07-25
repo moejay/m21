@@ -4,7 +4,7 @@ title: Change Impact and Review
 description: Explain the directional consequences of proposed changes and involve owners of affected knowledge.
 tags: [mvp, impact, review, collaboration]
 status: draft
-sdlc: [product, design, system, application, components, code-design, implementation, deployment]
+sdlc: [product, components, code-design, implementation, deployment]
 product:
   section: capabilities
 relationships:

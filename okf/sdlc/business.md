@@ -32,4 +32,4 @@ Ask why the problem matters, distinguish evidence from assumption, challenge uns
 
 # Downstream influence
 
-Business changes may affect Product, Design, System, and every deeper realization. Deeper internal changes do not redefine Business unless they expose a contradiction or new evidence.
+Business changes may affect Product, Visual Design, System Design, Architecture, and every deeper realization. Deeper internal changes do not redefine Business unless they expose a contradiction or new evidence.

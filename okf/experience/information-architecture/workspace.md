@@ -4,7 +4,7 @@ title: Product Workspace Information Architecture
 description: Organize M21 around focus, context, guidance, changes, and views rather than document folders.
 tags: [information-architecture, workspace, navigation]
 status: draft
-sdlc: [design, application]
+sdlc: [design]
 design:
   section: information-architecture
 relationships:
@@ -20,7 +20,8 @@ relationships:
 
 # Primary workspace areas
 
-- **SDLC definition rail** — Business, Product, Design, System, Application, Components, Code Design, Implementation, and Deployment
+- **Product-wide definition rail** — Business, Product, Visual Design, System Design, and Architecture
+- **Selected-Application rail** — Application Architecture, Components, Code Design, Implementation, and Deployment
 - **Project navigator** — search, filters, layers, saved scopes, and unresolved attention
 - **Graph canvas** — relationships, dependency direction, selection, and neighborhood exploration
 - **Focus inspector** — canonical concept content, relationships, rationale, history, ownership, and status

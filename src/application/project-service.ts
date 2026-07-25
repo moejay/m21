@@ -66,7 +66,7 @@ export class ProjectService {
     const neighborhood = this.graph.neighborhood(input.conceptId).concepts;
     const stageContext = input.stage
       ? [...this.graph.concepts.values()].find(
-          (concept) => concept.type === "Lifecycle Stage" && concept.metadata.stage === input.stage,
+          (concept) => concept.type === "Definition Layer" && concept.metadata.stage === input.stage,
         )
       : undefined;
     const context = stageContext && !neighborhood.some((concept) => concept.id === stageContext.id)
@@ -78,6 +78,9 @@ export class ProjectService {
       context,
       ...(input.stage ? { stage: input.stage } : {}),
     });
+    if (suggestion.changes.design && (input.stage !== "design" || focus.type !== "Visual Language")) {
+      throw new Error("AI may revise Visual Design metadata only for a Visual Language in the Visual Design layer");
+    }
     return this.proposeRevision({
       conceptId: input.conceptId,
       changes: suggestion.changes,

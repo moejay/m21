@@ -3,7 +3,7 @@ type: Definition Layer
 title: Components
 short_title: Components
 stage: components
-order: 60
+order: 70
 description: Decompose each owned application into cohesive components with explicit responsibilities and dependencies.
 tags: [sdlc, components, modules, dependencies]
 status: active
@@ -27,6 +27,10 @@ Describe the major collaborating parts inside each application without collapsin
 - State and data ownership
 - Events, failures, constraints, and invariants
 - Traceability to application and product capabilities
+
+# Workspace projection
+
+Components remains scoped to the selected Application. M21 derives membership through `part-of` relationships, displays the Application as the scope root, groups Components by architectural role, and keeps other Applications' internals out of the primary dependency view. Each Component carries cohesive responsibilities, explicit non-responsibilities, architectural layer, visibility, and dependency direction. Components are not duplicated as Code Design artifacts; their linked models, interfaces, contracts, patterns, and failures become primary in Code Design.
 
 # Agent posture
 

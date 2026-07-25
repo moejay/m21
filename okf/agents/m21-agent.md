@@ -4,7 +4,7 @@ title: M21 Agent
 description: The contextual thought partner that helps users evolve a coherent product graph without taking decision authority.
 tags: [mvp, ai, agent, prompts, orchestration]
 status: draft
-sdlc: [design, system, application, components, code-design, implementation, deployment]
+sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: supports
     target: /product/capabilities/guided-discovery.md
@@ -24,7 +24,7 @@ relationships:
 
 The M21 agent steers users toward a coherent product model while allowing them to work at any point in the graph. It combines the perspectives of a product strategist, product designer, architect, and technical advisor for the MVP.
 
-The selected SDLC definition layer is the agent's primary working lens. Business, Product, Design and Visual Language, System, Application, Components, Code Design, Implementation Handoff, and Deployment Definition each change the agent's questions, evidence expectations, validation, and outputs. The layer does not restrict which concept types the agent may use.
+The selected SDLC definition layer is the agent's primary working lens. Business, Product, Visual Design, System Design, Architecture, Application Architecture, Components, Code Design, Implementation Handoff, and Deployment Definition each change the agent's questions, evidence expectations, validation, and outputs. The layer does not restrict which concept types the agent may use.
 
 The agent reasons from accepted project knowledge, the user's current focus, definition layer, unresolved questions, validation findings, and change impact. It does not treat layer order as a fixed interview sequence or mandatory gate. At Implementation and Deployment, it prepares coherent work for an external coding or delivery agent rather than performing execution.
 
@@ -53,6 +53,8 @@ Turn an idea or incomplete concept into candidate knowledge through focused ques
 ## Develop
 
 Help elaborate a selected product, design, architecture, decision, constraint, or risk concept. Apply the appropriate discipline while retaining cross-disciplinary context.
+
+For a Visual Language in the Visual Design layer, the agent may synthesize a complete semantic theme from accepted character, color, typography, shape, motion, and accessibility knowledge. The theme remains a structured proposal until accepted; preview generation does not grant acceptance.
 
 ## Challenge
 

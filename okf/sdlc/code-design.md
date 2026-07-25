@@ -3,7 +3,7 @@ type: Definition Layer
 title: Code Design
 short_title: Code Design
 stage: code-design
-order: 70
+order: 80
 description: Define implementation-facing concepts, models, interfaces, patterns, contracts, and executable behavior for each application.
 tags: [sdlc, code-design, models, interfaces, patterns, gherkin]
 status: active
@@ -26,8 +26,12 @@ Produce a precise, technology-aware design that a coding agent can implement wit
 - Application patterns and dependency rules
 - Data contracts and API contracts
 - Error handling, concurrency, security, and operational design where relevant
-- Gherkin features and executable acceptance scenarios
+- Component-owned Gherkin feature files and executable acceptance scenarios that become the primary implementation test contract
 - Implementation constraints and deliberate technology decisions
+
+# Workspace projection
+
+Code Design remains scoped to the selected Application and includes models, semantic interfaces, stateful contracts, dependency rules, failure models, and executable behavior owned through its Component and Application relationship chains. Public behavior requires an explicit contract, dependencies on infrastructure and providers use ports, and contracts describe durable semantics rather than current files or symbols. Cross-Application contracts appear only as dependencies or contextual references unless deliberately shared.
 
 # Agent posture
 

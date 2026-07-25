@@ -4,7 +4,7 @@ title: M21
 description: An AI-native product engineering workspace built on a shared, living knowledge graph.
 tags: [product-engineering, ai, okf, knowledge-graph]
 status: active
-sdlc: [design, system, application, components, code-design, implementation, deployment]
+sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: realizes
     target: /vision.md

@@ -4,7 +4,7 @@ title: Integrated Product Design
 description: Develop experience, interaction, and visual design as connected product knowledge rather than a detached handoff.
 tags: [mvp, ux, ui, visual-language, accessibility]
 status: draft
-sdlc: [product, design, application, components, code-design, implementation]
+sdlc: [product, components, code-design, implementation]
 product:
   section: capabilities
 relationships:

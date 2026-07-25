@@ -4,7 +4,7 @@ title: OKF Project Workspace
 description: Create, open, inspect, and safely persist a portable OKF-backed product project.
 tags: [mvp, okf, workspace, persistence]
 status: draft
-sdlc: [product, design, system, application, components, code-design, implementation, deployment]
+sdlc: [product, components, code-design, implementation, deployment]
 product:
   section: capabilities
 relationships:

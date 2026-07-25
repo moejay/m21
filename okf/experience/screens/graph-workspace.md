@@ -1,10 +1,10 @@
 ---
 type: Screen
 title: Graph Workspace
-description: The primary screen for navigating concepts, focusing context, and working with the M21 agent.
+description: An alternate full-workspace presentation for navigating scoped concepts, focusing relationships, and working with the M21 agent.
 tags: [screen, graph, workspace]
 status: draft
-sdlc: [design, application, components, code-design, implementation]
+sdlc: [design, components, code-design, implementation]
 design:
   section: screens
 relationships:
@@ -16,10 +16,15 @@ relationships:
     target: /experience/accessibility.md
 ---
 
+# Entry and exit
+
+A quiet action in the workspace's top-right corner opens the relationship graph for the active layer. The graph is a completely separate presentation, not a diagram inserted among canonical documents. Its reciprocal action restores the layer's purpose-built workspace. Both actions preserve definition scope, selected Application, and focused Concept.
+
 # Regions
 
 - SDLC definition rail showing layer scope and concept counts
 - Compact project header with project status and unresolved-attention count
+- Quiet control to restore the purpose-built workspace
 - Searchable and filterable navigator
 - Main graph canvas with readable relationship direction
 - Focus inspector for the selected concept

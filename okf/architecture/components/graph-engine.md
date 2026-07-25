@@ -3,17 +3,22 @@ type: Component
 title: Product Graph Engine
 description: Builds and queries the typed graph from normalized OKF concepts.
 tags: [architecture, component, graph, query]
-status: draft
-sdlc: [application, components, code-design, implementation]
-system:
-  kind: component
-  group: project-service
+status: active
+sdlc: [components, implementation]
 components:
-  application: project-service
+  section: components
+  kind: domain-service
   group: domain
+  layer: domain
+  visibility: internal
+  features:
+    - features/application-scope.feature
+    - features/lifecycle-workflows.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
+  - type: realizes
+    target: /architecture/systems/product-knowledge-runtime.md
   - type: realizes
     target: /product/capabilities/knowledge-graph.md
   - type: constrained-by

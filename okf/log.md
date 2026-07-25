@@ -1,3 +1,59 @@
+# 2026-07-22 — Product-wide definition workflow specification
+
+- Added `spec/product-definition-workflow.md` as the product-level contract for Business, Product, Visual Design, System Design, and Architecture.
+- Defined common and layer-specific frontmatter models, durable body expectations, cross-layer traceability, and AI-guided authoring behavior for the first five workflow layers.
+- Renamed the human-facing Design and Visual Language layer to Visual Design while retaining the stable `design` identifier and namespace.
+- Expanded the canonical definition-layer frontmatter profile with what each layer is, how the agent assists, and what belongs in frontmatter and the Markdown body.
+- Deferred Application Architecture and deeper workflow specifications to a later application-scoped contract.
+
+# 2026-07-22 — Separate System Design from Architecture
+
+- Renamed the product-wide System view to System Design and made its conceptual responsibility, information-flow, data, quality, and external-boundary role explicit.
+- Added a product-wide Architecture layer that chooses actual owned Application boundaries and supports one full-stack or monolithic Application as well as multiple frontend, backend, worker, or service Applications.
+- Moved the Application realization matrix and portfolio into Architecture; selecting an Application now enters Application Architecture and preserves that scope through Components, Code Design, Implementation, and Deployment.
+- Added Architecture frontmatter and updated the ten-layer definition flow, projections, specification, coding-agent SKILL, deep-link behavior, and navigation.
+- Added required Gherkin feature sets to every active Component and exposed them in Component contracts and Implementation handoffs as the primary implementation test contract.
+- Prevented invalid Application identities from widening downstream scoped snapshots.
+
+# 2026-07-22 — Component and Code Design contracts
+
+- Expanded Browser Workspace and Local Project Service into twelve cohesive Components with explicit layer, visibility, responsibilities, non-goals, ownership, and dependency direction.
+- Added the semantic Project Workspace API and replaced direct Browser-to-Application dependency with an interface dependency.
+- Added Application-scoped Code Design models, ports, stateful contracts, projection rules, failure taxonomy, semantic theme, and inward dependency rule.
+- Removed Components from Code Design primary membership; linked contracts now carry regeneration-quality implementation semantics.
+- Rebuilt Components as an architecture map plus expandable canonical Component contracts.
+- Rebuilt Code Design as a grouped expandable contract registry.
+- Added `spec/m21-workspace.md` as the validated implementation specification and `.agents/skills/m21-workspace/SKILL.md` as the project-local coding-agent workflow.
+
+# 2026-07-22 — Application-scoped downstream workspace
+
+- Reorganized product-wide navigation around Business, Product, Design, System, and an Application Workspace entry point.
+- Added an owned-Application portfolio grouped by realized System responsibilities.
+- Added a persistent Application selector and secondary Application, Components, Code Design, Implementation, and Deployment tabs.
+- Derived downstream scope through canonical `part-of` and `realizes` relationships rather than duplicated Application IDs.
+- Added deep-link state for both selected layer and Application.
+- Pruned Application membership to actual Application artifacts and removed duplicated Component ownership metadata.
+- Added full rendered Application documents, runtime and architecture facts, and realized System responsibility cards.
+
+# 2026-07-21 — High-level System architecture workspace
+
+- Pruned System membership to deliberate high-level architecture artifacts.
+- Defined the owned M21 system, experience, semantic runtime, AI boundary, generated-view pipeline, OKF data store, version control, model provider, and external delivery agents as linked OKF documents.
+- Connected Application and Component realization to System contracts without exposing their internals as primary System nodes.
+- Replaced the generic grouped graph with a themed architecture map showing responsibilities, data boundaries, external systems, typed dependencies, and ownership.
+- Added grouped expandable Markdown architecture documents beneath the map.
+
+# 2026-07-21 — Design studio and generated component preview
+
+- Pruned Design membership to actual experience and visual-design artifacts.
+- Added canonical Typography, Color, Character, Shape, Spacing, and Motion foundations.
+- Added active component stories for actions, form fields, knowledge cards, and definition navigation.
+- Expanded semantic themes to cover color, typography, shape, elevation, and workspace chrome.
+- Applied the active Visual Language theme to M21 itself.
+- Added reviewable AI theme proposals; M21 restyles only after the proposal is accepted.
+- Generated a standalone Storybook-like HTML catalog from accepted theme and component-story knowledge.
+- Rebuilt Design as a focused studio with rendered foundation documents, token specimens, component stories, and a preview entry point.
+
 # 2026-07-21 — Simplify the Product workspace
 
 - Pruned Product membership to Product Capability concepts instead of cross-layer references.

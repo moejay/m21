@@ -4,7 +4,7 @@ title: Develop a Focused Concept
 description: Help a user clarify, challenge, and connect one concept without losing relevant product context.
 tags: [ai, prompt-contract, discovery, coaching]
 status: draft
-sdlc: [design, system, application, components, code-design]
+sdlc: [components, code-design]
 relationships:
   - type: part-of
     target: /agents/m21-agent.md

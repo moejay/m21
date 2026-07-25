@@ -4,7 +4,7 @@ title: Review a Change's Impact
 description: An owner evaluates why another change may affect their knowledge and resolves the impact.
 tags: [journey, collaboration, impact, review]
 status: draft
-sdlc: [design, system, application, components, code-design, implementation, deployment]
+sdlc: [design, components, code-design, implementation, deployment]
 design:
   section: journeys
 relationships:

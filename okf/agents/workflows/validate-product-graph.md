@@ -4,7 +4,7 @@ title: Validate Product Coherence
 description: Explain semantic gaps and conflicts that deterministic graph checks cannot fully evaluate.
 tags: [ai, prompt-contract, validation, coherence]
 status: draft
-sdlc: [design, system, application, components, code-design, implementation, deployment]
+sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: part-of
     target: /agents/m21-agent.md
