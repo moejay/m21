@@ -17,6 +17,7 @@ The current workspace can:
 - Keep System Design conceptual, choose actual Application boundaries in Architecture, and scope downstream work to one owned Application
 - Keep definition-layer participation many-to-many with concept types
 - Open an OKF bundle as a typed graph
+- Explore every accepted concept and typed relationship in one global interactive 3D knowledge graph
 - Search, filter, navigate, and focus concepts
 - Give AI guidance the selected definition layer and its contract as context
 - Create reviewable direct-edit and AI proposals
@@ -74,19 +75,6 @@ npm run build     # Type checking and production browser build
 
 The Product Definition Workflow spec defines Business through Architecture documents, frontmatter, body content, and agent assistance. The workspace implementation spec consumes that contract; Gherkin remains the executable behavior source.
 
-## Google reference OKF visualization
+## Global knowledge graph
 
-Install the pinned Google Cloud reference viewer:
-
-```bash
-python3 -m venv .venv
-.venv/bin/pip install --index-url https://pypi.org/simple/ -r requirements-okf-viewer.txt
-```
-
-Generate `okf/viz.html`:
-
-```bash
-npm run visualize:okf
-```
-
-The upstream viewer discovers edges from Markdown links. M21 stores canonical typed relationships in OKF extension frontmatter, so `scripts/visualize-okf.py` creates a temporary projection with equivalent Markdown links before invoking the upstream renderer. Source concepts are not modified.
+Open **Global graph** from the workspace header to explore every accepted OKF concept and resolved typed relationship in one interactive 3D view. The graph is projected directly from the complete accepted Project Snapshot and does not create another persistence format or generated HTML artifact.

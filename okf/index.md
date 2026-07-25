@@ -70,7 +70,7 @@
 * [Work anywhere](experience/journeys/work-anywhere.md) - Focus and develop any concept in context.
 * [Review impact](experience/journeys/review-impact.md) - Resolve changes that may affect owned knowledge.
 * [Workspace information architecture](experience/information-architecture/workspace.md) - Organize focus, graph, agent, review, and views.
-* [Graph workspace](experience/screens/graph-workspace.md) - Primary product workspace screen.
+* [Global knowledge graph](experience/screens/graph-workspace.md) - Interactive 3D view of every accepted OKF concept and resolved typed relationship.
 * [Change review](experience/screens/change-review.md) - Review semantic changes and impact.
 * [Visual language](experience/visual-language.md) - Calm, precise visual foundations and the active M21 theme.
 * [Typography](experience/foundations/typography.md) - Humanist interface text and restrained structured monospace.

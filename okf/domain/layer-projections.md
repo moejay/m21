@@ -18,8 +18,6 @@ relationships:
 
 The graph is canonical persistence, not the mandatory interface. Each definition layer defaults to the purpose-built representation best suited to its questions and artifacts.
 
-Every layer also offers a separate relationship-graph presentation of the same scoped primary artifacts. This alternate presentation replaces the purpose-built canvas rather than embedding a graph into its documents, boards, registries, or handoffs. Entering or leaving it preserves the active layer, selected Application, and focused Concept.
-
 # Layer projections
 
 - **Business:** structured documents grouped into vision, problems, personas, business capabilities, outcomes, regulation, constraints, and risks
@@ -32,6 +30,12 @@ Every layer also offers a separate relationship-graph presentation of the same s
 - **Code Design:** selected-Application contract registry for concepts, models, interfaces, patterns, decisions, Gherkin features, and implementation constraints
 - **Implementation Handoff:** selected-Application bounded package, affected concepts, required scenarios, readiness, unresolved questions, and coding-agent exchange
 - **Deployment Definition:** selected-Application deployment units, configuration, build artifacts, rollout, rollback, observability, recovery, and delivery-agent handoff
+
+# Global knowledge graph
+
+A separate product-wide 3D graph projects every accepted OKF concept and every resolved typed relationship, regardless of active layer or selected Application. It is entered from global workspace navigation rather than offered as a layer presentation. Selecting a node focuses canonical concept context; navigating the graph never changes membership, ownership, or accepted knowledge.
+
+The global graph complements rather than replaces purpose-built authoring views. Layer and Application projections remain scoped to their own work.
 
 # Namespaced metadata
 
@@ -65,5 +69,5 @@ Each projection owns its metadata schema. Generic OKF consumers preserve it, and
 - Projection metadata never changes concept identity or canonical meaning.
 - A concept may appear in multiple projections with different presentation metadata.
 - Missing optional presentation metadata degrades to a generic document or ungrouped item.
-- The graph alternative never widens the active product-wide or selected-Application scope.
+- The global graph always uses the complete accepted Project Snapshot and never inherits a layer or Application scope.
 - Editing through any projection creates the same reviewable graph change.

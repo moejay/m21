@@ -31,8 +31,8 @@ The purpose-built presentation remains the default:
 - Code Design → selected-Application contract registry
 - Implementation and Deployment → selected-Application handoff definitions
 
-Every mapping also supports an explicitly selected `knowledge-graph` presentation. It renders the same scoped snapshot on a separate relationship canvas rather than combining both presentations.
+The layer mappings do not provide a generic graph alternative. A separate global 3D knowledge graph consumes the complete accepted Project Snapshot and presents all concepts and resolved typed relationships independently from definition scope.
 
 # Invariants
 
-A Concept is primary only when its `sdlc` includes the active layer. Registry concepts are not content artifacts. A projection changes presentation, never Concept identity or canonical meaning. Switching presentation preserves active layer, selected Application, and focused Concept. Missing optional presentation metadata degrades visibly instead of dropping the Concept.
+A Concept is primary only when its `sdlc` includes the active layer. Registry concepts are not content artifacts. A projection changes presentation, never Concept identity or canonical meaning. Opening or closing the global graph preserves the remembered active layer and selected Application. Missing optional presentation metadata degrades visibly instead of dropping the Concept.

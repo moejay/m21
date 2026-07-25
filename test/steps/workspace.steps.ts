@@ -10,6 +10,7 @@ import { applicationScopes, snapshotForApplicationLayer, snapshotForLayer } from
 import { componentFeatureFiles, mainArtifactsForLayer, productCapabilityArtifacts, projectionForLayer, systemArchitectureArtifacts, type ProjectionKind } from "../../src/domain/projections.js";
 import { projectTheme, type ProjectTheme } from "../../src/domain/theme.js";
 import { generateDesignPreview } from "../../src/domain/design-preview.js";
+import { projectGlobalGraph, type GlobalGraphProjection } from "../../src/domain/global-graph.js";
 import type { ChangeProposal, Concept, ProjectSnapshot } from "../../src/domain/model.js";
 
 class M21World extends World {
@@ -37,6 +38,9 @@ class M21World extends World {
   invalidComponentFeatures: string[] = [];
   implementationFeatures: string[] = [];
   productDefinitionSpec = "";
+  globalGraph?: GlobalGraphProjection;
+  globalGraphSource?: ProjectSnapshot;
+  scopedConceptIds: string[] = [];
 }
 
 setWorldConstructor(M21World);
@@ -94,6 +98,14 @@ Given("product knowledge exists for several Applications", async function (this:
 Given("a selected Application Component declares a Gherkin feature", async function (this: M21World) {
   await writeConcept(this, "applications/service.md", { type: "Application", title: "Service", status: "active", sdlc: ["architecture", "application", "implementation"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" } });
   await writeConcept(this, "components/engine.md", { type: "Component", title: "Engine", status: "active", sdlc: ["components", "implementation"], components: { section: "components", kind: "domain-service", features: ["features/engine.feature"] }, relationships: [{ type: "part-of", target: "/applications/service.md" }] });
+});
+
+Given("accepted OKF concepts span several product and Application layers", async function (this: M21World) {
+  await writeConcept(this, "business/outcome.md", { type: "Business Goal", title: "Outcome", status: "active", sdlc: ["business"], business: { section: "outcomes" } });
+  await writeConcept(this, "product/capability.md", { type: "Product Capability", title: "Capability", status: "active", sdlc: ["product"], product: { section: "capabilities" }, relationships: [{ type: "realizes", target: "/business/outcome.md" }] });
+  await writeConcept(this, "systems/runtime.md", { type: "System Service", title: "Runtime", status: "active", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" }, relationships: [{ type: "realizes", target: "/product/capability.md" }] });
+  await writeConcept(this, "applications/service.md", { type: "Application", title: "Service", status: "active", sdlc: ["architecture", "application"], architecture: { section: "applications", kind: "backend-service", runtime: ["nodejs"], deployable: true }, application: { section: "architecture" }, relationships: [{ type: "realizes", target: "/systems/runtime.md" }] });
+  await writeConcept(this, "components/engine.md", { type: "Component", title: "Engine", status: "active", sdlc: ["components"], components: { section: "components", features: ["features/global-knowledge-graph.feature"] }, relationships: [{ type: "part-of", target: "/applications/service.md" }] });
 });
 
 Given("the product-level definition workflow specification", async function (this: M21World) {
@@ -454,6 +466,20 @@ When("I scope Code Design to that Application", async function (this: M21World) 
   this.applicationSnapshot = snapshotForApplicationLayer(service.snapshot(), "applications/service", "code-design");
 });
 
+When("I project the global knowledge graph", async function (this: M21World) {
+  const service = await open(this);
+  this.globalGraphSource = service.snapshot();
+  this.globalGraph = projectGlobalGraph(this.globalGraphSource);
+});
+
+When("I open the global graph from a scoped Application workspace", async function (this: M21World) {
+  const service = await open(this);
+  const full = service.snapshot();
+  this.scopedConceptIds = snapshotForApplicationLayer(full, "applications/service", "components").concepts.map((concept) => concept.id);
+  this.globalGraphSource = full;
+  this.globalGraph = projectGlobalGraph(full);
+});
+
 When("I inspect the product-wide layer contracts", function (this: M21World) {
   assert(this.productDefinitionSpec.length > 0);
 });
@@ -519,11 +545,6 @@ When("I select the Business main artifacts", async function (this: M21World) {
 When("I choose its workspace projection", function (this: M21World) {
   assert(this.definitionLayer);
   this.projection = projectionForLayer(this.definitionLayer);
-});
-
-When("I choose its graph alternative", function (this: M21World) {
-  assert(this.definitionLayer);
-  this.projection = projectionForLayer(this.definitionLayer, "graph");
 });
 
 When("I ask the agent to generate the Visual Design theme", async function (this: M21World) {
@@ -663,6 +684,29 @@ Then("the owned Code Design contract is displayed", function (this: M21World) {
 
 Then("the Component is not duplicated as a Code Design artifact", function (this: M21World) {
   assert(!this.applicationSnapshot?.concepts.some((concept) => concept.id === "components/engine"));
+});
+
+Then("every accepted OKF concept appears exactly once", function (this: M21World) {
+  assert(this.globalGraph && this.globalGraphSource);
+  assert.equal(this.globalGraph.nodes.length, this.globalGraphSource.concepts.length);
+  assert.equal(new Set(this.globalGraph.nodes.map((node) => node.id)).size, this.globalGraph.nodes.length);
+});
+
+Then("every resolved typed relationship appears exactly once", function (this: M21World) {
+  assert(this.globalGraph && this.globalGraphSource);
+  assert.equal(this.globalGraph.links.length, this.globalGraphSource.edges.length);
+  const identities = this.globalGraph.links.map((link) => `${link.source}|${link.type}|${link.target}`);
+  assert.equal(new Set(identities).size, identities.length);
+});
+
+Then("the projection retains the accepted source revision", function (this: M21World) {
+  assert.equal(this.globalGraph?.sourceRevision, this.globalGraphSource?.revision);
+});
+
+Then("the global graph still contains knowledge outside that Application", function (this: M21World) {
+  assert(this.globalGraph);
+  assert(!this.scopedConceptIds.includes("business/outcome"));
+  assert(this.globalGraph.nodes.some((node) => node.id === "business/outcome"));
 });
 
 Then("the workflow orders Business, Product, Visual Design, System Design, and Architecture", function (this: M21World) {

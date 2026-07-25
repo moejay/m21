@@ -10,10 +10,10 @@
     "build": "tsc --noEmit && vite build",
     "test": "npm run test:features && npm run test:unit",
     "test:features": "tsx node_modules/@cucumber/cucumber/bin/cucumber.js --import 'test/steps/**/*.ts' 'features/**/*.feature'",
-    "test:unit": "vitest run",
-    "visualize:okf": ".venv/bin/python scripts/visualize-okf.py"
+    "test:unit": "vitest run"
   },
   "dependencies": {
+    "3d-force-graph": "^1.80.0",
     "cytoscape": "^3.33.1",
     "express": "^5.1.0",
     "react": "^19.1.1",

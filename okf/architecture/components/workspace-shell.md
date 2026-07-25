@@ -14,6 +14,7 @@ components:
   features:
     - features/lifecycle-workflows.feature
     - features/project-workspace.feature
+    - features/global-knowledge-graph.feature
     - features/layer-projections.feature
 relationships:
   - type: part-of
@@ -29,8 +30,8 @@ relationships:
 # Responsibilities
 
 - Present product-wide Business, Product, Visual Design, System Design, and Architecture navigation plus the selected-Application downstream workspace.
-- Preserve layer, Application scope, and purpose-built-or-graph presentation in deep-linkable route state.
-- Provide a quiet top-right action that replaces the active purpose-built canvas with its scoped relationship graph and can restore the prior workspace.
+- Preserve layer and Application scope in deep-linkable route state.
+- Provide a global action that opens the complete product-wide 3D knowledge graph and restores the remembered purpose-built workspace when closed.
 - Apply the accepted project theme to shared workspace chrome.
 - Surface project health, generated summaries, proposals, and recoverable failures.
 - Provide stable regions for purpose-built definition workspaces.

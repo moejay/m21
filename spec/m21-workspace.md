@@ -69,11 +69,23 @@ entities:
     fields:
       layer: { type: enum, values: [business, product, design, system, architecture, application, components, code-design, implementation, deployment], required: true }
       applicationId: { type: string }
-  WorkspacePresentationSelection:
+  GlobalGraphNode:
     fields:
-      layer: { type: enum, values: [business, product, design, system, architecture, application, components, code-design, implementation, deployment], required: true }
-      applicationId: { type: string }
-      presentation: { type: enum, values: [purpose-built, graph], required: true }
+      id: { type: string, required: true }
+      title: { type: string, required: true }
+      type: { type: string, required: true }
+      status: { type: string }
+      layers: { type: array, items: string, required: true }
+  GlobalGraphLink:
+    fields:
+      source: { type: string, required: true }
+      target: { type: string, required: true }
+      type: { type: string, required: true }
+  GlobalGraphProjection:
+    fields:
+      sourceRevision: { type: string, required: true }
+      nodes: { type: array, items: GlobalGraphNode, required: true }
+      links: { type: array, items: GlobalGraphLink, required: true }
   ComponentContract:
     fields:
       componentId: { type: string, required: true }
@@ -131,12 +143,11 @@ operations:
     input: LayerSelection
     output: ProjectSnapshot
     failures: [UnknownApplication, ApplicationScopeRequired]
-  choose-workspace-presentation:
-    purpose: Switch between the active layer's purpose-built workspace and a separate relationship graph without changing definition scope.
-    input: WorkspacePresentationSelection
-    output: WorkspacePresentationSelection
-    failures: [UnknownDefinitionLayer, ApplicationScopeRequired]
-    effects: [Changes deep-linkable browser view state without mutating accepted knowledge]
+  project-global-graph:
+    purpose: Project every accepted OKF concept and resolved typed relationship into one interactive product-wide graph independent of active layer or Application scope.
+    input: ProjectSnapshot
+    output: GlobalGraphProjection
+    failures: []
   propose-revision:
     purpose: Create a reviewable revision-bound semantic change without mutating accepted knowledge.
     input: RevisionRequest
@@ -164,10 +175,10 @@ operations:
 - Present Business, Product, Visual Design, System Design, and Architecture as product-wide purpose-built workspaces governed by the Product Definition Workflow contract.
 - Keep System Design conceptual and use Architecture to define one or more actual owned Applications that realize it.
 - Present Application Architecture, Components, Code Design, Implementation, and Deployment under one persistent selected Application scope.
-- Offer the same scoped documents as a separate relationship graph through a quiet workspace action, while keeping each purpose-built projection as the default.
 - Make each active Component's declared Gherkin feature set the primary implementation testing contract.
 - Preserve explicit user review between proposals and accepted knowledge.
 - Apply accepted Visual Language tokens to M21 and generated component previews.
+- Provide one product-wide interactive 3D graph of every accepted OKF concept and resolved typed relationship, independent of current layer or Application scope.
 - Generate reproducible views and external-agent handoffs without creating another source of truth.
 
 ### Component boundaries
@@ -178,6 +189,9 @@ The Local Project Service contains a transport adapter, Project Coordinator, Pro
 
 ### Invariants
 
+- The global graph contains every accepted concept exactly once and every resolved typed relationship exactly once.
+- Opening, rotating, filtering, or focusing the global graph never mutates canonical knowledge or changes layer membership.
+- Layer-specific workspaces remain purpose-built and do not embed a substitute global graph.
 - Primary artifacts require explicit active-layer membership.
 - System Design never implies a monolith or distributed Application topology; Architecture records that decision explicitly.
 - Application scope never widens silently when its selected identity is invalid.
@@ -192,4 +206,4 @@ The Local Project Service contains a transport adapter, Project Coordinator, Pro
 
 ### Non-goals
 
-M21 does not implement product source changes, provision infrastructure, execute delivery pipelines, replace source control, or turn generated output into canonical knowledge without review.
+M21 does not implement product source changes, provision infrastructure, execute delivery pipelines, replace source control, turn generated output into canonical knowledge without review, or use the global graph as a replacement for purpose-built layer authoring.

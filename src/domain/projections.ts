@@ -5,15 +5,11 @@ export type ProjectionKind =
   | "design-system"
   | "system-architecture"
   | "application-portfolio"
-  | "grouped-topology"
   | "application-architecture"
   | "component-dependencies"
   | "contract-registry"
   | "implementation-handoff"
-  | "deployment-definition"
-  | "knowledge-graph";
-
-export type WorkspacePresentation = "purpose-built" | "graph";
+  | "deployment-definition";
 
 const PROJECTIONS: Record<string, ProjectionKind> = {
   business: "documents",
@@ -28,9 +24,8 @@ const PROJECTIONS: Record<string, ProjectionKind> = {
   deployment: "deployment-definition",
 };
 
-export function projectionForLayer(layer: string, presentation: WorkspacePresentation = "purpose-built"): ProjectionKind | undefined {
-  if (!PROJECTIONS[layer]) return undefined;
-  return presentation === "graph" ? "knowledge-graph" : PROJECTIONS[layer];
+export function projectionForLayer(layer: string): ProjectionKind | undefined {
+  return PROJECTIONS[layer];
 }
 
 export function mainArtifactsForLayer(concepts: Concept[], layer: string): Concept[] {

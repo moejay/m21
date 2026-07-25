@@ -33,8 +33,8 @@ relationships:
 
 - Present SDLC definition layers as the primary navigation and selected AI context
 - Scope graph, list, diagnostics, and generated views by definition-layer participation without changing concept identity
-- Render purpose-built workspaces and an optional separate relationship-graph presentation from the same scoped project snapshots
-- Maintain selection, focus, filters, presentation mode, and local draft state
+- Render purpose-built scoped workspaces and a separate global 3D graph from the complete accepted Project Snapshot
+- Maintain layer scope, Application scope, global-graph state, selection, focus, filters, and local draft state
 - Present canonical concepts without conflating them with proposals
 - Collect direct edits and AI requests
 - Show semantic change, impact, diagnostics, and acceptance controls

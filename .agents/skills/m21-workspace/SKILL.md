@@ -81,10 +81,6 @@ npm test
 npm run build
 ```
 
-7. Validate the OKF bundle and regenerate its local visualizer when OKF changes:
-
-```bash
-npm run visualize:okf
-```
+7. Validate the complete OKF snapshot and global graph projection when canonical knowledge changes.
 
 Never weaken a scenario to match an implementation defect. Never persist a proposal automatically. Never make generated output canonical by editing it in place.

@@ -1,3 +1,11 @@
+# 2026-07-25 — Global 3D knowledge graph
+
+- Removed the scoped generic relationship-graph alternative from definition-layer workspaces and deleted the generated Google-reference `okf/viz.html` pipeline.
+- Added one global interactive 3D view containing every accepted OKF concept and resolved typed relationship, independent of active layer or selected Application.
+- Added definition-depth color bands, search, orbit and zoom controls, concept focus, relationship traversal, complete-snapshot revision traceability, and a visible WebGL failure state.
+- Added the Global Graph Workspace Component, durable projection contract, executable feature coverage, and a lazy-loaded 3D rendering dependency.
+- Preserved purpose-built layer and Application workspaces as the authoring surfaces; the global graph remains a disposable read-only projection.
+
 # 2026-07-22 — Product-wide definition workflow specification
 
 - Added `spec/product-definition-workflow.md` as the product-level contract for Business, Product, Visual Design, System Design, and Architecture.

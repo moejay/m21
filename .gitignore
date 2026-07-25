@@ -12,4 +12,3 @@ results/
 .playwright-mcp/
 test-results/
 cycle-graph.png
-okf/viz.html

@@ -1,10 +1,12 @@
 import cytoscape, { type Core } from "cytoscape";
+import type { ForceGraph3DInstance, LinkObject, NodeObject } from "3d-force-graph";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { APPLICATION_SCOPED_LAYERS, applicationScopes, definitionLayers, snapshotForApplicationLayer, snapshotForLayer, type DefinitionLayer } from "../../src/domain/definition-flow";
-import { componentFeatureFiles, mainArtifactsForLayer, productCapabilityArtifacts, projectionForLayer, projectionGroup, systemArchitectureArtifacts, type WorkspacePresentation } from "../../src/domain/projections";
+import { componentFeatureFiles, mainArtifactsForLayer, productCapabilityArtifacts, projectionForLayer, projectionGroup, systemArchitectureArtifacts } from "../../src/domain/projections";
+import { projectGlobalGraph } from "../../src/domain/global-graph";
 import { projectTheme } from "../../src/domain/theme";
 import type { ChangeKind, ChangeProposal, Concept, ProjectSnapshot } from "../../src/domain/model";
 import "./styles.css";
@@ -39,6 +41,10 @@ const TYPE_COLORS: Record<string, string> = {
   Risk: "#b65353",
   "AI Agent": "#5869a8",
 };
+
+const GLOBAL_LAYER_ORDER = ["business", "product", "design", "system", "architecture", "application", "components", "code-design", "implementation", "deployment"];
+const GLOBAL_LAYER_LABELS: Record<string, string> = { business: "Business", product: "Product", design: "Visual Design", system: "System Design", architecture: "Architecture", application: "App Architecture", components: "Components", "code-design": "Code Design", implementation: "Implementation", deployment: "Deployment", unscoped: "Shared context" };
+const GLOBAL_LAYER_COLORS: Record<string, string> = { business: "#ffb15c", product: "#6fa8ff", design: "#f47ea8", system: "#5de1e6", architecture: "#72e39a", application: "#9d88ff", components: "#ffd45f", "code-design": "#ff7a72", implementation: "#b8c4d8", deployment: "#61d0b2", unscoped: "#f4f7fb" };
 
 const THEME_PROPERTIES: Record<string, string> = {
   canvas: "--canvas",
@@ -228,9 +234,144 @@ function GraphCanvas({ snapshot, selectedId, onSelect, groupNamespace, embedded 
     selected.closedNeighborhood().addClass("context");
   }, [selectedId]);
 
-  return <div className={`graph-canvas ${embedded ? "embedded" : ""}`} ref={container} aria-label="Interactive product knowledge graph" />;
+  return <div className={`graph-canvas ${embedded ? "embedded" : ""}`} ref={container} aria-label="Application component dependency graph" />;
 }
 
+
+interface KnowledgeGraphNode extends NodeObject {
+  id: string;
+  title: string;
+  type: string;
+  status?: string;
+  layers: string[];
+  layer: string;
+  color: string;
+  degree: number;
+}
+
+interface KnowledgeGraphLink extends LinkObject<KnowledgeGraphNode> {
+  source: string | KnowledgeGraphNode;
+  target: string | KnowledgeGraphNode;
+  type: string;
+}
+
+function graphEndpointId(endpoint: string | number | KnowledgeGraphNode | undefined): string {
+  return typeof endpoint === "object" ? endpoint.id : String(endpoint ?? "");
+}
+
+function GlobalKnowledgeGraph({ snapshot, selectedId, onSelect, onClose }: { snapshot: ProjectSnapshot; selectedId: string | undefined; onSelect: (id: string) => void; onClose: () => void }) {
+  const container = useRef<HTMLDivElement>(null);
+  const graph = useRef<ForceGraph3DInstance<KnowledgeGraphNode, KnowledgeGraphLink> | undefined>(undefined);
+  const graphNodes = useRef<KnowledgeGraphNode[]>([]);
+  const [query, setQuery] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const projection = useMemo(() => projectGlobalGraph(snapshot), [snapshot]);
+  const selected = snapshot.concepts.find((concept) => concept.id === selectedId);
+  const searchResults = query.trim() ? snapshot.concepts.filter((concept) => `${concept.title} ${concept.type} ${concept.id}`.toLowerCase().includes(query.toLowerCase())).slice(0, 8) : [];
+
+  const focusNode = React.useCallback((id: string) => {
+    onSelect(id);
+    const node = graphNodes.current.find((candidate) => candidate.id === id);
+    if (!node || node.x === undefined || node.y === undefined || node.z === undefined) return;
+    const distance = Math.hypot(node.x, node.y, node.z) || 1;
+    const ratio = 1 + 95 / distance;
+    graph.current?.cameraPosition({ x: node.x * ratio, y: node.y * ratio, z: node.z * ratio }, { x: node.x, y: node.y, z: node.z }, 900);
+  }, [onSelect]);
+
+  useEffect(() => {
+    if (!container.current) return;
+    let cancelled = false;
+    let resizeObserver: ResizeObserver | undefined;
+    const host = container.current;
+    const degree = new Map<string, number>();
+    for (const link of projection.links) {
+      degree.set(link.source, (degree.get(link.source) ?? 0) + 1);
+      degree.set(link.target, (degree.get(link.target) ?? 0) + 1);
+    }
+    const nodes: KnowledgeGraphNode[] = projection.nodes.map((node) => {
+      const layer = GLOBAL_LAYER_ORDER.find((candidate) => node.layers.includes(candidate)) ?? "unscoped";
+      const layerIndex = layer === "unscoped" ? GLOBAL_LAYER_ORDER.length : GLOBAL_LAYER_ORDER.indexOf(layer);
+      return { ...node, layer, color: GLOBAL_LAYER_COLORS[layer]!, degree: degree.get(node.id) ?? 0, fy: (layerIndex - GLOBAL_LAYER_ORDER.length / 2) * 42 };
+    });
+    const links: KnowledgeGraphLink[] = projection.links.map((link) => ({ ...link }));
+    graphNodes.current = nodes;
+
+    void import("3d-force-graph").then(({ default: ForceGraph3D }) => {
+      if (cancelled) return;
+      const KnowledgeGraph3D = ForceGraph3D as unknown as new (element: HTMLElement, options: { controlType: "orbit"; rendererConfig: { antialias: boolean; alpha: boolean } }) => ForceGraph3DInstance<KnowledgeGraphNode, KnowledgeGraphLink>;
+      const instance = new KnowledgeGraph3D(host, { controlType: "orbit", rendererConfig: { antialias: true, alpha: true } });
+      graph.current = instance;
+      instance
+        .width(host.clientWidth)
+        .height(host.clientHeight)
+        .backgroundColor("#080b12")
+        .showNavInfo(false)
+        .nodeId("id")
+        .nodeColor((node) => node.id === selectedId ? "#ffffff" : node.color)
+        .nodeVal((node) => node.id === selectedId ? 8 : 1.4 + Math.min(5, Math.sqrt(node.degree + 1)))
+        .nodeResolution(10)
+        .nodeOpacity(.96)
+        .nodeLabel((node) => {
+          const label = document.createElement("div");
+          label.className = "global-graph-tooltip";
+          const title = document.createElement("strong"); title.textContent = node.title;
+          const context = document.createElement("span"); context.textContent = `${node.type} · ${GLOBAL_LAYER_LABELS[node.layer]}`;
+          label.append(title, context);
+          return label;
+        })
+        .linkColor(() => "#72809a")
+        .linkOpacity(.16)
+        .linkWidth(.35)
+        .linkDirectionalArrowLength(.8)
+        .linkDirectionalArrowRelPos(1)
+        .linkDirectionalParticles(0)
+        .onNodeClick((node) => focusNode(String(node.id)))
+        .onBackgroundClick(() => onSelect(""))
+        .onEngineStop(() => instance.zoomToFit(700, 90))
+        .warmupTicks(80)
+        .cooldownTicks(220)
+        .graphData({ nodes, links });
+      const charge = instance.d3Force("charge") as { strength?: (value: number) => unknown } | undefined;
+      charge?.strength?.(-75);
+      const linkForce = instance.d3Force("link") as { distance?: (value: number) => unknown } | undefined;
+      linkForce?.distance?.(38);
+      instance.cameraPosition({ x: 0, y: 0, z: 720 });
+      resizeObserver = new ResizeObserver(() => instance.width(host.clientWidth).height(host.clientHeight));
+      resizeObserver.observe(host);
+    }).catch((failure: unknown) => setLoadError(failure instanceof Error ? failure.message : String(failure)));
+
+    return () => {
+      cancelled = true;
+      resizeObserver?.disconnect();
+      graph.current?._destructor();
+      graph.current = undefined;
+      graphNodes.current = [];
+    };
+  }, [projection, focusNode, onSelect]);
+
+  useEffect(() => {
+    const instance = graph.current;
+    if (!instance) return;
+    const selectedNodeId = selectedId;
+    instance
+      .nodeColor((node) => node.id === selectedNodeId ? "#ffffff" : node.color)
+      .nodeVal((node) => node.id === selectedNodeId ? 8 : 1.4 + Math.min(5, Math.sqrt(node.degree + 1)))
+      .linkColor((link) => graphEndpointId(link.source) === selectedNodeId || graphEndpointId(link.target) === selectedNodeId ? "#dce6ff" : "#72809a")
+      .linkWidth((link) => graphEndpointId(link.source) === selectedNodeId || graphEndpointId(link.target) === selectedNodeId ? 1.2 : .35)
+      .refresh();
+  }, [selectedId]);
+
+  const related = selected ? snapshot.edges.filter((edge) => edge.source === selected.id || edge.targetId === selected.id) : [];
+  return <section className="global-graph" aria-label="Global 3D OKF knowledge graph">
+    <div className="global-graph-canvas" ref={container} />
+    <header className="global-graph-header"><div><span className="eyebrow">Global OKF knowledge graph</span><h1>Everything connected.</h1><p>{projection.nodes.length} concepts · {projection.links.length} typed relationships · accepted revision {projection.sourceRevision.slice(0, 8)}</p></div><button onClick={onClose} aria-label="Close global knowledge graph">Close graph</button></header>
+    <div className="global-graph-search"><label htmlFor="global-graph-search">Find a concept</label><input id="global-graph-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all OKF knowledge…" />{searchResults.length > 0 && <div>{searchResults.map((concept) => <button key={concept.id} onClick={() => { setQuery(""); focusNode(concept.id); }}><i style={{ background: GLOBAL_LAYER_COLORS[GLOBAL_LAYER_ORDER.find((layer) => concept.sdlc.includes(layer)) ?? "unscoped"] }} /><span><strong>{concept.title}</strong><small>{concept.type}</small></span></button>)}</div>}</div>
+    <div className="global-graph-legend"><span>Definition depth</span>{[...GLOBAL_LAYER_ORDER, "unscoped"].map((layer) => <i key={layer}><b style={{ background: GLOBAL_LAYER_COLORS[layer] }} />{GLOBAL_LAYER_LABELS[layer]}</i>)}</div>
+    <div className="global-graph-help">Drag to orbit · Scroll to zoom · Right-drag to pan · Select a dot to focus</div>
+    {selected && <aside className="global-graph-focus"><button className="global-focus-close" onClick={() => onSelect("")} aria-label="Clear focused concept">×</button><span className="concept-type"><i style={{ background: GLOBAL_LAYER_COLORS[GLOBAL_LAYER_ORDER.find((layer) => selected.sdlc.includes(layer)) ?? "unscoped"] }} />{selected.type}</span><h2>{selected.title}</h2><code>{selected.id}</code><p>{selected.description || "No description yet."}</p><div><strong>{related.length} relationships</strong>{related.slice(0, 12).map((edge, index) => { const outgoing = edge.source === selected.id; const otherId = outgoing ? edge.targetId : edge.source; const other = snapshot.concepts.find((concept) => concept.id === otherId); return <button key={`${edge.source}-${edge.type}-${edge.targetId}-${index}`} onClick={() => focusNode(otherId)}><small>{outgoing ? "→" : "←"} {edge.type}</small><span>{other?.title ?? otherId}</span></button>; })}</div></aside>}
+    {loadError && <div className="global-graph-error"><strong>3D graph unavailable</strong><span>{loadError}</span></div>}
+  </section>;
+}
 
 function systemMetadata(concept: Concept): Record<string, unknown> {
   const metadata = concept.metadata.system;
@@ -513,9 +654,8 @@ function HandoffCanvas({ snapshot, layer, selectedId, onSelect }: { snapshot: Pr
   </div>;
 }
 
-function PurposeCanvas({ layer, presentation, snapshot, fullSnapshot, selectedId, onSelect, selectedApplicationId, onSelectApplication, onGenerateTheme, busy }: { layer: string | undefined; presentation: WorkspacePresentation; snapshot: ProjectSnapshot; fullSnapshot: ProjectSnapshot; selectedId: string | undefined; onSelect: (id: string) => void; selectedApplicationId: string | undefined; onSelectApplication: (id: string) => void; onGenerateTheme: (conceptId: string) => void; busy: boolean }) {
-  const projection = layer ? projectionForLayer(layer, presentation) : undefined;
-  if (projection === "knowledge-graph") return <GraphCanvas snapshot={snapshot} selectedId={selectedId} onSelect={onSelect} />;
+function PurposeCanvas({ layer, snapshot, fullSnapshot, selectedId, onSelect, selectedApplicationId, onSelectApplication, onGenerateTheme, busy }: { layer: string | undefined; snapshot: ProjectSnapshot; fullSnapshot: ProjectSnapshot; selectedId: string | undefined; onSelect: (id: string) => void; selectedApplicationId: string | undefined; onSelectApplication: (id: string) => void; onGenerateTheme: (conceptId: string) => void; busy: boolean }) {
+  const projection = layer ? projectionForLayer(layer) : undefined;
   if (projection === "documents" && layer) return <DocumentCanvas snapshot={snapshot} layer={layer} selectedId={selectedId} onSelect={onSelect} />;
   if (projection === "design-system") return <DesignCanvas snapshot={snapshot} fullSnapshot={fullSnapshot} selectedId={selectedId} onSelect={onSelect} onGenerateTheme={onGenerateTheme} busy={busy} />;
   if (projection === "system-architecture") return <SystemCanvas snapshot={snapshot} />;
@@ -524,9 +664,8 @@ function PurposeCanvas({ layer, presentation, snapshot, fullSnapshot, selectedId
   if (projection === "contract-registry") return <ContractCanvas snapshot={snapshot} selectedId={selectedId} onSelect={onSelect} />;
   if (projection === "implementation-handoff") return <HandoffCanvas snapshot={snapshot} layer="implementation" selectedId={selectedId} onSelect={onSelect} />;
   if (projection === "deployment-definition") return <HandoffCanvas snapshot={snapshot} layer="deployment" selectedId={selectedId} onSelect={onSelect} />;
-  if (projection === "grouped-topology") return <GraphCanvas snapshot={snapshot} selectedId={selectedId} onSelect={onSelect} groupNamespace="system" />;
   if (projection === "component-dependencies") return <ComponentCanvas snapshot={snapshot} selectedId={selectedId} onSelect={onSelect} />;
-  return <GraphCanvas snapshot={snapshot} selectedId={selectedId} onSelect={onSelect} />;
+  return <div className="purpose-canvas"><p className="quiet">No purpose-built workspace is defined for this layer.</p></div>;
 }
 
 function StageRail({ stages, selected, counts, onSelect }: {
@@ -740,8 +879,8 @@ function App() {
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | undefined>(
     () => new URLSearchParams(window.location.search).get("app") ?? undefined,
   );
-  const [presentation, setPresentation] = useState<WorkspacePresentation>(
-    () => new URLSearchParams(window.location.search).get("view") === "graph" ? "graph" : "purpose-built",
+  const [globalGraphOpen, setGlobalGraphOpen] = useState(
+    () => new URLSearchParams(window.location.search).get("view") === "graph",
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -802,10 +941,10 @@ function App() {
   }, [snapshot, applications, selectedApplicationId, selectedStage, applicationLayerSelected]);
 
   useEffect(() => {
-    if (!scopedSnapshot) return;
+    if (!scopedSnapshot || globalGraphOpen) return;
     const currentSelection = scopedSnapshot.concepts.find((concept) => concept.id === selectedId);
-    if (currentSelection && !(presentation === "graph" && currentSelection.type === "Definition Layer")) return;
-    if (applicationLayerSelected && selectedStage !== "application" && presentation !== "graph") {
+    if (currentSelection) return;
+    if (applicationLayerSelected && selectedStage !== "application") {
       setSelectedId(undefined);
       return;
     }
@@ -826,8 +965,8 @@ function App() {
       : undefined;
     const layerConcept = stages.find((stage) => stage.id === selectedStage)?.conceptId;
     const firstVisible = scopedSnapshot.concepts.find((concept) => concept.type !== "Definition Layer");
-    setSelectedId(preferred?.id ?? (presentation === "graph" ? firstVisible?.id : layerConcept) ?? scopedSnapshot.concepts[0]?.id);
-  }, [scopedSnapshot, selectedId, selectedStage, stages, applicationLayerSelected, presentation]);
+    setSelectedId(preferred?.id ?? layerConcept ?? firstVisible?.id ?? scopedSnapshot.concepts[0]?.id);
+  }, [scopedSnapshot, selectedId, selectedStage, stages, applicationLayerSelected, globalGraphOpen]);
 
   const select = React.useCallback((id: string) => setSelectedId(id), []);
   const selectLayer = React.useCallback((layer: string | undefined) => {
@@ -850,10 +989,10 @@ function App() {
     else url.searchParams.delete("app");
     window.history.replaceState({}, "", url);
   }, [applicationLayerSelected, selectedStage]);
-  const selectPresentation = React.useCallback((nextPresentation: WorkspacePresentation) => {
-    setPresentation(nextPresentation);
+  const setGlobalGraph = React.useCallback((open: boolean) => {
+    setGlobalGraphOpen(open);
     const url = new URL(window.location.href);
-    if (nextPresentation === "graph") url.searchParams.set("view", "graph");
+    if (open) url.searchParams.set("view", "graph");
     else url.searchParams.delete("view");
     window.history.replaceState({}, "", url);
   }, []);
@@ -896,33 +1035,25 @@ function App() {
     finally { setBusy(false); }
   }
 
-  const graphPresentation = presentation === "graph";
-  const documentFocus = !graphPresentation && (selectedStage === "business" || selectedStage === "product" || selectedStage === "design" || selectedStage === "system" || selectedStage === "architecture" || applicationLayerSelected);
-  return <div className={`app-shell ${documentFocus ? "document-focus" : ""} ${graphPresentation ? "graph-view" : ""} ${applicationLayerSelected ? "application-context" : ""}`}>
+  const documentFocus = selectedStage === "business" || selectedStage === "product" || selectedStage === "design" || selectedStage === "system" || selectedStage === "architecture" || applicationLayerSelected;
+  return <div className={`app-shell ${documentFocus ? "document-focus" : ""} ${applicationLayerSelected ? "application-context" : ""} ${globalGraphOpen ? "global-graph-open" : ""}`}>
     <header className="topbar">
       <div className="brand"><span className="brand-mark">M21</span><div><strong>{snapshot.name}</strong><small>Product engineering workspace</small></div></div>
       <div className="project-health">
+        <button className={`global-graph-action ${globalGraphOpen ? "selected" : ""}`} onClick={() => setGlobalGraph(!globalGraphOpen)} aria-pressed={globalGraphOpen}><span className="graph-action-icon" aria-hidden="true">✣</span>{globalGraphOpen ? "Return to workspace" : "Global graph"}</button>
         <button className="attention" onClick={() => setSelectedId(snapshot.diagnostics[0]?.conceptIds[0])} disabled={!snapshot.diagnostics.length}>
           <span>{snapshot.diagnostics.length}</span> needs attention
         </button>
         <button onClick={openSummary}>Generate summary</button>
       </div>
     </header>
+    {globalGraphOpen && <GlobalKnowledgeGraph snapshot={snapshot} selectedId={selectedId} onSelect={select} onClose={() => setGlobalGraph(false)} />}
     <StageRail stages={stages} selected={selectedStage} counts={stageCounts} onSelect={selectLayer} />
     {applicationLayerSelected && <ApplicationScopeRail stages={stages} applications={applications} selectedApplicationId={selectedApplicationId} selectedLayer={selectedStage} counts={applicationLayerCounts} onSelectApplication={selectApplication} onSelectLayer={(layer) => selectLayer(layer)} />}
-    {!documentFocus && <ConceptNavigator concepts={graphPresentation ? scopedSnapshot.concepts.filter((concept) => concept.type !== "Definition Layer") : scopedSnapshot.concepts} selectedId={selectedId} onSelect={select} />}
+    {!documentFocus && <ConceptNavigator concepts={scopedSnapshot.concepts} selectedId={selectedId} onSelect={select} />}
     <main className="canvas-region">
       <div className="canvas-toolbar"><span><strong>{selectedStage ? `${stages.find((stage) => stage.id === selectedStage)?.title ?? selectedStage} definition` : "Product overview"}</strong> · {scopedSnapshot.concepts.length} concepts · {scopedSnapshot.edges.length} relationships</span><span className="quiet">Concept types remain independent of definition layers</span></div>
-      {selectedStage && <button
-        className="view-mode-toggle"
-        onClick={() => selectPresentation(graphPresentation ? "purpose-built" : "graph")}
-        aria-pressed={graphPresentation}
-        aria-label={graphPresentation ? "Return to purpose-built workspace" : "View documents as a relationship graph"}
-      >
-        <svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="4" cy="5" r="2" /><circle cx="14" cy="4" r="2" /><circle cx="11" cy="14" r="2" /><path d="M5.8 4.8 12 4.2M5 6.7l4.7 5.8m2-6.7-.5 6.2" /></svg>
-        {graphPresentation ? "Workspace view" : "Graph view"}
-      </button>}
-      <PurposeCanvas layer={selectedStage} presentation={presentation} snapshot={scopedSnapshot} fullSnapshot={snapshot} selectedId={selectedId} onSelect={select} selectedApplicationId={selectedApplicationId} onSelectApplication={selectApplication} onGenerateTheme={generateTheme} busy={busy} />
+      <PurposeCanvas layer={selectedStage} snapshot={scopedSnapshot} fullSnapshot={snapshot} selectedId={selectedId} onSelect={select} selectedApplicationId={selectedApplicationId} onSelectApplication={selectApplication} onGenerateTheme={generateTheme} busy={busy} />
       {proposal && <div className="review-drawer"><ProposalReview proposal={proposal} snapshot={snapshot} onAccept={acceptProposal} busy={busy} /></div>}
       {summary && <div className="summary-drawer"><div className="drawer-heading"><div><span className="eyebrow">Generated view{selectedStage ? ` · ${selectedStage}` : ""}</span><h2>Project summary</h2></div><button onClick={() => setSummary("")}>Close</button></div><pre>{summary}</pre></div>}
       {error && <div className="toast error" role="alert">{error}<button onClick={() => setError("")}>Dismiss</button></div>}

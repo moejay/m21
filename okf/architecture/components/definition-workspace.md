@@ -29,7 +29,6 @@ relationships:
 # Responsibilities
 
 - Route each definition layer to its default purpose-built document, design, architecture, dependency, contract, or handoff view.
-- Route an explicit graph presentation request to a separate relationship canvas for the same scoped snapshot.
 - Receive an already scoped immutable project snapshot.
 - Keep primary artifacts visually distinct from future contextual references.
 - Render canonical Markdown without interpreting it as executable content.
@@ -40,4 +39,4 @@ relationships:
 - Loading or persisting OKF bundles
 - Computing Application ownership
 - Owning proposal state
-- Replacing layer-specific interaction with a universal graph as the default
+- Owning or embedding the product-wide global knowledge graph

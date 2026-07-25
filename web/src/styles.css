@@ -42,7 +42,7 @@ code, pre { font-family: var(--font-mono); }
 
 .app-shell { display: grid; grid-template-columns: 280px minmax(480px, 1fr) 390px; grid-template-rows: 58px 58px calc(100vh - 116px); min-height: 100vh; }
 .app-shell.application-context { grid-template-rows: 58px 58px 54px calc(100vh - 170px); }
-.topbar { grid-column: 1 / -1; grid-row: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 16px; background: var(--chrome); color: var(--chrome-text); border-bottom: 1px solid color-mix(in srgb, var(--chrome) 70%, black); }
+.topbar { position: relative; z-index: 50; grid-column: 1 / -1; grid-row: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 16px; background: var(--chrome); color: var(--chrome-text); border-bottom: 1px solid color-mix(in srgb, var(--chrome) 70%, black); }
 .brand, .project-health { display: flex; align-items: center; gap: 11px; }
 .brand-mark { display: grid; place-items: center; width: 36px; height: 31px; border: 1px solid #7e88a3; border-radius: 6px; font: 500 13px var(--font-mono); letter-spacing: .06em; color: #f0e7cd; }
 .brand div { display: flex; flex-direction: column; }
@@ -93,14 +93,52 @@ code, pre { font-family: var(--font-mono); }
 .canvas-region { grid-column: 2; grid-row: 3; position: relative; overflow: hidden; background: var(--canvas); }
 .canvas-toolbar { position: absolute; z-index: 2; top: 12px; left: 14px; right: 14px; display: flex; justify-content: space-between; pointer-events: none; font-size: 10px; color: var(--muted); }
 .canvas-toolbar strong { color: var(--text); }
-.view-mode-toggle { position: absolute; z-index: 4; top: 9px; right: 13px; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 5px 8px; border-color: transparent; background: color-mix(in srgb, var(--surface) 82%, transparent); color: var(--muted); box-shadow: 0 1px 5px rgba(30,35,42,.06); font: 500 9px var(--font-mono); opacity: .78; }
-.view-mode-toggle:hover:not(:disabled) { border-color: var(--border); background: var(--surface); color: var(--text); opacity: 1; }
-.view-mode-toggle svg { width: 15px; height: 15px; overflow: visible; }
-.view-mode-toggle svg circle { fill: currentColor; }
-.view-mode-toggle svg path { fill: none; stroke: currentColor; stroke-width: 1.2; }
-.graph-view .canvas-toolbar { right: 142px; }
 .graph-canvas { position: absolute; inset: 0; background-image: radial-gradient(#d6d3cb 0.7px, transparent .7px); background-size: 18px 18px; }
 .graph-canvas.embedded { position: relative; inset: auto; width: 100%; height: 620px; border: 1px solid var(--border); border-radius: var(--radius-medium); overflow: hidden; }
+.global-graph-action.selected { border-color: #8297d3; background: #414b61; color: #fff; }
+.graph-action-icon { color: #9ee9da; font-size: 15px; line-height: 1; }
+.global-graph { position: fixed; z-index: 40; inset: 58px 0 0; overflow: hidden; background: #080b12; color: #f5f7fb; }
+.global-graph-canvas { position: absolute; inset: 0; }
+.global-graph-canvas::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 54% 45%, transparent 0 36%, rgba(3,5,10,.28) 78%, rgba(3,5,10,.76) 100%); }
+.global-graph-header { position: absolute; z-index: 2; top: 30px; left: 30px; display: flex; align-items: start; gap: 28px; pointer-events: none; }
+.global-graph-header > div { max-width: 510px; }
+.global-graph-header .eyebrow { color: #8fa3c3; }
+.global-graph-header h1 { margin: 8px 0 7px; color: #fff; font: 600 40px/1.05 var(--font-sans); letter-spacing: -.045em; }
+.global-graph-header p { margin: 0; color: #8d9bb1; font: 400 9px var(--font-mono); }
+.global-graph-header button { pointer-events: auto; margin-top: 1px; border-color: #344057; background: rgba(16,22,34,.88); color: #dce5f5; font-size: 10px; }
+.global-graph-search { position: absolute; z-index: 4; top: 154px; left: 30px; width: 292px; display: grid; gap: 6px; }
+.global-graph-search > label { color: #7f91ad; font: 500 8px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.global-graph-search input { width: 100%; padding: 10px 12px; border: 1px solid #2c374b; border-radius: 7px; outline: none; background: rgba(13,18,29,.88); color: #f3f6fb; font-size: 11px; }
+.global-graph-search input:focus { border-color: #758dba; box-shadow: 0 0 0 3px rgba(117,141,186,.16); }
+.global-graph-search > div { overflow: hidden; border: 1px solid #2c374b; border-radius: 8px; background: rgba(10,14,23,.96); box-shadow: 0 12px 32px rgba(0,0,0,.38); }
+.global-graph-search > div button { width: 100%; display: grid; grid-template-columns: 8px 1fr; gap: 9px; align-items: start; padding: 8px 10px; border: 0; border-bottom: 1px solid #202a3a; border-radius: 0; background: transparent; color: #eff3f9; text-align: left; }
+.global-graph-search > div button:hover { background: #192235; }
+.global-graph-search > div button i { width: 7px; height: 7px; margin-top: 4px; border-radius: 50%; }
+.global-graph-search > div button span { display: grid; gap: 1px; }
+.global-graph-search > div button strong { font-size: 10px; }
+.global-graph-search > div button small { color: #8290a5; font-size: 8px; }
+.global-graph-legend { position: absolute; z-index: 2; bottom: 28px; left: 30px; width: 205px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; padding: 14px 15px; border: 1px solid #202a3a; border-radius: 9px; background: rgba(9,13,21,.76); backdrop-filter: blur(12px); }
+.global-graph-legend > span { grid-column: 1 / -1; margin-bottom: 3px; color: #7f91ad; font: 500 8px var(--font-mono); text-transform: uppercase; }
+.global-graph-legend i { display: flex; align-items: center; gap: 6px; color: #aeb9ca; font: normal 8px var(--font-mono); }
+.global-graph-legend b { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 7px currentColor; }
+.global-graph-help { position: absolute; z-index: 2; right: 28px; bottom: 25px; color: #69788f; font: 400 8px var(--font-mono); }
+.global-graph-focus { position: absolute; z-index: 3; top: 24px; right: 24px; bottom: 54px; width: 320px; overflow: auto; padding: 24px; border: 1px solid #2a3549; border-radius: 11px; background: rgba(10,14,23,.9); box-shadow: 0 22px 60px rgba(0,0,0,.45); backdrop-filter: blur(18px); }
+.global-focus-close { position: absolute; top: 10px; right: 10px; padding: 3px 8px; border: 0; background: transparent; color: #7f8ca1; font-size: 18px; }
+.global-graph-focus .concept-type { color: #8fa0b9; }
+.global-graph-focus h2 { margin: 14px 0 6px; color: #fff; font-size: 21px; line-height: 1.15; }
+.global-graph-focus > code { color: #71809a; font-size: 8px; }
+.global-graph-focus > p { margin: 18px 0 22px; color: #a7b2c4; font-size: 10px; line-height: 1.65; }
+.global-graph-focus > div { display: grid; gap: 5px; }
+.global-graph-focus > div > strong { margin-bottom: 5px; color: #71809a; font: 500 8px var(--font-mono); text-transform: uppercase; }
+.global-graph-focus > div button { display: grid; gap: 3px; padding: 8px 9px; border-color: #263146; background: rgba(24,32,48,.72); color: #dce4f1; text-align: left; }
+.global-graph-focus > div button:hover { border-color: #536782; background: #1b2639; }
+.global-graph-focus > div button small { color: #7187a8; font: 500 7px var(--font-mono); text-transform: uppercase; }
+.global-graph-focus > div button span { font-size: 9px; }
+.global-graph-tooltip { display: grid; gap: 3px; max-width: 240px; padding: 8px 10px; border: 1px solid #34435d; border-radius: 6px; background: rgba(7,10,17,.94); color: #f4f7fb; box-shadow: 0 7px 24px rgba(0,0,0,.4); }
+.global-graph-tooltip strong { font: 600 11px var(--font-sans); }
+.global-graph-tooltip span { color: #8494ac; font: 400 8px var(--font-mono); }
+.global-graph-error { position: absolute; z-index: 5; inset: 40% auto auto 50%; display: grid; gap: 7px; transform: translate(-50%,-50%); padding: 18px 22px; border: 1px solid #633f49; border-radius: 8px; background: #21141a; color: #efbcc8; text-align: center; }
+.global-graph-error span { font-size: 10px; }
 .quiet { color: var(--muted); font-size: 11px; }
 
 .application-context .canvas-region, .application-context .navigator, .application-context .inspector { grid-row: 4; }

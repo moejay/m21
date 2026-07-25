@@ -32,6 +32,7 @@ A user can communicate the product to different audiences without manually maint
 - Information-architecture map
 - Visual-language and design-system guide
 - Design-token and Storybook-compatible story handoff
+- Product-wide interactive 3D knowledge graph containing all accepted concepts and resolved typed relationships
 - Architecture context and dependency diagrams
 - Architecture Decision Records
 - Technical design summary

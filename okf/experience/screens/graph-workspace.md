@@ -1,7 +1,7 @@
 ---
 type: Screen
-title: Graph Workspace
-description: An alternate full-workspace presentation for navigating scoped concepts, focusing relationships, and working with the M21 agent.
+title: Global Knowledge Graph
+description: A global interactive 3D view of every accepted OKF concept and resolved typed relationship.
 tags: [screen, graph, workspace]
 status: draft
 sdlc: [design, components, code-design, implementation]
@@ -18,28 +18,27 @@ relationships:
 
 # Entry and exit
 
-A quiet action in the workspace's top-right corner opens the relationship graph for the active layer. The graph is a completely separate presentation, not a diagram inserted among canonical documents. Its reciprocal action restores the layer's purpose-built workspace. Both actions preserve definition scope, selected Application, and focused Concept.
+A global workspace action opens the graph from any definition layer or selected Application. The graph always uses the complete accepted Project Snapshot rather than the current scoped projection. Closing it restores the remembered purpose-built workspace, active layer, and selected Application.
 
 # Regions
 
-- SDLC definition rail showing layer scope and concept counts
-- Compact project header with project status and unresolved-attention count
-- Quiet control to restore the purpose-built workspace
-- Searchable and filterable navigator
-- Main graph canvas with readable relationship direction
-- Focus inspector for the selected concept
-- Contextual agent panel that can be opened without replacing the graph
+- Dark full-workspace 3D canvas containing every accepted concept and resolved typed relationship
+- Product identity, source revision, concept count, and relationship count
+- Color legend for definition-layer membership
+- Search and focus controls that never hide knowledge by default
+- Focus panel for the selected canonical concept and its incoming and outgoing relationships
+- Navigation guidance for rotate, zoom, pan, and node selection
+- Close control that restores the remembered workspace
 
 # Key states
 
 - Empty project orientation
-- No selection
-- Focused concept
-- Editing canonical content
-- AI proposal awaiting review
-- Validation or impact attention
-- Read-only generated view
+- Complete graph at rest
+- Rotating, panning, or zooming
+- Hovered concept label
+- Focused concept and relationship context
+- WebGL-unavailable fallback
 
 # Interaction priorities
 
-Focus and relationships must remain understandable without relying on graph position alone. Keyboard and list navigation provide equivalent access to every graph action.
+The spatial layout uses depth and definition-layer bands to reveal connected structure without assigning canonical meaning to coordinates. Nodes remain selectable and labeled on focus. Focus details and relationship lists provide a non-spatial equivalent for understanding the selected concept. Graph interaction never edits canonical knowledge.
