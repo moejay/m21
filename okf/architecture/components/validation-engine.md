@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: project-service
 title: Graph Validation Engine
 description: Evaluates structural validity, traceability, decisions, constraints, ownership, and unresolved impact.
 tags: [architecture, component, validation, diagnostics]
-status: active
 sdlc: [components, implementation]
 components:
   section: components

@@ -3,7 +3,6 @@ type: AI Workflow
 title: Validate Product Coherence
 description: Explain semantic gaps and conflicts that deterministic graph checks cannot fully evaluate.
 tags: [ai, prompt-contract, validation, coherence]
-status: draft
 sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: part-of

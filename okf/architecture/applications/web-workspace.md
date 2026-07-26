@@ -3,20 +3,15 @@ type: Application
 title: Browser Workspace
 description: The accessible interactive client for graph navigation, concept focus, agent guidance, and change review.
 tags: [architecture, application, browser, ui]
-status: active
-sdlc: [architecture, application, components, code-design, implementation, deployment]
+area: architecture
+application-id: browser-workspace
 architecture:
   section: applications
-  kind: web-client
-  group: workspace
-  runtime: [browser]
-  deployable: true
-application:
-  section: architecture
-  architecture_style: component-based
+  application-kind: web-client
+  independently-deployable: true
 relationships:
   - type: part-of
-    target: /architecture/systems/m21-workspace.md
+    target: /architecture/m21-architecture.md
   - type: realizes
     target: /architecture/systems/knowledge-workspace.md
   - type: depends-on
@@ -31,10 +26,11 @@ relationships:
 
 # Responsibilities
 
-- Present SDLC definition layers as the primary navigation and selected AI context
+- Present Definition Areas as the primary navigation and selected AI context while tolerating legacy layer metadata during migration
 - Scope graph, list, diagnostics, and generated views by definition-layer participation without changing concept identity
-- Render purpose-built scoped workspaces and a separate global 3D graph from the complete accepted Project Snapshot
-- Maintain layer scope, Application scope, global-graph state, selection, focus, filters, and local draft state
+- Render purpose-built scoped workspaces, strict Markdown Mermaid diagrams, isolated Visual Design specimens, and a separate global 3D graph from the complete accepted Project Snapshot
+- Receive watched project revisions without requiring a browser refresh
+- Maintain area scope, Application scope, global-graph state, selection, focus, filters, preview state, and local proposal-edit state
 - Present canonical concepts without conflating them with proposals
 - Collect direct edits and AI requests
 - Show semantic change, impact, diagnostics, and acceptance controls

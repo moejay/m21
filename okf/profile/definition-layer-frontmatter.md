@@ -3,7 +3,6 @@ type: Specification
 title: Definition Layer Frontmatter Profile
 description: Normative M21 metadata and projection rules for primary artifacts and contextual references in each SDLC definition layer.
 tags: [okf, frontmatter, sdlc, projections, contract]
-status: draft
 sdlc: [code-design]
 code-design:
   section: contracts
@@ -32,7 +31,6 @@ Every M21-managed concept MUST contain:
 type: Product Capability
 title: Non-Linear Knowledge Graph
 description: Explore and evolve connected product knowledge.
-status: active
 sdlc: [product]
 ```
 
@@ -57,7 +55,6 @@ relationships:
 | `type` | required by OKF | Descriptive concept type; consumers tolerate unknown values. |
 | `title` | required by M21 | Human display name. |
 | `description` | required by M21 | One-sentence orientation suitable for cards and references. |
-| `status` | required by M21 | `draft`, `active`, `superseded`, or `retired`. |
 | `sdlc` | required by M21 | Non-empty unique list of definition-layer identifiers. |
 | `tags` | optional | Topic labels; MUST NOT replace `sdlc`. |
 | `owners` | optional | Person or team identifiers responsible for review. |
@@ -136,7 +133,7 @@ A layer namespace SHOULD NOT exist when the concept is not tagged for that layer
 
 # Common body contract
 
-Every active primary artifact MUST have a non-empty Markdown body that explains the concept in the language of its layer, states material scope and boundaries, distinguishes accepted knowledge from assumptions and evidence, and records rationale for consequential choices. Bodies use typed relationships instead of copied ID lists and avoid current source files, symbols, framework mechanics, and generated-view details unless they are explicit constraints.
+Every accepted primary artifact MUST have a non-empty Markdown body that explains the concept in the language of its layer, states material scope and boundaries, distinguishes accepted knowledge from assumptions and evidence, and records rationale for consequential choices. Bodies use typed relationships instead of copied ID lists and avoid current source files, symbols, framework mechanics, and generated-view details unless they are explicit constraints.
 
 There is no mandatory empty-heading template. Body headings fit the concept type; repeated frontmatter values are not a substitute for durable meaning.
 
@@ -204,40 +201,9 @@ Product presents structured product-definition documents grouped by `section`. A
 
 The body states the user or Product outcome, provided capability or behavior, scope boundaries, governing policies, important scenarios and failure outcomes, measures of success, assumptions, and unresolved decisions. Product bodies remain solution-neutral: interaction belongs to Visual Design, conceptual technical responsibility to System Design, and executable boundaries to Architecture.
 
-# Visual Design
+# Visual Design migration
 
-The stable layer and namespace identifier remains `design`.
-
-## What it is
-
-Visual Design defines how the product is understood, navigated, interacted with, and visually expressed through experience principles, journeys, information architecture, screens and states, content, accessibility, visual language, tokens, reusable patterns, and component stories.
-
-## Agent assistance
-
-The agent traces journeys and screens to Product outcomes and personas; asks about hierarchy, content, feedback, states, responsive behavior, and accessibility; finds inconsistent patterns and token use; and proposes variants and reviewable Visual Language changes. Generated previews and agent suggestions remain non-canonical until accepted.
-
-## Frontmatter
-
-```yaml
-design:
-  section: components
-  platforms: [web]
-  group: navigation
-```
-
-| Field | Requirement | Values |
-|---|---|---|
-| `section` | required | `brand`, `principles`, `journeys`, `information-architecture`, `screens`, `visual-language`, `tokens`, `patterns`, `components`, `content`, `accessibility`, `decisions` |
-| `platforms` | optional | List containing `web`, `ios`, `android`, `desktop`, `email`, `print`, `cross-platform`, or producer extension values. |
-| `group` | optional | Stable producer-defined grouping identifier. |
-| `theme` | optional | Semantic token map; valid only for visual-language or design-system concepts. Color, typography, shape, and elevation tokens are strings. |
-| `preview` | optional | Component-story preview contract containing a supported `kind` and optional `variants` list. |
-
-Visual Design presents brand and token boards, journeys, screens, patterns, component stories, accessibility, and generated Storybook-compatible handoffs. `platforms` is required when behavior or presentation varies by platform and recommended otherwise. An active Visual Language is the source of both the preview theme and M21's own workspace theme. AI-generated theme metadata remains a proposal until accepted; only accepted metadata may restyle the workspace or generated catalog.
-
-## Body expectation
-
-The body describes user intent, experience flow, information hierarchy, interaction and content behavior, required states and variants, accessibility constraints, responsive or platform differences, and rationale. Visual Language and token bodies define semantic roles and usage rather than isolated values. Component stories define states and examples without becoming source-code component specifications.
+The former `design` namespace and many-to-many layer contract is superseded by the singular Visual Design Definition Area profile at `/profile/visual-design-definition-area.md`. Legacy imported journeys, screens, interaction principles, and information architecture remain readable but are not primary Visual Design artifacts; they await Application Experience migration.
 
 # System Design
 
@@ -298,10 +264,10 @@ architecture:
 | `section` | required | `applications`, `topology`, `communication`, `data`, `security`, `constraints`, `risks`, `decisions` |
 | `kind` | required for Applications | Executable boundary kind such as `full-stack`, `web-client`, `backend-service`, `api`, `worker`, `cli`, or `local-service`. |
 | `group` | optional | Application portfolio or deployment grouping identifier. |
-| `runtime` | required for active Applications | Non-empty list of descriptive runtime identifiers. |
-| `deployable` | required for active Applications | Whether the Application is independently deployable. |
+| `runtime` | required for accepted Applications | Non-empty list of descriptive runtime identifiers. |
+| `deployable` | required for accepted Applications | Whether the Application is independently deployable. |
 
-For every active Application, `kind`, `runtime`, and `deployable` are required. Architecture defines the actual owned Application topology that realizes conceptual System Design responsibilities. One Application may realize many responsibilities, and one responsibility may be realized by several Applications. Ownership and realization MUST use typed relationships rather than copied IDs in metadata.
+For every accepted Application, `kind`, `runtime`, and `deployable` are required. Architecture defines the actual owned Application topology that realizes conceptual System Design responsibilities. One Application may realize many responsibilities, and one responsibility may be realized by several Applications. Ownership and realization MUST use typed relationships rather than copied IDs in metadata.
 
 ## Body expectation
 
@@ -342,7 +308,7 @@ components:
 | `group` | optional | Stable grouping identifier within the owning application. |
 | `layer` | optional | Architectural layer identifier. |
 | `visibility` | optional | `public`, `internal`, or `private`. |
-| `features` | required for active Components | Non-empty list of repository-relative executable Gherkin feature files that verify the Component's public behavior and durable guarantees. |
+| `features` | required for accepted Components | Non-empty list of repository-relative executable Gherkin feature files that verify the Component's public behavior and durable guarantees. |
 
 Components presents an application-local dependency graph. The owning Application is determined through typed relationships, not duplicated metadata. Gherkin features are the primary implementation testing contract; focused unit or adapter tests may supplement them but MUST NOT replace their observable guarantees.
 

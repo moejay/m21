@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: Decision Management
 description: Preserve significant product, design, and architecture decisions as connected knowledge.
 tags: [mvp, decisions, adr, rationale]
-status: draft
-sdlc: [product, components, code-design, implementation, deployment]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of
@@ -40,6 +39,6 @@ A user can understand not only what was chosen, but why it was chosen and which 
 # Acceptance outcomes
 
 - A significant decision can be inspected from every concept it governs.
-- Conflicting active decisions are detectable.
+- Conflicting current decisions are detectable without relying on generic concept status.
 - Superseding a decision preserves history and triggers impact assessment.
 - ADR documents are generated from decision concepts rather than maintained separately.

@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: project-service
 title: Change and Impact Engine
 description: Creates reviewable graph changes and assesses their directional consequences.
 tags: [architecture, component, change, impact]
-status: active
 sdlc: [components, implementation]
 components:
   section: components

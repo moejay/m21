@@ -72,7 +72,7 @@
 * [Workspace information architecture](experience/information-architecture/workspace.md) - Organize focus, graph, agent, review, and views.
 * [Global knowledge graph](experience/screens/graph-workspace.md) - Interactive 3D view of every accepted OKF concept and resolved typed relationship.
 * [Change review](experience/screens/change-review.md) - Review semantic changes and impact.
-* [Visual language](experience/visual-language.md) - Calm, precise visual foundations and the active M21 theme.
+* [Visual language](experience/visual-language.md) - Calm, precise visual foundations and the accepted M21 theme composition.
 * [Typography](experience/foundations/typography.md) - Humanist interface text and restrained structured monospace.
 * [Color system](experience/foundations/color.md) - Semantic working surfaces, accent, and status roles.
 * [Character and feel](experience/foundations/feel.md) - The desired product personality and qualities to avoid.

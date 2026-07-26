@@ -1,16 +1,16 @@
 ---
-type: Definition Layer
+type: Definition Area
 title: Business
 short_title: Business
 stage: business
 order: 10
 description: Define why the product should exist, who it serves, and the business environment it must satisfy.
-tags: [sdlc, business, personas, capabilities, regulation]
-status: active
+tags: [definition-area, business, people, capabilities, governance]
 sdlc: [business]
 relationships:
   - type: supports
     target: /product/capabilities/product-definition.md
+    rationale: Business context informs the socio-technical Business Solution response.
 ---
 
 # Purpose

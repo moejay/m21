@@ -1,9 +1,9 @@
 ---
 type: Architecture Pattern
+application-id: project-service
 title: Application Dependency Rule
 description: Semantic domain and application contracts remain independent of transport, persistence, browser rendering, and model-provider adapters.
 tags: [code-design, pattern, dependency-inversion, architecture]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: patterns

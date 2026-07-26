@@ -1,9 +1,9 @@
 ---
 type: Code Interface
+application-id: project-service
 title: Generated View Port
 description: Deterministic projection boundary producing disposable Markdown or HTML exclusively from accepted project snapshots.
 tags: [code-design, interface, views, generation]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: interfaces

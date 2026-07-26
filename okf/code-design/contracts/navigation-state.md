@@ -1,9 +1,9 @@
 ---
 type: Code Contract
+application-id: browser-workspace
 title: Definition Navigation State Contract
 description: Deep-linkable product-wide layer, selected Application, downstream layer, and global-graph state owned by the Browser Workspace.
 tags: [code-design, contract, navigation, browser]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: contracts

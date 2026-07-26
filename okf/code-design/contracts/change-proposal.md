@@ -1,9 +1,9 @@
 ---
 type: Code Contract
+application-id: project-service
 title: Change Proposal Contract
 description: Reviewable, revision-bound set of semantic operations with provenance and explainable impact findings.
 tags: [code-design, contract, proposals, concurrency]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: contracts

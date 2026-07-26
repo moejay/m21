@@ -3,10 +3,9 @@ type: Vision
 title: AI-Native Product Engineering Workspace
 description: A unified environment where ideas evolve into successful operating products through a shared knowledge graph and continuous AI guidance.
 tags: [vision, product-engineering, ai, design, architecture]
-status: active
-sdlc: [business]
+area: business
 business:
-  section: vision
+  section: direction
 ---
 
 # Mission

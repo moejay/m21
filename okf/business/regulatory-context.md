@@ -1,12 +1,11 @@
 ---
-type: Regulatory Context
+type: Regulation
 title: Initial Regulatory Context
 description: No product-specific regulatory regime has yet been established for M21; privacy, accessibility, and AI governance remain explicit design questions.
 tags: [business, regulation, compliance, open-question]
-status: draft
-sdlc: [business, deployment]
+area: business
 business:
-  section: regulation
+  section: governance
 relationships:
   - type: informed-by
     target: /experience/accessibility.md

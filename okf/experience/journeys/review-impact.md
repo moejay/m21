@@ -3,7 +3,6 @@ type: User Journey
 title: Review a Change's Impact
 description: An owner evaluates why another change may affect their knowledge and resolves the impact.
 tags: [journey, collaboration, impact, review]
-status: draft
 sdlc: [design, components, code-design, implementation, deployment]
 design:
   section: journeys

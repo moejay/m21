@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: project-service
 title: Workspace HTTP Adapter
 description: Loopback transport adapter exposing project queries, proposal commands, AI requests, and generated views to the Browser Workspace.
 tags: [architecture, component, http, adapter]
-status: active
 sdlc: [components, implementation]
 components:
   section: components
@@ -14,6 +14,7 @@ components:
   features:
     - features/generated-views.feature
     - features/ai-guidance.feature
+    - features/project-workspace.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
@@ -28,6 +29,7 @@ relationships:
 - Translate transport requests into semantic project operations.
 - Validate required request shape before delegation.
 - Return stable JSON snapshots, proposals, diagnostics, and errors.
+- Stream accepted snapshot updates to the browser when watched canonical files change.
 - Serve generated Markdown or HTML with explicit content types.
 - Keep model-provider credentials and filesystem paths outside browser authority.
 

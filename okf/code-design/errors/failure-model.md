@@ -1,9 +1,9 @@
 ---
 type: Error Model
+application-id: project-service
 title: Workspace Failure Model
 description: Stable failure categories that preserve accepted state and give users actionable recovery evidence.
 tags: [code-design, errors, reliability]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: errors

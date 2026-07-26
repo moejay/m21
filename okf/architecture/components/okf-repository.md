@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: project-service
 title: OKF Repository
 description: Losslessly reads and safely writes product concepts in an OKF bundle.
 tags: [architecture, component, okf, persistence]
-status: active
 sdlc: [components, implementation, deployment]
 components:
   section: components
@@ -13,6 +13,7 @@ components:
   visibility: internal
   features:
     - features/project-workspace.feature
+    - features/visual-design-workspace.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
@@ -27,7 +28,9 @@ relationships:
 # Responsibilities
 
 - Discover concept documents while excluding reserved index and log files
-- Parse standard fields, extension metadata, Markdown bodies, and typed relationships
+- Parse standard fields, singular Definition Area ownership, extension metadata, Markdown bodies, and typed relationships
+- Resolve accepted bundle-local Visual Design artifacts into immutable snapshot values and include their content in revision identity
+- Diagnose malformed portable relationship paths and values instead of silently resolving them
 - Preserve unknown frontmatter and body content
 - Resolve stable concept IDs and safe bundle-relative paths
 - Write accepted concept revisions atomically

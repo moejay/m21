@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: project-service
 title: Project Coordinator
 description: Application service that coordinates project queries, proposals, acceptance, AI guidance, validation, and generated views.
 tags: [architecture, component, application-service, coordination]
-status: active
 sdlc: [components, implementation]
 components:
   section: components
@@ -34,6 +34,7 @@ relationships:
 # Responsibilities
 
 - Open one OKF project and publish an immutable project snapshot.
+- Watch canonical project files and publish a complete reloaded snapshot when external changes alter the accepted revision.
 - Coordinate queries without exposing persistence internals.
 - Create proposals against the current project revision.
 - Serialize accepted mutations and reload derived graph state.

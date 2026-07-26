@@ -3,7 +3,6 @@ type: AI Workflow
 title: Develop a Focused Concept
 description: Help a user clarify, challenge, and connect one concept without losing relevant product context.
 tags: [ai, prompt-contract, discovery, coaching]
-status: draft
 sdlc: [components, code-design]
 relationships:
   - type: part-of

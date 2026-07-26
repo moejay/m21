@@ -1,0 +1,4 @@
+:root { --duration-fast: 120ms; --duration-normal: 220ms; --ease-standard: cubic-bezier(.2,.7,.2,1); }
+.m21-motion-sample { padding: 12px 18px; border: 1px solid var(--accent); border-radius: var(--radius-small,6px); background: var(--surface); color: var(--accent); transition: transform var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard); }
+.m21-motion-sample:hover,.m21-motion-sample:focus-visible { transform: translateY(-3px); background: color-mix(in srgb,var(--accent) 10%,var(--surface)); }
+@media (prefers-reduced-motion: reduce) { .m21-motion-sample { transition: none; }.m21-motion-sample:hover,.m21-motion-sample:focus-visible { transform: none; } }

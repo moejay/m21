@@ -13,7 +13,7 @@ export interface DefinitionLayer {
 
 export function definitionLayers(concepts: Concept[]): DefinitionLayer[] {
   return concepts
-    .filter((concept) => ["Definition Layer", "Lifecycle Stage"].includes(concept.type))
+    .filter((concept) => ["Definition Area", "Definition Layer", "Lifecycle Stage"].includes(concept.type))
     .flatMap((concept) => {
       const id = typeof concept.metadata.stage === "string" ? concept.metadata.stage : concept.sdlc[0];
       if (!id) return [];
@@ -30,17 +30,17 @@ export function definitionLayers(concepts: Concept[]): DefinitionLayer[] {
 }
 
 export function conceptsForLayer(concepts: Concept[], layer: string): Concept[] {
-  return concepts.filter((concept) => concept.sdlc.includes(layer));
+  return concepts.filter((concept) => concept.area === layer || concept.sdlc.includes(layer));
 }
 
 export function applicationScopes(concepts: Concept[]): Concept[] {
   return concepts
-    .filter((concept) => concept.type === "Application" && concept.sdlc.includes("architecture"))
+    .filter((concept) => concept.type === "Application" && (concept.area === "architecture" || concept.sdlc.includes("architecture")))
     .sort((left, right) => left.title.localeCompare(right.title));
 }
 
 export function snapshotForApplicationLayer(snapshot: ProjectSnapshot, applicationId: string, layer: string): ProjectSnapshot {
-  const application = snapshot.concepts.find((concept) => concept.id === applicationId && concept.type === "Application" && concept.sdlc.includes("architecture"));
+  const application = snapshot.concepts.find((concept) => (concept.id === applicationId || concept.applicationId === applicationId) && concept.type === "Application" && (concept.area === "architecture" || concept.sdlc.includes("architecture")));
   if (!application) {
     return { ...snapshot, name: `${snapshot.name} · unknown Application · ${layer}`, concepts: [], edges: [], diagnostics: [] };
   }
@@ -56,7 +56,10 @@ export function snapshotForApplicationLayer(snapshot: ProjectSnapshot, applicati
     }
   }
 
-  const concepts = snapshot.concepts.filter((concept) => ownedIds.has(concept.id) && concept.sdlc.includes(layer));
+  const concepts = snapshot.concepts.filter((concept) => {
+    const directlyScoped = application.applicationId && concept.applicationId === application.applicationId;
+    return (ownedIds.has(concept.id) || directlyScoped) && (concept.id === application.id ? layer === "application" : concept.area === layer || concept.sdlc.includes(layer));
+  });
   const ids = new Set(concepts.map((concept) => concept.id));
   return {
     ...snapshot,

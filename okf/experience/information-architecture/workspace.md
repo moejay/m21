@@ -3,7 +3,6 @@ type: Information Architecture
 title: Product Workspace Information Architecture
 description: Organize M21 around focus, context, guidance, changes, and views rather than document folders.
 tags: [information-architecture, workspace, navigation]
-status: draft
 sdlc: [design]
 design:
   section: information-architecture

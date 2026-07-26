@@ -1,12 +1,11 @@
 ---
-type: Definition Layer
+type: Definition Area
 title: Architecture
 short_title: Architecture
 stage: architecture
 order: 50
 description: Define the actual owned Application topology that realizes the conceptual System Design.
-tags: [sdlc, architecture, applications, topology]
-status: active
+tags: [definition-area, architecture, applications, topology]
 sdlc: [architecture]
 relationships:
   - type: informed-by
@@ -24,7 +23,7 @@ Turn conceptual System responsibilities into deliberate executable Application b
 - The number and kind of owned Applications
 - Monolith, modular monolith, full-stack, frontend/backend, worker, and service boundaries
 - Which System responsibilities each Application realizes
-- Runtime and deployability boundaries
+- Stable Application IDs, controlled Application kinds, and independent deployability boundaries
 - Communication and trust boundaries between Applications
 - Shared platform and external Application dependencies
 - Consequences of combining or separating deployable units

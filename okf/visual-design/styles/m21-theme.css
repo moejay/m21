@@ -1,0 +1,11 @@
+@import "./colors.css";
+@import "./typography.css";
+@import "./spacing.css";
+@import "./shape.css";
+@import "./motion.css";
+
+.m21-theme-sample { padding: var(--space-8); border: 1px solid var(--border); border-radius: var(--radius-large); background: var(--surface); box-shadow: var(--shadow); }
+.m21-theme-sample > span { color: var(--muted); font: 500 10px var(--font-mono); text-transform: uppercase; }
+.m21-theme-sample h1 { margin: var(--space-3) 0 var(--space-2); font-size: 30px; letter-spacing: -.035em; }
+.m21-theme-sample p { color: var(--muted); }
+.m21-theme-sample button { padding: 10px 14px; border: 1px solid var(--accent); border-radius: var(--radius-small); background: var(--accent); color: var(--accent-contrast); font-weight: 700; }

@@ -3,10 +3,9 @@ type: Persona
 title: Multidisciplinary Product Team
 description: A team whose members own different parts of a product but need shared context and change visibility.
 tags: [persona, collaboration, product-team]
-status: draft
-sdlc: [business, components, code-design, implementation, deployment]
+area: business
 business:
-  section: personas
+  section: people
 ---
 
 # Context

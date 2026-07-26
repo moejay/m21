@@ -1,17 +1,13 @@
 ---
-type: Component Story
+type: Visual Component
 title: Actions
 description: Primary, secondary, and quiet controls communicate consequence without competing with product knowledge.
 tags: [design-system, component-story, actions]
-status: active
-sdlc: [design]
-design:
+area: visual-design
+visual-design:
   section: components
-  platforms: [web]
-  group: controls
-  preview:
-    kind: actions
-    variants: [primary, secondary, quiet, disabled]
+  html-source: /visual-design/components/actions.html
+  css-source: /visual-design/components/actions.css
 relationships:
   - type: part-of
     target: /experience/design-system.md

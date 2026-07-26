@@ -1,12 +1,11 @@
 ---
-type: Definition Layer
+type: Definition Area
 title: System Design
 short_title: System Design
 stage: system
 order: 40
 description: Define the conceptual system responsibilities, boundaries, information flows, data ownership, and external dependencies.
-tags: [sdlc, system, architecture, infrastructure, databases]
-status: active
+tags: [definition-area, system-design, conceptual, flows, boundaries]
 sdlc: [system]
 relationships:
   - type: informed-by

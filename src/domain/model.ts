@@ -1,4 +1,3 @@
-export type ConceptStatus = "draft" | "active" | "superseded" | "retired" | string;
 export type ChangeKind = "editorial" | "internal" | "contract" | "structural";
 
 export interface TypedRelationship {
@@ -8,6 +7,16 @@ export interface TypedRelationship {
   evidence?: string[];
 }
 
+export type VisualArtifactRole = "css" | "html" | "script" | "asset";
+
+export interface VisualArtifact {
+  role: VisualArtifactRole;
+  path: string;
+  mediaType: string;
+  content: string;
+  encoding: "utf8" | "base64";
+}
+
 export interface Concept {
   id: string;
   filePath: string;
@@ -15,11 +24,14 @@ export interface Concept {
   title: string;
   description: string;
   body: string;
-  status?: ConceptStatus;
+  raw: string;
   tags: string[];
   owners: string[];
+  area?: string;
+  applicationId?: string;
   sdlc: string[];
   relationships: TypedRelationship[];
+  artifacts: VisualArtifact[];
   metadata: Record<string, unknown>;
 }
 
@@ -51,7 +63,6 @@ export interface ConceptRevision {
   title?: string;
   description?: string;
   body?: string;
-  status?: ConceptStatus;
   relationships?: TypedRelationship[];
   design?: Record<string, unknown>;
 }

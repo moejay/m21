@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: Change Impact and Review
 description: Explain the directional consequences of proposed changes and involve owners of affected knowledge.
 tags: [mvp, impact, review, collaboration]
-status: draft
-sdlc: [product, components, code-design, implementation, deployment]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of

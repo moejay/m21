@@ -1,14 +1,11 @@
 ---
-type: Design System
+type: Visual Design Decision
 title: M21 Design System
 description: Shared interaction and presentation patterns for navigating knowledge, working with AI, and reviewing change.
 tags: [design-system, ui-components, patterns]
-status: draft
-sdlc: [design, components, code-design, implementation]
-design:
-  section: components
-  platforms: [web]
-  group: product-workspace
+area: visual-design
+visual-design:
+  section: decisions
 relationships:
   - type: informed-by
     target: /experience/visual-language.md
@@ -38,10 +35,14 @@ relationships:
 
 # Behavioral consistency
 
-The same concept status, relationship meaning, proposal state, and impact severity must look and behave consistently in graph, list, inspector, agent, and review contexts.
+The same accepted-concept meaning, relationship meaning, proposal state, and impact severity must look and behave consistently in graph, list, inspector, agent, and review contexts.
+
+# Decision
+
+Shared visual states and variants stay in one Visual Component concept and its linked HTML/CSS specimen. The catalog renders accepted sources in isolation; it is not a production component registry.
 
 # Generated catalog and implementation stance
 
-The design system begins as knowledge and interaction contracts. M21 may generate a browsable component-story catalog and Storybook-compatible handoff describing variants, states, tokens, accessibility, and expected behavior. A coding agent implements production components and stories.
+The visual component system begins as shared appearance contracts. M21 generates a browsable catalog from accepted linked sources. A coding agent may implement production components in any technology while preserving the accepted visual contract.
 
-Reusable interface components realize the design system, and generated token exports may feed implementation, but current source-code component structure is not canonical product knowledge.
+Application behavior and interaction contracts remain outside Visual Design. Current source-code component structure is not canonical product knowledge.

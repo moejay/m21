@@ -1,15 +1,12 @@
 ---
-type: System Service
+type: System Responsibility
 title: View Generation Pipeline
 description: Deterministic projection of accepted OKF knowledge into documents, diagrams, architecture views, component catalogs, and handoff packages.
 tags: [architecture, system, projections, generation]
-status: active
-sdlc: [system]
+area: system
 system:
-  kind: service
-  group: views
+  section: responsibilities
   boundary: owned
-  criticality: medium
 relationships:
   - type: part-of
     target: /architecture/systems/m21-workspace.md

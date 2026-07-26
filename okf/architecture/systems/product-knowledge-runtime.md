@@ -1,15 +1,12 @@
 ---
-type: System Service
+type: System Responsibility
 title: Product Knowledge Runtime
 description: The semantic core that loads OKF concepts, resolves typed relationships, validates knowledge, and governs reviewable change.
 tags: [architecture, system, knowledge-graph, semantics]
-status: active
-sdlc: [system]
+area: system
 system:
-  kind: subsystem
-  group: knowledge
+  section: responsibilities
   boundary: owned
-  criticality: critical
 relationships:
   - type: part-of
     target: /architecture/systems/m21-workspace.md

@@ -1,9 +1,9 @@
 ---
 type: Code Contract
+application-id: browser-workspace
 title: Global Graph Projection Contract
 description: Deterministic complete-snapshot projection used by the product-wide 3D knowledge graph.
 tags: [code-design, contract, graph, projection]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: contracts
@@ -26,14 +26,15 @@ One immutable complete accepted Project Snapshot containing Concepts, resolved t
 
 # Output
 
-- One graph node per accepted Concept, preserving stable identity, title, type, lifecycle status, and definition-layer membership.
+- One graph node per accepted Concept, preserving stable identity, title, type, singular Definition Area ownership where present, and legacy definition-layer membership during migration.
 - One directed graph link per resolved typed Edge, preserving source, target, and relationship type.
 - The accepted source revision used to create the projection.
 
 # Invariants
 
 - Projection order is deterministic and does not mutate the source snapshot.
-- Layer or Application scope is never applied to the global projection.
+- Definition Area or Application scope is never applied to the global projection.
+- Highlighting one Definition Area changes presentation only and never removes other nodes or links.
 - Every Concept and resolved Edge appears exactly once.
 - Generated position, color, size, and camera state are disposable presentation data.
 - Selecting or navigating graph content has no persistence authority.

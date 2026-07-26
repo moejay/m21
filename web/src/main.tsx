@@ -1,13 +1,17 @@
 import cytoscape, { type Core } from "cytoscape";
 import type { ForceGraph3DInstance, LinkObject, NodeObject } from "3d-force-graph";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { APPLICATION_SCOPED_LAYERS, applicationScopes, definitionLayers, snapshotForApplicationLayer, snapshotForLayer, type DefinitionLayer } from "../../src/domain/definition-flow";
+import { BUSINESS_SECTIONS, businessArtifacts, businessSection, type BusinessSection } from "../../src/domain/business";
 import { componentFeatureFiles, mainArtifactsForLayer, productCapabilityArtifacts, projectionForLayer, projectionGroup, systemArchitectureArtifacts } from "../../src/domain/projections";
 import { projectGlobalGraph } from "../../src/domain/global-graph";
-import { projectTheme } from "../../src/domain/theme";
+import { SOLUTION_SECTIONS, solutionArtifacts, solutionSection, type SolutionSection } from "../../src/domain/solution";
+import { VISUAL_DESIGN_SECTIONS, activeVisualTheme, renderFoundationSpecimen, renderThemeSpecimen, renderVisualComponent, visualDesignArtifacts, visualDesignSection, type VisualDesignSection, type VisualSpecimen } from "../../src/domain/visual-design";
+import { systemBoundary, systemSection } from "../../src/domain/system-design";
+import { architectureApplications, architectureArtifacts } from "../../src/domain/architecture";
 import type { ChangeKind, ChangeProposal, Concept, ProjectSnapshot } from "../../src/domain/model";
 import "./styles.css";
 
@@ -42,50 +46,57 @@ const TYPE_COLORS: Record<string, string> = {
   "AI Agent": "#5869a8",
 };
 
-const GLOBAL_LAYER_ORDER = ["business", "product", "design", "system", "architecture", "application", "components", "code-design", "implementation", "deployment"];
-const GLOBAL_LAYER_LABELS: Record<string, string> = { business: "Business", product: "Product", design: "Visual Design", system: "System Design", architecture: "Architecture", application: "App Architecture", components: "Components", "code-design": "Code Design", implementation: "Implementation", deployment: "Deployment", unscoped: "Shared context" };
-const GLOBAL_LAYER_COLORS: Record<string, string> = { business: "#ffb15c", product: "#6fa8ff", design: "#f47ea8", system: "#5de1e6", architecture: "#72e39a", application: "#9d88ff", components: "#ffd45f", "code-design": "#ff7a72", implementation: "#b8c4d8", deployment: "#61d0b2", unscoped: "#f4f7fb" };
+const GLOBAL_AREA_ORDER = ["business", "solution", "visual-design", "system", "architecture", "experience", "application", "components", "code-design", "implementation", "deployment"];
+const GLOBAL_AREA_LABELS: Record<string, string> = { business: "Business", solution: "Business Solution", "visual-design": "Visual Design", system: "System Design", architecture: "Architecture", experience: "App Experience", application: "App Architecture", components: "Components", "code-design": "Code Design", implementation: "Implementation", deployment: "Deployment", unscoped: "Shared context" };
+const GLOBAL_AREA_COLORS: Record<string, string> = { business: "#ffb15c", solution: "#6fa8ff", "visual-design": "#f47ea8", system: "#5de1e6", architecture: "#72e39a", experience: "#c58cff", application: "#9d88ff", components: "#ffd45f", "code-design": "#ff7a72", implementation: "#b8c4d8", deployment: "#61d0b2", unscoped: "#f4f7fb" };
+const LEGACY_AREA: Record<string, string> = { product: "solution", design: "experience" };
 
-const THEME_PROPERTIES: Record<string, string> = {
-  canvas: "--canvas",
-  surface: "--surface",
-  "surface-muted": "--surface-muted",
-  text: "--text",
-  muted: "--muted",
-  border: "--border",
-  accent: "--accent",
-  "accent-contrast": "--accent-contrast",
-  chrome: "--chrome",
-  "chrome-text": "--chrome-text",
-  proposal: "--proposal",
-  warning: "--warning",
-  conflict: "--conflict",
-  success: "--success",
-  "font-sans": "--font-sans",
-  "font-mono": "--font-mono",
-  "radius-small": "--radius-small",
-  "radius-medium": "--radius-medium",
-  "radius-large": "--radius-large",
-  shadow: "--shadow",
-};
-
-function themeValidationProperty(token: string): string {
-  if (token.startsWith("font-")) return "font-family";
-  if (token.startsWith("radius-")) return "border-radius";
-  if (token === "shadow") return "box-shadow";
-  return "color";
+function conceptArea(concept: Pick<Concept, "area" | "sdlc">): string {
+  const legacy = concept.sdlc[0];
+  return concept.area ?? (legacy ? LEGACY_AREA[legacy] ?? legacy : "unscoped");
 }
 
-function applyProjectTheme(snapshot: ProjectSnapshot): void {
-  const theme = projectTheme(snapshot.concepts);
-  if (!theme) return;
-  for (const [token, value] of Object.entries(theme.tokens)) {
-    const property = THEME_PROPERTIES[token];
-    if (property && value && CSS.supports(themeValidationProperty(token), value)) {
-      document.documentElement.style.setProperty(property, value);
-    }
-  }
-  document.documentElement.dataset.projectTheme = theme.sourceConceptId;
+const DebugSourceContext = createContext<{ enabled: boolean; inspect: (concept: Concept) => void }>({ enabled: false, inspect: () => undefined });
+
+function ConceptSourceAction({ concept, className = "" }: { concept: Concept; className?: string }) {
+  const debug = useContext(DebugSourceContext);
+  if (!debug.enabled) return null;
+  return <button type="button" className={`concept-source-action ${className}`.trim()} title={`Show raw Markdown for ${concept.title}`} aria-label={`Show raw Markdown for ${concept.title}`} onClick={(event) => { event.preventDefault(); event.stopPropagation(); debug.inspect(concept); }}><span aria-hidden="true">&lt;/&gt;</span></button>;
+}
+
+function MermaidDiagram({ source }: { source: string }) {
+  const id = `mermaid-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const [svg, setSvg] = useState("");
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    setSvg(""); setError("");
+    void import("mermaid").then(async ({ default: mermaid }) => {
+      mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: "neutral", suppressErrorRendering: true });
+      const rendered = await mermaid.render(id, source);
+      if (!cancelled) setSvg(rendered.svg);
+    }).catch((failure: unknown) => {
+      if (!cancelled) setError(failure instanceof Error ? failure.message : String(failure));
+    });
+    return () => { cancelled = true; document.getElementById(`d${id}`)?.remove(); };
+  }, [id, source]);
+  if (error) return <div className="mermaid-error" role="alert"><strong>Diagram could not be rendered</strong><span>{error}</span><pre><code>{source}</code></pre></div>;
+  if (!svg) return <div className="mermaid-loading">Rendering diagram…</div>;
+  return <div className="mermaid-diagram" dangerouslySetInnerHTML={{ __html: svg }} />;
+}
+
+function MarkdownDocument({ children }: { children: string }) {
+  return <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+    pre({ children: preChildren, ...props }) {
+      const child = React.Children.only(preChildren);
+      return React.isValidElement(child) && child.type === MermaidDiagram ? child : <pre {...props}>{preChildren}</pre>;
+    },
+    code({ className, children: codeChildren, ...props }) {
+      const language = /language-([^ ]+)/.exec(className ?? "")?.[1];
+      if (language === "mermaid") return <MermaidDiagram source={String(codeChildren).replace(/\n$/, "")} />;
+      return <code className={className} {...props}>{codeChildren}</code>;
+    },
+  }}>{children}</ReactMarkdown>;
 }
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
@@ -102,7 +113,7 @@ function GraphCanvas({ snapshot, selectedId, onSelect, groupNamespace, embedded 
   snapshot: ProjectSnapshot;
   selectedId: string | undefined;
   onSelect: (id: string) => void;
-  groupNamespace?: "system" | "components";
+  groupNamespace?: "system" | "architecture" | "components";
   embedded?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
@@ -115,7 +126,8 @@ function GraphCanvas({ snapshot, selectedId, onSelect, groupNamespace, embedded 
       if (!groupNamespace) return undefined;
       const metadata = concept.metadata[groupNamespace];
       if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return undefined;
-      const group = (metadata as Record<string, unknown>).group;
+      const values = metadata as Record<string, unknown>;
+      const group = values.group ?? values.section;
       return typeof group === "string" ? group : undefined;
     };
     const visibleConcepts = snapshot.concepts.filter((concept) => concept.type !== "Definition Layer");
@@ -234,7 +246,7 @@ function GraphCanvas({ snapshot, selectedId, onSelect, groupNamespace, embedded 
     selected.closedNeighborhood().addClass("context");
   }, [selectedId]);
 
-  return <div className={`graph-canvas ${embedded ? "embedded" : ""}`} ref={container} aria-label="Application component dependency graph" />;
+  return <div className={`graph-canvas ${embedded ? "embedded" : ""}`} ref={container} aria-label="Typed concept relationship graph" />;
 }
 
 
@@ -242,7 +254,7 @@ interface KnowledgeGraphNode extends NodeObject {
   id: string;
   title: string;
   type: string;
-  status?: string;
+  area?: string;
   layers: string[];
   layer: string;
   color: string;
@@ -259,13 +271,23 @@ function graphEndpointId(endpoint: string | number | KnowledgeGraphNode | undefi
   return typeof endpoint === "object" ? endpoint.id : String(endpoint ?? "");
 }
 
+function graphEndpointArea(endpoint: string | number | KnowledgeGraphNode | undefined, nodes: KnowledgeGraphNode[]): string {
+  if (typeof endpoint === "object") return endpoint.layer;
+  return nodes.find((node) => node.id === String(endpoint ?? ""))?.layer ?? "unscoped";
+}
+
 function GlobalKnowledgeGraph({ snapshot, selectedId, onSelect, onClose }: { snapshot: ProjectSnapshot; selectedId: string | undefined; onSelect: (id: string) => void; onClose: () => void }) {
   const container = useRef<HTMLDivElement>(null);
   const graph = useRef<ForceGraph3DInstance<KnowledgeGraphNode, KnowledgeGraphLink> | undefined>(undefined);
   const graphNodes = useRef<KnowledgeGraphNode[]>([]);
   const [query, setQuery] = useState("");
+  const [highlightArea, setHighlightArea] = useState("");
   const [loadError, setLoadError] = useState("");
   const projection = useMemo(() => projectGlobalGraph(snapshot), [snapshot]);
+  const availableAreas = GLOBAL_AREA_ORDER.filter((area) => projection.nodes.some((node) => {
+    const legacyLayer = node.layers[0];
+    return (node.area ?? (legacyLayer ? LEGACY_AREA[legacyLayer] ?? legacyLayer : "unscoped")) === area;
+  }));
   const selected = snapshot.concepts.find((concept) => concept.id === selectedId);
   const searchResults = query.trim() ? snapshot.concepts.filter((concept) => `${concept.title} ${concept.type} ${concept.id}`.toLowerCase().includes(query.toLowerCase())).slice(0, 8) : [];
 
@@ -289,9 +311,10 @@ function GlobalKnowledgeGraph({ snapshot, selectedId, onSelect, onClose }: { sna
       degree.set(link.target, (degree.get(link.target) ?? 0) + 1);
     }
     const nodes: KnowledgeGraphNode[] = projection.nodes.map((node) => {
-      const layer = GLOBAL_LAYER_ORDER.find((candidate) => node.layers.includes(candidate)) ?? "unscoped";
-      const layerIndex = layer === "unscoped" ? GLOBAL_LAYER_ORDER.length : GLOBAL_LAYER_ORDER.indexOf(layer);
-      return { ...node, layer, color: GLOBAL_LAYER_COLORS[layer]!, degree: degree.get(node.id) ?? 0, fy: (layerIndex - GLOBAL_LAYER_ORDER.length / 2) * 42 };
+      const legacyLayer = node.layers[0];
+      const layer = node.area ?? (legacyLayer ? LEGACY_AREA[legacyLayer] ?? legacyLayer : "unscoped");
+      const layerIndex = layer === "unscoped" ? GLOBAL_AREA_ORDER.length : GLOBAL_AREA_ORDER.indexOf(layer);
+      return { ...node, layer, color: GLOBAL_AREA_COLORS[layer] ?? GLOBAL_AREA_COLORS.unscoped!, degree: degree.get(node.id) ?? 0, fy: ((layerIndex < 0 ? GLOBAL_AREA_ORDER.length : layerIndex) - GLOBAL_AREA_ORDER.length / 2) * 42 };
     });
     const links: KnowledgeGraphLink[] = projection.links.map((link) => ({ ...link }));
     graphNodes.current = nodes;
@@ -307,7 +330,7 @@ function GlobalKnowledgeGraph({ snapshot, selectedId, onSelect, onClose }: { sna
         .backgroundColor("#080b12")
         .showNavInfo(false)
         .nodeId("id")
-        .nodeColor((node) => node.id === selectedId ? "#ffffff" : node.color)
+        .nodeColor((node) => node.id === selectedId ? "#ffffff" : highlightArea && node.layer !== highlightArea ? "#252d3b" : node.color)
         .nodeVal((node) => node.id === selectedId ? 8 : 1.4 + Math.min(5, Math.sqrt(node.degree + 1)))
         .nodeResolution(10)
         .nodeOpacity(.96)
@@ -315,11 +338,11 @@ function GlobalKnowledgeGraph({ snapshot, selectedId, onSelect, onClose }: { sna
           const label = document.createElement("div");
           label.className = "global-graph-tooltip";
           const title = document.createElement("strong"); title.textContent = node.title;
-          const context = document.createElement("span"); context.textContent = `${node.type} · ${GLOBAL_LAYER_LABELS[node.layer]}`;
+          const context = document.createElement("span"); context.textContent = `${node.type} · ${GLOBAL_AREA_LABELS[node.layer] ?? node.layer}`;
           label.append(title, context);
           return label;
         })
-        .linkColor(() => "#72809a")
+        .linkColor((link) => highlightArea && (graphEndpointArea(link.source, nodes) !== highlightArea || graphEndpointArea(link.target, nodes) !== highlightArea) ? "#202736" : "#72809a")
         .linkOpacity(.16)
         .linkWidth(.35)
         .linkDirectionalArrowLength(.8)
@@ -353,31 +376,27 @@ function GlobalKnowledgeGraph({ snapshot, selectedId, onSelect, onClose }: { sna
     const instance = graph.current;
     if (!instance) return;
     const selectedNodeId = selectedId;
+    const nodes = graphNodes.current;
     instance
-      .nodeColor((node) => node.id === selectedNodeId ? "#ffffff" : node.color)
+      .nodeColor((node) => node.id === selectedNodeId ? "#ffffff" : highlightArea && node.layer !== highlightArea ? "#252d3b" : node.color)
       .nodeVal((node) => node.id === selectedNodeId ? 8 : 1.4 + Math.min(5, Math.sqrt(node.degree + 1)))
-      .linkColor((link) => graphEndpointId(link.source) === selectedNodeId || graphEndpointId(link.target) === selectedNodeId ? "#dce6ff" : "#72809a")
+      .linkColor((link) => graphEndpointId(link.source) === selectedNodeId || graphEndpointId(link.target) === selectedNodeId
+        ? "#dce6ff"
+        : highlightArea && (graphEndpointArea(link.source, nodes) !== highlightArea || graphEndpointArea(link.target, nodes) !== highlightArea) ? "#202736" : "#72809a")
       .linkWidth((link) => graphEndpointId(link.source) === selectedNodeId || graphEndpointId(link.target) === selectedNodeId ? 1.2 : .35)
       .refresh();
-  }, [selectedId]);
+  }, [selectedId, highlightArea]);
 
   const related = selected ? snapshot.edges.filter((edge) => edge.source === selected.id || edge.targetId === selected.id) : [];
   return <section className="global-graph" aria-label="Global 3D OKF knowledge graph">
     <div className="global-graph-canvas" ref={container} />
     <header className="global-graph-header"><div><span className="eyebrow">Global OKF knowledge graph</span><h1>Everything connected.</h1><p>{projection.nodes.length} concepts · {projection.links.length} typed relationships · accepted revision {projection.sourceRevision.slice(0, 8)}</p></div><button onClick={onClose} aria-label="Close global knowledge graph">Close graph</button></header>
-    <div className="global-graph-search"><label htmlFor="global-graph-search">Find a concept</label><input id="global-graph-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all OKF knowledge…" />{searchResults.length > 0 && <div>{searchResults.map((concept) => <button key={concept.id} onClick={() => { setQuery(""); focusNode(concept.id); }}><i style={{ background: GLOBAL_LAYER_COLORS[GLOBAL_LAYER_ORDER.find((layer) => concept.sdlc.includes(layer)) ?? "unscoped"] }} /><span><strong>{concept.title}</strong><small>{concept.type}</small></span></button>)}</div>}</div>
-    <div className="global-graph-legend"><span>Definition depth</span>{[...GLOBAL_LAYER_ORDER, "unscoped"].map((layer) => <i key={layer}><b style={{ background: GLOBAL_LAYER_COLORS[layer] }} />{GLOBAL_LAYER_LABELS[layer]}</i>)}</div>
+    <div className="global-graph-search"><label htmlFor="global-graph-search">Find a concept</label><input id="global-graph-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all OKF knowledge…" />{searchResults.length > 0 && <div>{searchResults.map((concept) => <button key={concept.id} onClick={() => { setQuery(""); focusNode(concept.id); }}><i style={{ background: GLOBAL_AREA_COLORS[conceptArea(concept)] ?? GLOBAL_AREA_COLORS.unscoped }} /><span><strong>{concept.title}</strong><small>{concept.type}</small></span></button>)}</div>}</div>
+    <div className="global-graph-legend"><label><span>Highlight Definition Area</span><select value={highlightArea} onChange={(event) => setHighlightArea(event.target.value)}><option value="">All areas</option>{availableAreas.map((area) => <option key={area} value={area}>{GLOBAL_AREA_LABELS[area]}</option>)}</select></label>{availableAreas.map((area) => <button className={highlightArea === area ? "selected" : ""} onClick={() => setHighlightArea(highlightArea === area ? "" : area)} key={area}><b style={{ background: GLOBAL_AREA_COLORS[area] ?? GLOBAL_AREA_COLORS.unscoped }} />{GLOBAL_AREA_LABELS[area] ?? area}</button>)}</div>
     <div className="global-graph-help">Drag to orbit · Scroll to zoom · Right-drag to pan · Select a dot to focus</div>
-    {selected && <aside className="global-graph-focus"><button className="global-focus-close" onClick={() => onSelect("")} aria-label="Clear focused concept">×</button><span className="concept-type"><i style={{ background: GLOBAL_LAYER_COLORS[GLOBAL_LAYER_ORDER.find((layer) => selected.sdlc.includes(layer)) ?? "unscoped"] }} />{selected.type}</span><h2>{selected.title}</h2><code>{selected.id}</code><p>{selected.description || "No description yet."}</p><div><strong>{related.length} relationships</strong>{related.slice(0, 12).map((edge, index) => { const outgoing = edge.source === selected.id; const otherId = outgoing ? edge.targetId : edge.source; const other = snapshot.concepts.find((concept) => concept.id === otherId); return <button key={`${edge.source}-${edge.type}-${edge.targetId}-${index}`} onClick={() => focusNode(otherId)}><small>{outgoing ? "→" : "←"} {edge.type}</small><span>{other?.title ?? otherId}</span></button>; })}</div></aside>}
+    {selected && <aside className="global-graph-focus"><button className="global-focus-close" onClick={() => onSelect("")} aria-label="Clear focused concept">×</button><ConceptSourceAction concept={selected} /><span className="concept-type"><i style={{ background: GLOBAL_AREA_COLORS[conceptArea(selected)] ?? GLOBAL_AREA_COLORS.unscoped }} />{selected.type}</span><h2>{selected.title}</h2><code>{selected.id}</code><p>{selected.description || "No description yet."}</p><div><strong>{related.length} relationships</strong>{related.slice(0, 12).map((edge, index) => { const outgoing = edge.source === selected.id; const otherId = outgoing ? edge.targetId : edge.source; const other = snapshot.concepts.find((concept) => concept.id === otherId); return <button key={`${edge.source}-${edge.type}-${edge.targetId}-${index}`} onClick={() => focusNode(otherId)}><small>{outgoing ? "→" : "←"} {edge.type}</small><span>{other?.title ?? otherId}</span></button>; })}</div></aside>}
     {loadError && <div className="global-graph-error"><strong>3D graph unavailable</strong><span>{loadError}</span></div>}
   </section>;
-}
-
-function systemMetadata(concept: Concept): Record<string, unknown> {
-  const metadata = concept.metadata.system;
-  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
-    ? metadata as Record<string, unknown>
-    : {};
 }
 
 function SystemArchitectureMap({ snapshot }: { snapshot: ProjectSnapshot }) {
@@ -393,15 +412,16 @@ function SystemArchitectureMap({ snapshot }: { snapshot: ProjectSnapshot }) {
       container: container.current,
       elements: [
         ...snapshot.concepts.map((concept) => {
-          const metadata = systemMetadata(concept);
-          return { data: { id: concept.id, label: concept.title, kind: String(metadata.kind ?? "other"), boundary: String(metadata.boundary ?? "unknown"), group: String(metadata.group ?? "ungrouped") } };
+          const parent = snapshot.edges.find((edge) => edge.source === concept.id && edge.type === "part-of" && snapshot.concepts.some((candidate) => candidate.id === edge.targetId));
+          return { data: { id: concept.id, label: concept.title, kind: concept.type, section: systemSection(concept) ?? "other", boundary: systemBoundary(concept) ?? "none", ...(parent ? { parent: parent.targetId } : {}) } };
         }),
         ...snapshot.edges.map((edge, index) => ({ data: { id: `system-edge-${index}`, source: edge.source, target: edge.targetId, label: edge.type } })),
       ],
       style: [
         { selector: "node", style: { "background-color": token("--surface"), "border-color": token("--accent"), "border-width": 2, color: token("--text"), label: "data(label)", "font-size": 15, "font-weight": 650, "text-wrap": "wrap", "text-max-width": "115px", "text-valign": "center", "text-halign": "center", width: 116, height: 54, shape: "round-rectangle" } },
-        { selector: "node[kind='system']", style: { "background-color": token("--accent"), color: token("--accent-contrast"), width: 150, height: 70, "font-size": 16, "border-width": 0 } },
-        { selector: "node[kind='data-store'], node[kind='database']", style: { shape: "barrel", "background-color": token("--surface-muted"), "border-color": token("--success") } },
+        { selector: "node[kind='System']", style: { "background-opacity": .05, "background-color": token("--accent"), "border-color": token("--accent"), "border-style": "dashed", shape: "round-rectangle", label: "data(label)", "text-valign": "top", padding: "28px" } },
+        { selector: "node[kind='Logical Data Store']", style: { shape: "barrel", "background-color": token("--surface-muted"), "border-color": token("--success") } },
+        { selector: "node[kind='System Flow']", style: { shape: "diamond", "background-color": token("--surface-muted"), "border-color": token("--proposal") } },
         { selector: "node[boundary='external']", style: { shape: "round-diamond", "background-color": token("--surface"), "border-color": token("--warning"), "border-style": "dashed", width: 125, height: 70 } },
         { selector: "node[boundary='managed']", style: { "border-color": token("--success"), "border-style": "double", "border-width": 4 } },
         { selector: "node:selected", style: { "overlay-color": token("--accent"), "overlay-opacity": .12, "overlay-padding": 8, "border-width": 4 } },
@@ -416,7 +436,7 @@ function SystemArchitectureMap({ snapshot }: { snapshot: ProjectSnapshot }) {
         padding: 54,
         minNodeSpacing: 64,
         spacingFactor: 1.08,
-        concentric: (node) => node.data("kind") === "system" ? 3 : node.data("boundary") === "owned" ? 2 : node.data("boundary") === "managed" ? 1 : 0,
+        concentric: (node) => node.data("kind") === "System" ? 3 : node.data("boundary") === "owned" ? 2 : node.data("boundary") === "managed" ? 1 : 0,
         levelWidth: () => 1,
       },
     });
@@ -434,15 +454,15 @@ function SystemArchitectureMap({ snapshot }: { snapshot: ProjectSnapshot }) {
 }
 
 function SystemArtifactDocument({ concept }: { concept: Concept }) {
-  const metadata = systemMetadata(concept);
   return <details className="business-document system-document" id={`system-doc-${concept.id}`}>
     <summary>
-      <span className="concept-type"><i style={{ background: TYPE_COLORS[concept.type] ?? "var(--accent)" }} />{String(metadata.kind ?? concept.type)}</span>
+      <span className="concept-type"><i style={{ background: TYPE_COLORS[concept.type] ?? "var(--accent)" }} />{concept.type}</span>
       <strong>{concept.title}</strong>
       <p>{concept.description}</p>
-      <span className="system-badges"><i>{String(metadata.boundary ?? "unknown")}</i><i>{String(metadata.criticality ?? "unspecified")}</i></span>
+      <span className="system-badges">{systemBoundary(concept) && <i>{systemBoundary(concept)}</i>}<i>{systemSection(concept) ?? "unclassified"}</i></span>
+      <ConceptSourceAction concept={concept} />
     </summary>
-    <article className="markdown-body"><ReactMarkdown remarkPlugins={[remarkGfm]}>{concept.body || "_No architecture document body yet._"}</ReactMarkdown></article>
+    <article className="markdown-body"><MarkdownDocument>{concept.body || "_No architecture document body yet._"}</MarkdownDocument></article>
   </details>;
 }
 
@@ -456,23 +476,101 @@ function SystemCanvas({ snapshot }: { snapshot: ProjectSnapshot }) {
   };
   const groups = new Map<string, Concept[]>();
   for (const concept of artifacts) {
-    const group = String(systemMetadata(concept).group ?? "ungrouped");
+    const group = systemSection(concept) ?? "unclassified";
     groups.set(group, [...(groups.get(group) ?? []), concept]);
   }
-  const groupOrder = ["platform", "experience", "knowledge", "guidance", "views", "data", "external-services", "delivery"];
+  const groupOrder = ["overview", "responsibilities", "data", "flows", "dependencies", "qualities", "security", "failures", "constraints", "risks", "decisions"];
   const orderedGroups = [...groups.entries()].sort(([left], [right]) => {
     const leftIndex = groupOrder.indexOf(left);
     const rightIndex = groupOrder.indexOf(right);
     return (leftIndex < 0 ? groupOrder.length : leftIndex) - (rightIndex < 0 ? groupOrder.length : rightIndex) || left.localeCompare(right);
   });
-  const owned = artifacts.filter((concept) => systemMetadata(concept).boundary === "owned").length;
-  const external = artifacts.filter((concept) => systemMetadata(concept).boundary === "external").length;
-  const stores = artifacts.filter((concept) => ["data-store", "database"].includes(String(systemMetadata(concept).kind))).length;
+  const owned = artifacts.filter((concept) => systemBoundary(concept) === "owned").length;
+  const external = artifacts.filter((concept) => systemBoundary(concept) === "external").length;
+  const stores = artifacts.filter((concept) => concept.type === "Logical Data Store").length;
 
   return <div className="purpose-canvas system-canvas">
     <div className="system-hero"><div className="purpose-intro"><span className="eyebrow">Conceptual System Design</span><h1>Responsibilities, boundaries, and information flow</h1><p>Each node is a canonical linked OKF System Design document. This view defines logical responsibilities, data, qualities, and external boundaries without deciding whether the product uses one full-stack Application or several deployable Applications.</p></div><div className="system-metrics"><div><strong>{owned}</strong><span>owned</span></div><div><strong>{stores}</strong><span>data stores</span></div><div><strong>{external}</strong><span>external</span></div></div></div>
-    <section className="architecture-board"><div className="group-heading"><h2>System architecture map</h2><span>{artifacts.length} parts · {architectureSnapshot.edges.length} links</span></div><div className="system-legend"><span><i className="owned" />Owned system or service</span><span><i className="managed" />Managed data boundary</span><span><i className="external" />External system</span><small>Select a node to open its architecture document.</small></div><SystemArchitectureMap snapshot={architectureSnapshot} /></section>
+    <section className="architecture-board"><div className="group-heading"><h2>Conceptual system map</h2><span>{artifacts.length} parts · {architectureSnapshot.edges.length} links</span></div><div className="system-legend"><span><i className="owned" />Owned responsibility or store</span><span><i className="managed" />Managed data boundary</span><span><i className="external" />External dependency</span><small>Select a node to open its architecture document.</small></div><SystemArchitectureMap snapshot={architectureSnapshot} /></section>
     <section className="system-documents"><div className="group-heading"><h2>Architecture documents</h2><span>Canonical OKF</span></div>{orderedGroups.map(([group, concepts]) => <div className="system-document-group" key={group}><h3>{group.replaceAll("-", " ")}</h3><div className="business-document-list">{concepts.sort((left, right) => left.title.localeCompare(right.title)).map((concept) => <SystemArtifactDocument concept={concept} key={concept.id} />)}</div></div>)}</section>
+  </div>;
+}
+
+function BusinessDocument({ concept, snapshot, onFollow }: { concept: Concept; snapshot: ProjectSnapshot; onFollow: (concept: Concept) => void }) {
+  const relationships = snapshot.edges.filter((edge) => edge.source === concept.id || edge.targetId === concept.id);
+  return <details className="business-document business-concept-card">
+    <summary onClick={() => onFollow(concept)}>
+      <span className="concept-type"><i style={{ background: TYPE_COLORS[concept.type] ?? "#718096" }} />{concept.type}</span>
+      <strong>{concept.title}</strong>
+      <p>{concept.description}</p>
+      <span className="relationship-count">{relationships.length} typed links</span>
+      <ConceptSourceAction concept={concept} />
+    </summary>
+    <div className="business-document-content">
+      <article className="markdown-body"><MarkdownDocument>{concept.body}</MarkdownDocument></article>
+      <aside className="business-relationships"><h3>Relationships</h3>{relationships.length === 0 ? <p>No typed relationships.</p> : relationships.map((edge, index) => {
+        const outgoing = edge.source === concept.id;
+        const relatedId = outgoing ? edge.targetId : edge.source;
+        const related = snapshot.concepts.find((candidate) => candidate.id === relatedId);
+        return <button key={`${edge.source}-${edge.type}-${edge.targetId}-${index}`} disabled={!related} onClick={() => related && onFollow(related)}><small>{outgoing ? "Outgoing" : "Incoming"} · {edge.type}</small><strong>{related?.title ?? relatedId}</strong><span>{related ? `${GLOBAL_AREA_LABELS[conceptArea(related)] ?? conceptArea(related)} · ${related.type}` : relatedId}</span></button>;
+      })}</aside>
+    </div>
+  </details>;
+}
+
+function BusinessCanvas({ snapshot, onFollow }: { snapshot: ProjectSnapshot; onFollow: (concept: Concept) => void }) {
+  const concepts = businessArtifacts(snapshot.concepts);
+  const [sectionFilter, setSectionFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const types = [...new Set(concepts.map((concept) => concept.type))].sort();
+  const visible = concepts.filter((concept) => (sectionFilter === "all" || businessSection(concept) === sectionFilter) && (typeFilter === "all" || concept.type === typeFilter));
+  const grouped = new Map<BusinessSection, Map<string, Concept[]>>();
+  for (const concept of visible) {
+    const section = businessSection(concept);
+    if (!section) continue;
+    const byType = grouped.get(section) ?? new Map<string, Concept[]>();
+    byType.set(concept.type, [...(byType.get(concept.type) ?? []), concept]);
+    grouped.set(section, byType);
+  }
+
+  return <div className="purpose-canvas document-canvas business-documents">
+    <div className="business-workspace-header"><div className="purpose-intro"><span className="eyebrow">Business Definition Area</span><h1>Why change is needed</h1><p>Business-owned knowledge about direction, problems, people, outcomes, evidence, economics, governance, capabilities, and risk. Connected Solution and engineering concepts remain contextual.</p></div><div className="business-summary"><strong>{visible.length}</strong><span>of {concepts.length} concepts</span></div></div>
+    <div className="business-filters" aria-label="Business concept filters">
+      <label><span>Section</span><select value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)}><option value="all">All sections</option>{BUSINESS_SECTIONS.map((section) => <option value={section} key={section}>{section}</option>)}</select></label>
+      <label><span>Type</span><select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}><option value="all">All types</option>{types.map((type) => <option value={type} key={type}>{type}</option>)}</select></label>
+      {(sectionFilter !== "all" || typeFilter !== "all") && <button onClick={() => { setSectionFilter("all"); setTypeFilter("all"); }}>Clear filters</button>}
+    </div>
+    {BUSINESS_SECTIONS.filter((section) => grouped.has(section)).map((section) => <section className="document-group business-section" key={section}>
+      <div className="group-heading"><h2>{section.replaceAll("-", " ")}</h2><span>{[...(grouped.get(section)?.values() ?? [])].flat().length}</span></div>
+      {[...(grouped.get(section)?.entries() ?? [])].sort(([left], [right]) => left.localeCompare(right)).map(([type, typedConcepts]) => <div className="business-type-group" key={type}><h3>{type}</h3><div className="business-document-list">{typedConcepts.sort((left, right) => left.title.localeCompare(right.title)).map((concept) => <BusinessDocument concept={concept} snapshot={snapshot} onFollow={onFollow} key={concept.id} />)}</div></div>)}
+    </section>)}
+    {visible.length === 0 && <div className="business-empty"><strong>No Business concepts match these filters.</strong><p>Unanswered concerns remain questions; M21 does not create empty placeholders.</p></div>}
+  </div>;
+}
+
+function SolutionCanvas({ snapshot, onFollow }: { snapshot: ProjectSnapshot; onFollow: (concept: Concept) => void }) {
+  const concepts = solutionArtifacts(snapshot.concepts);
+  const [sectionFilter, setSectionFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const types = [...new Set(concepts.map((concept) => concept.type))].sort();
+  const visible = concepts.filter((concept) => (sectionFilter === "all" || solutionSection(concept) === sectionFilter) && (typeFilter === "all" || concept.type === typeFilter));
+  const grouped = new Map<SolutionSection, Map<string, Concept[]>>();
+  for (const concept of visible) {
+    const section = solutionSection(concept);
+    if (!section) continue;
+    const byType = grouped.get(section) ?? new Map<string, Concept[]>();
+    byType.set(concept.type, [...(byType.get(concept.type) ?? []), concept]);
+    grouped.set(section, byType);
+  }
+  return <div className="purpose-canvas document-canvas business-documents solution-documents">
+    <div className="business-workspace-header"><div className="purpose-intro"><span className="eyebrow">Business Solution Definition Area</span><h1>Shape the complete response</h1><p>Explore propositions, options, outcomes, capabilities, behavior, and delivery across human services, processes, policy, digital and physical products, and partners.</p></div><div className="business-summary"><strong>{visible.length}</strong><span>of {concepts.length} concepts</span></div></div>
+    <div className="business-filters" aria-label="Business Solution concept filters">
+      <label><span>Section</span><select value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)}><option value="all">All sections</option>{SOLUTION_SECTIONS.map((section) => <option value={section} key={section}>{section}</option>)}</select></label>
+      <label><span>Type</span><select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}><option value="all">All types</option>{types.map((type) => <option value={type} key={type}>{type}</option>)}</select></label>
+      {(sectionFilter !== "all" || typeFilter !== "all") && <button onClick={() => { setSectionFilter("all"); setTypeFilter("all"); }}>Clear filters</button>}
+    </div>
+    {SOLUTION_SECTIONS.filter((section) => grouped.has(section)).map((section) => <section className="document-group business-section" key={section}><div className="group-heading"><h2>{section.replaceAll("-", " ")}</h2><span>{[...(grouped.get(section)?.values() ?? [])].flat().length}</span></div>{[...(grouped.get(section)?.entries() ?? [])].sort(([left], [right]) => left.localeCompare(right)).map(([type, typedConcepts]) => <div className="business-type-group" key={type}><h3>{type}</h3><div className="business-document-list">{typedConcepts.sort((left, right) => left.title.localeCompare(right.title)).map((concept) => <BusinessDocument concept={concept} snapshot={snapshot} onFollow={onFollow} key={concept.id} />)}</div></div>)}</section>)}
+    {visible.length === 0 && <div className="business-empty"><strong>No Solution concepts match these filters.</strong><p>Options and unresolved concerns remain explicit; M21 does not invent placeholders.</p></div>}
   </div>;
 }
 
@@ -483,18 +581,21 @@ function ExpandableDocument({ concept }: { concept: Concept }) {
       <strong>{concept.title}</strong>
       <p>{concept.description || "No description yet."}</p>
       <span className="expand-label">Read full document</span>
+      <ConceptSourceAction concept={concept} />
     </summary>
     <article className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{concept.body || "_No document body yet._"}</ReactMarkdown>
+      <MarkdownDocument>{concept.body || "_No document body yet._"}</MarkdownDocument>
     </article>
   </details>;
 }
 
-function DocumentCanvas({ snapshot, layer, selectedId, onSelect }: {
+function DocumentCanvas({ snapshot, fullSnapshot, layer, selectedId, onSelect, onFollowConcept }: {
   snapshot: ProjectSnapshot;
+  fullSnapshot: ProjectSnapshot;
   layer: string;
   selectedId: string | undefined;
   onSelect: (id: string) => void;
+  onFollowConcept: (concept: Concept) => void;
 }) {
   const groups = new Map<string, Concept[]>();
   for (const concept of mainArtifactsForLayer(snapshot.concepts, layer)) {
@@ -508,15 +609,8 @@ function DocumentCanvas({ snapshot, layer, selectedId, onSelect }: {
     return (leftIndex === -1 ? businessOrder.length : leftIndex) - (rightIndex === -1 ? businessOrder.length : rightIndex) || left.localeCompare(right);
   });
 
-  if (layer === "business") {
-    return <div className="purpose-canvas document-canvas business-documents">
-      <div className="purpose-intro"><span className="eyebrow">Business definition</span><h1>Why this product should exist</h1><p>Main Business artifacts only. Expand a card to read its complete canonical document.</p></div>
-      {orderedGroups.map(([group, concepts]) => <section className="document-group" key={group}>
-        <div className="group-heading"><h2>{group.replaceAll("-", " ")}</h2><span>{concepts.length}</span></div>
-        <div className="business-document-list">{concepts.sort((a,b) => a.title.localeCompare(b.title)).map((concept) => <ExpandableDocument concept={concept} key={concept.id} />)}</div>
-      </section>)}
-    </div>;
-  }
+  if (layer === "business") return <BusinessCanvas snapshot={fullSnapshot} onFollow={onFollowConcept} />;
+  if (layer === "solution") return <SolutionCanvas snapshot={fullSnapshot} onFollow={onFollowConcept} />;
 
   if (layer === "product") {
     const capabilities = productCapabilityArtifacts(snapshot.concepts)
@@ -534,41 +628,41 @@ function DocumentCanvas({ snapshot, layer, selectedId, onSelect }: {
     <div className="purpose-intro"><span className="eyebrow">{layer} definition</span><h1>Definition documents</h1><p>Structured knowledge documents remain canonical OKF concepts.</p></div>
     {orderedGroups.map(([group, concepts]) => <section className="document-group" key={group}>
       <div className="group-heading"><h2>{group.replaceAll("-", " ")}</h2><span>{concepts.length}</span></div>
-      <div className="document-grid">{concepts.sort((a,b) => a.title.localeCompare(b.title)).map((concept) => <button className={`document-card ${selectedId === concept.id ? "selected" : ""}`} onClick={() => onSelect(concept.id)} key={concept.id}>
+      <div className="document-grid">{concepts.sort((a,b) => a.title.localeCompare(b.title)).map((concept) => <div className="concept-card-shell" key={concept.id}><button className={`document-card ${selectedId === concept.id ? "selected" : ""}`} onClick={() => onSelect(concept.id)}>
         <span className="concept-type"><i style={{ background: TYPE_COLORS[concept.type] ?? "#718096" }} />{concept.type}</span>
         <strong>{concept.title}</strong><p>{concept.description || "No description yet."}</p>
-      </button>)}</div>
+      </button><ConceptSourceAction concept={concept} /></div>)}</div>
     </section>)}
   </div>;
 }
 
-function DesignCanvas({ snapshot, fullSnapshot, onGenerateTheme, busy }: {
-  snapshot: ProjectSnapshot;
-  fullSnapshot: ProjectSnapshot;
-  selectedId: string | undefined;
-  onSelect: (id: string) => void;
-  onGenerateTheme: (conceptId: string) => void;
-  busy: boolean;
-}) {
-  const theme = projectTheme(fullSnapshot.concepts);
-  const primary = mainArtifactsForLayer(snapshot.concepts, "design");
-  const foundations = primary.filter((concept) => ["Visual Language", "Design Foundation", "Design Direction", "Accessibility Constraint", "Design System"].includes(concept.type));
-  const stories = primary.filter((concept) => concept.type === "Component Story");
-  const experience = primary.filter((concept) => !foundations.includes(concept) && !stories.includes(concept));
-  const colorTokens = new Set(["canvas", "surface", "surface-muted", "text", "muted", "border", "accent", "accent-contrast", "chrome", "chrome-text", "proposal", "warning", "conflict", "success"]);
-  const visualLanguage = foundations.find((concept) => concept.type === "Visual Language");
-  return <div className="purpose-canvas design-canvas design-documents">
-    <div className="design-hero">
-      <div className="purpose-intro"><span className="eyebrow">Visual Design</span><h1>Make the product feel coherent</h1><p>Foundations describe the type, color, shape, motion, and character. The accepted theme styles this M21 workspace and the generated component preview.</p></div>
-      <div className="design-actions">
-        {visualLanguage && <button onClick={() => onGenerateTheme(visualLanguage.id)} disabled={busy}>{busy ? "Generating theme…" : "Generate theme from design"}</button>}
-        <a className="preview-link" href="/design-preview" target="_blank" rel="noreferrer">Open component preview ↗</a>
-      </div>
-    </div>
-    {theme && <section className="theme-board"><div className="group-heading"><h2>Active semantic theme</h2><span>Applied from {theme.sourceConceptId}</span></div><div className="swatches">{Object.entries(theme.tokens).filter(([token]) => colorTokens.has(token)).map(([token,value]) => <div className="swatch" key={token}><i style={{ background: value }} /><strong>{token}</strong><code>{value}</code></div>)}</div><div className="theme-specimens"><div style={{ fontFamily: "var(--font-sans)" }}><small>Interface type</small><strong>Product knowledge should feel calm and precise.</strong></div><div style={{ fontFamily: "var(--font-mono)" }}><small>Structured type</small><strong>realizes → product/capabilities/design</strong></div><div><small>Shape</small><span className="shape-sample">small · medium · large</span></div></div></section>}
-    <section className="document-group"><div className="group-heading"><h2>Visual language documents</h2><span>{foundations.length}</span></div><div className="business-document-list">{foundations.sort((left, right) => left.title.localeCompare(right.title)).map((concept) => <ExpandableDocument concept={concept} key={concept.id} />)}</div></section>
-    <section className="document-group"><div className="group-heading"><h2>Component stories</h2><span>{stories.length}</span></div><div className="component-story-grid">{stories.sort((left, right) => left.title.localeCompare(right.title)).map((concept) => <article className="component-story-card" key={concept.id}><span className="concept-type"><i style={{ background: TYPE_COLORS[concept.type] ?? "var(--accent)" }} />{concept.type}</span><h3>{concept.title}</h3><p>{concept.description}</p></article>)}</div></section>
-    <section className="document-group"><div className="group-heading"><h2>Experience definition</h2><span>{experience.length}</span></div><div className="business-document-list">{experience.sort((left, right) => left.title.localeCompare(right.title)).map((concept) => <ExpandableDocument concept={concept} key={concept.id} />)}</div></section>
+function VisualSpecimenFrame({ specimen, title }: { specimen: VisualSpecimen; title: string }) {
+  return <iframe className="visual-specimen-frame" title={title} sandbox={specimen.sandbox} srcDoc={specimen.html} />;
+}
+
+function VisualDesignCanvas({ fullSnapshot, onFollow }: { fullSnapshot: ProjectSnapshot; onFollow: (concept: Concept) => void }) {
+  const concepts = visualDesignArtifacts(fullSnapshot.concepts);
+  const [sectionFilter, setSectionFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const types = [...new Set(concepts.map((concept) => concept.type))].sort();
+  const visible = concepts.filter((concept) => (sectionFilter === "all" || visualDesignSection(concept) === sectionFilter) && (typeFilter === "all" || concept.type === typeFilter));
+  const grouped = new Map<VisualDesignSection, Concept[]>();
+  for (const concept of visible) {
+    const section = visualDesignSection(concept);
+    if (section) grouped.set(section, [...(grouped.get(section) ?? []), concept]);
+  }
+  const diagnostics = fullSnapshot.diagnostics.filter((diagnostic) => diagnostic.conceptIds.some((id) => concepts.some((concept) => concept.id === id)));
+  const theme = activeVisualTheme(fullSnapshot.concepts);
+  return <div className="purpose-canvas design-canvas design-documents visual-design-workspace">
+    <div className="design-hero"><div className="purpose-intro"><span className="eyebrow">Visual Design Definition Area</span><h1>A shared visual language, rendered</h1><p>Accepted direction, CSS foundations, themes, visual components, assets, and accessibility remain product-wide. Application journeys, screens, navigation, and behavior belong to Application Experience Design.</p></div><div className="design-actions"><a className="preview-link" href="/design-preview" target="_blank" rel="noreferrer">Open isolated catalog ↗</a></div></div>
+    <div className="business-filters" aria-label="Visual Design filters"><label><span>Section</span><select value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)}><option value="all">All sections</option>{VISUAL_DESIGN_SECTIONS.map((section) => <option key={section} value={section}>{section}</option>)}</select></label><label><span>Type</span><select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}><option value="all">All types</option>{types.map((type) => <option key={type}>{type}</option>)}</select></label>{(sectionFilter !== "all" || typeFilter !== "all") && <button onClick={() => { setSectionFilter("all"); setTypeFilter("all"); }}>Clear filters</button>}</div>
+    {diagnostics.length > 0 && <section className="visual-diagnostics"><strong>{diagnostics.length} Visual Design diagnostics</strong>{diagnostics.map((diagnostic) => <span key={`${diagnostic.code}-${diagnostic.conceptIds.join("-")}`}>{diagnostic.message}</span>)}</section>}
+    {VISUAL_DESIGN_SECTIONS.filter((section) => grouped.has(section)).map((section) => <section className={`visual-section visual-section-${section}`} key={section}><div className="group-heading"><h2>{section.replaceAll("-", " ")}</h2><span>{grouped.get(section)?.length}</span></div><div className={section === "components" || section === "foundations" || section === "themes" ? "visual-preview-grid" : "business-document-list"}>{(grouped.get(section) ?? []).sort((left, right) => left.title.localeCompare(right.title)).map((concept) => {
+      const specimen = section === "components" ? renderVisualComponent(concept, fullSnapshot.concepts) : section === "foundations" ? renderFoundationSpecimen(concept, fullSnapshot.concepts) : section === "themes" ? renderThemeSpecimen(concept, fullSnapshot.concepts) : undefined;
+      if (!specimen) return <BusinessDocument key={concept.id} concept={concept} snapshot={fullSnapshot} onFollow={onFollow} />;
+      return <article className="visual-preview-card" key={concept.id}><header><span className="concept-type"><i style={{ background: TYPE_COLORS[concept.type] ?? "var(--accent)" }} />{concept.type}</span><ConceptSourceAction concept={concept} /><h3>{concept.title}</h3><p>{concept.description}</p></header><VisualSpecimenFrame specimen={specimen} title={`${concept.title} specimen`} /><details><summary>Canonical detail and sources</summary><div className="visual-source-list">{concept.artifacts.map((artifact) => <code key={`${artifact.role}-${artifact.path}`}>{artifact.role}: {artifact.path}</code>)}</div><article className="markdown-body"><MarkdownDocument>{concept.body}</MarkdownDocument></article></details></article>;
+    })}</div></section>)}
+    {!theme && <p className="quiet">No Visual Theme is available; specimens use readable fallback values.</p>}
   </div>;
 }
 
@@ -576,31 +670,34 @@ function realizedSystemResponsibilities(application: Concept, snapshot: ProjectS
   return snapshot.edges
     .filter((edge) => edge.source === application.id && edge.type === "realizes")
     .map((edge) => snapshot.concepts.find((concept) => concept.id === edge.targetId))
-    .filter((concept): concept is Concept => concept !== undefined && ["System", "System Service", "System Data Store"].includes(concept.type));
+    .filter((concept): concept is Concept => concept !== undefined && ["System Responsibility", "System", "System Service", "System Data Store"].includes(concept.type));
 }
 
 function ArchitectureCanvas({ fullSnapshot, onSelectApplication }: { fullSnapshot: ProjectSnapshot; onSelectApplication: (id: string) => void }) {
-  const applications = applicationScopes(fullSnapshot.concepts);
+  const applications = architectureApplications(fullSnapshot.concepts);
+  const [focusedTopologyId, setFocusedTopologyId] = useState<string>();
+  const architectureConcepts = architectureArtifacts(fullSnapshot.concepts);
   const systemResponsibilities = fullSnapshot.concepts
-    .filter((concept) => concept.type === "System Service" && systemMetadata(concept).boundary === "owned")
+    .filter((concept) => concept.type === "System Responsibility" && systemBoundary(concept) === "owned")
     .sort((left, right) => left.title.localeCompare(right.title));
-  return <div className="purpose-canvas application-portfolio"><div className="purpose-intro"><span className="eyebrow">Product-wide Architecture</span><h1>Choose the actual Application topology</h1><p>Map conceptual System Design responsibilities to one full-stack or monolithic Application, or to several frontend, backend, worker, and service Applications. Select an owned Application to enter its internal architecture.</p></div><section className="realization-matrix"><div className="group-heading"><h2>System Design realization</h2><span>{systemResponsibilities.length} conceptual responsibilities</span></div>{systemResponsibilities.map((system) => { const realizing = applications.filter((application) => fullSnapshot.edges.some((edge) => edge.source === application.id && edge.targetId === system.id && edge.type === "realizes")); return <div className="realization-row" key={system.id}><div><strong>{system.title}</strong><small>{system.description}</small></div><span>realized by</span><div>{realizing.length ? realizing.map((application) => <button key={application.id} onClick={() => onSelectApplication(application.id)}>{application.title}</button>) : <i>No owned Application</i>}</div></div>; })}</section><div className="group-heading application-list-heading"><h2>Owned Applications</h2><span>{applications.length}</span></div><div className="application-grid">{applications.map((application) => {
+  const topologyIds = new Set([...architectureConcepts.map((concept) => concept.id), ...systemResponsibilities.map((concept) => concept.id)]);
+  const topologySnapshot = { ...fullSnapshot, concepts: fullSnapshot.concepts.filter((concept) => topologyIds.has(concept.id)), edges: fullSnapshot.edges.filter((edge) => topologyIds.has(edge.source) && topologyIds.has(edge.targetId)) };
+  const focusedTopologyConcept = topologySnapshot.concepts.find((concept) => concept.id === focusedTopologyId);
+  return <div className="purpose-canvas application-portfolio"><div className="purpose-intro"><span className="eyebrow">Product-wide Architecture</span><h1>Choose the actual Application topology</h1><p>Map every owned System Responsibility to the simplest justified set of executable Applications. Stable Application IDs preserve downstream scope while communications, trust, and deployability remain explicit.</p></div><section className="architecture-board"><div className="group-heading"><h2>Owned Application topology</h2><span>{architectureConcepts.length} Architecture concepts</span></div><GraphCanvas snapshot={topologySnapshot} selectedId={focusedTopologyId} onSelect={(id) => { const application = applications.find((candidate) => candidate.id === id); if (application) onSelectApplication(application.applicationId ?? application.id); else setFocusedTopologyId(id); }} groupNamespace="architecture" embedded />{focusedTopologyConcept && <article className="architecture-node-focus"><ConceptSourceAction concept={focusedTopologyConcept} /><span className="concept-type"><i style={{ background: TYPE_COLORS[focusedTopologyConcept.type] ?? "var(--accent)" }} />{focusedTopologyConcept.type}</span><strong>{focusedTopologyConcept.title}</strong><p>{focusedTopologyConcept.description}</p></article>}</section><section className="realization-matrix"><div className="group-heading"><h2>System Design realization</h2><span>{systemResponsibilities.length} conceptual responsibilities</span></div>{systemResponsibilities.map((system) => { const realizing = applications.filter((application) => fullSnapshot.edges.some((edge) => edge.source === application.id && edge.targetId === system.id && edge.type === "realizes")); return <div className="realization-row" key={system.id}><div><strong>{system.title}</strong><small>{system.description}</small></div><span>realized by</span><div>{realizing.length ? realizing.map((application) => <button key={application.id} onClick={() => onSelectApplication(application.applicationId ?? application.id)}>{application.title}</button>) : <i>No owned Application</i>}</div></div>; })}</section><div className="group-heading application-list-heading"><h2>Owned Applications</h2><span>{applications.length}</span></div><div className="application-grid">{applications.map((application) => {
     const architecture = application.metadata.architecture as Record<string, unknown> | undefined;
-    const internal = application.metadata.application as Record<string, unknown> | undefined;
     const systems = realizedSystemResponsibilities(application, fullSnapshot);
-    return <button key={application.id} className="application-card" onClick={() => onSelectApplication(application.id)}><span className="concept-type"><i style={{ background: TYPE_COLORS.Application }} />{String(architecture?.kind ?? "Application")}</span><h2>{application.title}</h2><p>{application.description}</p><div className="realization-list"><small>Realizes</small>{systems.length ? systems.map((system) => <span key={system.id}>{system.title}</span>) : <span className="missing">No System Design responsibility linked</span>}</div><dl><dt>Internal style</dt><dd>{String(internal?.architecture_style ?? "To define")}</dd><dt>Runtime</dt><dd>{Array.isArray(architecture?.runtime) ? architecture.runtime.join(", ") : "To define"}</dd></dl></button>;
+    return <div className="concept-card-shell application-card-shell" key={application.id}><button className="application-card" onClick={() => onSelectApplication(application.applicationId ?? application.id)}><span className="concept-type"><i style={{ background: TYPE_COLORS.Application }} />{String(architecture?.["application-kind"] ?? "Application")}</span><h2>{application.title}</h2><p>{application.description}</p><div className="realization-list"><small>Realizes</small>{systems.length ? systems.map((system) => <span key={system.id}>{system.title}</span>) : <span className="missing">No System Design responsibility linked</span>}</div><dl><dt>Stable ID</dt><dd><code>{application.applicationId}</code></dd><dt>Independently deployable</dt><dd>{architecture?.["independently-deployable"] === true ? "Yes" : "No"}</dd></dl></button><ConceptSourceAction concept={application} /></div>;
   })}</div></div>;
 }
 
 function ApplicationCanvas({ snapshot, fullSnapshot, selectedApplicationId }: { snapshot: ProjectSnapshot; fullSnapshot: ProjectSnapshot; selectedApplicationId: string | undefined }) {
-  const application = fullSnapshot.concepts.find((concept) => concept.id === selectedApplicationId && concept.type === "Application");
+  const application = fullSnapshot.concepts.find((concept) => (concept.id === selectedApplicationId || concept.applicationId === selectedApplicationId) && concept.type === "Application");
   if (!application) return <div className="purpose-canvas application-portfolio"><div className="purpose-intro"><span className="eyebrow">Application Architecture</span><h1>Select an Application in Architecture</h1><p>Application Architecture requires an owned Application scope.</p></div></div>;
   const architecture = application.metadata.architecture as Record<string, unknown> | undefined;
-  const internal = application.metadata.application as Record<string, unknown> | undefined;
   const systems = realizedSystemResponsibilities(application, fullSnapshot);
   const localArtifacts = snapshot.concepts.filter((concept) => concept.id !== application.id && concept.type !== "Definition Layer");
-  return <div className="purpose-canvas application-detail"><div className="application-detail-hero"><div className="purpose-intro"><span className="eyebrow">Selected Application · Application Architecture</span><h1>{application.title}</h1><p>{application.description}</p></div><div className="application-facts"><div><small>Kind</small><strong>{String(architecture?.kind ?? "Application")}</strong></div><div><small>Internal style</small><strong>{String(internal?.architecture_style ?? "To define")}</strong></div><div><small>Runtime</small><strong>{Array.isArray(architecture?.runtime) ? architecture.runtime.join(", ") : "To define"}</strong></div><div><small>Deployable</small><strong>{architecture?.deployable === true ? "Yes" : "No"}</strong></div></div></div>
-    <section className="application-realization"><div className="group-heading"><h2>Realized System Design responsibilities</h2><span>{systems.length}</span></div><div className="realized-system-cards">{systems.map((system) => <article key={system.id}><span className="concept-type"><i style={{ background: TYPE_COLORS[system.type] ?? "var(--accent)" }} />{system.type}</span><strong>{system.title}</strong><p>{system.description}</p></article>)}</div></section>
+  return <div className="purpose-canvas application-detail"><div className="application-detail-hero"><div className="purpose-intro"><span className="eyebrow">Selected Application · Application Architecture</span><h1>{application.title}</h1><p>{application.description}</p></div><div className="application-facts"><div><small>Stable ID</small><strong>{application.applicationId}</strong></div><div><small>Kind</small><strong>{String(architecture?.["application-kind"] ?? "Application")}</strong></div><div><small>Independently deployable</small><strong>{architecture?.["independently-deployable"] === true ? "Yes" : "No"}</strong></div></div></div>
+    <section className="application-realization"><div className="group-heading"><h2>Realized System Design responsibilities</h2><span>{systems.length}</span></div><div className="realized-system-cards">{systems.map((system) => <article className="concept-card-shell" key={system.id}><ConceptSourceAction concept={system} /><span className="concept-type"><i style={{ background: TYPE_COLORS[system.type] ?? "var(--accent)" }} />{system.type}</span><strong>{system.title}</strong><p>{system.description}</p></article>)}</div></section>
     <section><div className="group-heading"><h2>Canonical Application Architecture document</h2><span>OKF</span></div><ExpandableDocument concept={application} /></section>
     {localArtifacts.length > 0 && <section><div className="group-heading"><h2>Application-local architecture artifacts</h2><span>{localArtifacts.length}</span></div><div className="business-document-list">{localArtifacts.map((concept) => <ExpandableDocument concept={concept} key={concept.id} />)}</div></section>}
   </div>;
@@ -650,14 +747,14 @@ function HandoffCanvas({ snapshot, layer, selectedId, onSelect }: { snapshot: Pr
   return <div className="purpose-canvas handoff-canvas"><div className="purpose-intro"><span className="eyebrow">{layer} handoff</span><h1>{layer === "implementation" ? "Package work for a coding agent" : "Define delivery without executing it"}</h1><p>{layer === "implementation" ? "M21 assembles accepted Code Design and the selected Application Components' executable Gherkin feature sets as the primary implementation testing contract." : "M21 defines environments, topology, rollout, rollback, observability, and evidence. A coding or delivery agent realizes it."}</p></div>
     <div className="handoff-status"><strong>Definition package</strong><span>{snapshot.concepts.length} relevant concepts</span><span>{snapshot.diagnostics.length} unresolved diagnostics</span></div>
     {layer === "implementation" && <section className="implementation-features"><div className="group-heading"><h2>Required executable Gherkin</h2><span>{requiredFeatures.length} feature files</span></div><div>{requiredFeatures.map((feature) => <code key={feature}>{feature}</code>)}</div><p>Implementation must satisfy these Component-owned features. Focused lower-level tests supplement rather than replace them.</p></section>}
-    <div className="document-grid">{snapshot.concepts.filter((c) => c.type !== "Definition Layer").map((concept) => <button className={`document-card ${selectedId === concept.id ? "selected" : ""}`} key={concept.id} onClick={() => onSelect(concept.id)}><small>{concept.type}</small><strong>{concept.title}</strong><p>{concept.description}</p></button>)}</div>
+    <div className="document-grid">{snapshot.concepts.filter((c) => c.type !== "Definition Layer").map((concept) => <div className="concept-card-shell" key={concept.id}><button className={`document-card ${selectedId === concept.id ? "selected" : ""}`} onClick={() => onSelect(concept.id)}><small>{concept.type}</small><strong>{concept.title}</strong><p>{concept.description}</p></button><ConceptSourceAction concept={concept} /></div>)}</div>
   </div>;
 }
 
-function PurposeCanvas({ layer, snapshot, fullSnapshot, selectedId, onSelect, selectedApplicationId, onSelectApplication, onGenerateTheme, busy }: { layer: string | undefined; snapshot: ProjectSnapshot; fullSnapshot: ProjectSnapshot; selectedId: string | undefined; onSelect: (id: string) => void; selectedApplicationId: string | undefined; onSelectApplication: (id: string) => void; onGenerateTheme: (conceptId: string) => void; busy: boolean }) {
+function PurposeCanvas({ layer, snapshot, fullSnapshot, selectedId, onSelect, onFollowConcept, selectedApplicationId, onSelectApplication }: { layer: string | undefined; snapshot: ProjectSnapshot; fullSnapshot: ProjectSnapshot; selectedId: string | undefined; onSelect: (id: string) => void; onFollowConcept: (concept: Concept) => void; selectedApplicationId: string | undefined; onSelectApplication: (id: string) => void }) {
   const projection = layer ? projectionForLayer(layer) : undefined;
-  if (projection === "documents" && layer) return <DocumentCanvas snapshot={snapshot} layer={layer} selectedId={selectedId} onSelect={onSelect} />;
-  if (projection === "design-system") return <DesignCanvas snapshot={snapshot} fullSnapshot={fullSnapshot} selectedId={selectedId} onSelect={onSelect} onGenerateTheme={onGenerateTheme} busy={busy} />;
+  if (projection === "documents" && layer) return <DocumentCanvas snapshot={snapshot} fullSnapshot={fullSnapshot} layer={layer} selectedId={selectedId} onSelect={onSelect} onFollowConcept={onFollowConcept} />;
+  if (projection === "design-system") return <VisualDesignCanvas fullSnapshot={fullSnapshot} onFollow={onFollowConcept} />;
   if (projection === "system-architecture") return <SystemCanvas snapshot={snapshot} />;
   if (projection === "application-portfolio") return <ArchitectureCanvas fullSnapshot={fullSnapshot} onSelectApplication={onSelectApplication} />;
   if (projection === "application-architecture") return <ApplicationCanvas snapshot={snapshot} fullSnapshot={fullSnapshot} selectedApplicationId={selectedApplicationId} />;
@@ -674,7 +771,7 @@ function StageRail({ stages, selected, counts, onSelect }: {
   counts: Map<string, number>;
   onSelect: (stage: string | undefined) => void;
 }) {
-  const productWide = ["business", "product", "design", "system", "architecture"]
+  const productWide = ["business", "solution", "product", "visual-design", "design", "system", "architecture"]
     .map((id) => stages.find((stage) => stage.id === id))
     .filter((stage): stage is DefinitionLayer => stage !== undefined);
   const applicationSelected = selected !== undefined && APPLICATION_SCOPED_LAYERS.includes(selected as typeof APPLICATION_SCOPED_LAYERS[number]);
@@ -697,7 +794,7 @@ function ApplicationScopeRail({ stages, applications, selectedApplicationId, sel
     .map((id) => stages.find((stage) => stage.id === id))
     .filter((stage): stage is DefinitionLayer => stage !== undefined);
   return <nav className="application-scope-rail" aria-label="Selected Application definition flow">
-    <label><span>Application scope</span><select value={selectedApplicationId ?? ""} onChange={(event) => onSelectApplication(event.target.value)}><option value="">Select an Application…</option>{applications.map((application) => <option value={application.id} key={application.id}>{application.title}</option>)}</select></label>
+    <label><span>Application scope</span><select value={selectedApplicationId ?? ""} onChange={(event) => onSelectApplication(event.target.value)}><option value="">Select an Application…</option>{applications.map((application) => <option value={application.applicationId ?? application.id} key={application.id}>{application.title}</option>)}</select></label>
     <div className="application-layer-tabs">{scopedStages.map((stage) => <button key={stage.id} className={selectedLayer === stage.id ? "selected" : ""} disabled={!selectedApplicationId && stage.id !== "application"} onClick={() => onSelectLayer(stage.id)}><strong>{stage.shortTitle}</strong><small>{counts.get(stage.id) ?? 0}</small></button>)}</div>
   </nav>;
 }
@@ -837,6 +934,7 @@ function Inspector({ concept, snapshot, stage, onProposal, onAgentProposal }: {
 
   return <aside className="inspector" aria-label={`Focused concept: ${concept.title}`}>
     <div className="inspector-scroll">
+      <ConceptSourceAction concept={concept} />
       <span className="concept-type"><i style={{ background: TYPE_COLORS[concept.type] ?? "#718096" }} />{concept.type}</span>
       <h2>{concept.title}</h2>
       <code>{concept.id}</code>
@@ -882,6 +980,9 @@ function App() {
   const [globalGraphOpen, setGlobalGraphOpen] = useState(
     () => new URLSearchParams(window.location.search).get("view") === "graph",
   );
+  const [debugMode, setDebugMode] = useState(false);
+  const [rawModalOpen, setRawModalOpen] = useState(false);
+  const [rawSourceConceptId, setRawSourceConceptId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [summary, setSummary] = useState("");
@@ -890,11 +991,14 @@ function App() {
     api<ProjectSnapshot>("/api/project").then((project) => {
       setSnapshot(project);
     }).catch((failure) => setError(failure instanceof Error ? failure.message : String(failure)));
+    const events = new EventSource("/api/events");
+    events.addEventListener("project", (event) => {
+      try { setSnapshot(JSON.parse((event as MessageEvent<string>).data) as ProjectSnapshot); }
+      catch { setError("M21 received an invalid project update"); }
+    });
+    events.onerror = () => setError("Live project updates are temporarily disconnected");
+    return () => events.close();
   }, []);
-
-  useEffect(() => {
-    if (snapshot) applyProjectTheme(snapshot);
-  }, [snapshot]);
 
   const stages = useMemo(() => snapshot ? definitionLayers(snapshot.concepts) : [], [snapshot]);
   const applications = useMemo(() => snapshot ? applicationScopes(snapshot.concepts) : [], [snapshot]);
@@ -924,8 +1028,15 @@ function App() {
   })), [snapshot, selectedApplicationId, applications]);
 
   useEffect(() => {
+    if (!rawModalOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setRawModalOpen(false); };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [rawModalOpen]);
+
+  useEffect(() => {
     if (!snapshot) return;
-    if (selectedApplicationId && !applications.some((application) => application.id === selectedApplicationId)) {
+    if (selectedApplicationId && !applications.some((application) => application.id === selectedApplicationId || application.applicationId === selectedApplicationId)) {
       setSelectedApplicationId(undefined);
       const url = new URL(window.location.href);
       url.searchParams.delete("app");
@@ -949,8 +1060,10 @@ function App() {
       return;
     }
     const preferredType: Record<string, string> = {
-      business: "Business Goal",
+      business: "Business Outcome",
+      solution: "Solution Proposition",
       product: "Product Definition",
+      "visual-design": "Visual Theme",
       design: "Visual Language",
       system: "System",
       architecture: "Application",
@@ -969,6 +1082,10 @@ function App() {
   }, [scopedSnapshot, selectedId, selectedStage, stages, applicationLayerSelected, globalGraphOpen]);
 
   const select = React.useCallback((id: string) => setSelectedId(id), []);
+  const inspectSource = React.useCallback((concept: Concept) => {
+    setRawSourceConceptId(concept.id);
+    setRawModalOpen(true);
+  }, []);
   const selectLayer = React.useCallback((layer: string | undefined) => {
     setSelectedId(undefined);
     setSelectedStage(layer);
@@ -977,18 +1094,34 @@ function App() {
     else url.searchParams.delete("layer");
     window.history.replaceState({}, "", url);
   }, []);
+  const followConcept = React.useCallback((concept: Concept) => {
+    const requestedArea = conceptArea(concept);
+    const routeArea = stages.some((stage) => stage.id === requestedArea) ? requestedArea : requestedArea === "solution" ? "product" : requestedArea === "visual-design" ? "design" : requestedArea;
+    if (stages.some((stage) => stage.id === routeArea)) {
+      setSelectedStage(routeArea);
+      const url = new URL(window.location.href);
+      url.searchParams.set("layer", routeArea);
+      window.history.replaceState({}, "", url);
+    } else {
+      setGlobalGraphOpen(true);
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", "graph");
+      window.history.replaceState({}, "", url);
+    }
+    setSelectedId(concept.id);
+  }, [stages]);
   const selectApplication = React.useCallback((applicationId: string) => {
     const nextApplicationId = applicationId || undefined;
     const nextLayer = nextApplicationId ? (applicationLayerSelected ? selectedStage ?? "application" : "application") : "architecture";
     setSelectedApplicationId(nextApplicationId);
     setSelectedStage(nextLayer);
-    setSelectedId(nextApplicationId);
+    setSelectedId(applications.find((application) => application.id === nextApplicationId || application.applicationId === nextApplicationId)?.id);
     const url = new URL(window.location.href);
     url.searchParams.set("layer", nextLayer);
     if (nextApplicationId) url.searchParams.set("app", nextApplicationId);
     else url.searchParams.delete("app");
     window.history.replaceState({}, "", url);
-  }, [applicationLayerSelected, selectedStage]);
+  }, [applicationLayerSelected, selectedStage, applications]);
   const setGlobalGraph = React.useCallback((open: boolean) => {
     setGlobalGraphOpen(open);
     const url = new URL(window.location.href);
@@ -999,6 +1132,7 @@ function App() {
   if (error && !snapshot) return <main className="fatal"><h1>Unable to open M21</h1><p>{error}</p></main>;
   if (!snapshot || !scopedSnapshot) return <main className="loading"><span className="brand-mark">M21</span><p>Opening product knowledge…</p></main>;
   const selected = snapshot.concepts.find((concept) => concept.id === selectedId);
+  const rawSourceConcept = snapshot.concepts.find((concept) => concept.id === rawSourceConceptId);
 
   async function acceptProposal() {
     if (!proposal) return;
@@ -1018,28 +1152,12 @@ function App() {
     catch (failure) { setError(failure instanceof Error ? failure.message : String(failure)); }
   }
 
-  async function generateTheme(conceptId: string) {
-    setBusy(true); setError("");
-    try {
-      const nextProposal = await api<ChangeProposal>("/api/agent", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          conceptId,
-          stage: "design",
-          instruction: "Generate a complete semantic M21 theme from the accepted visual-language, accessibility, and design-foundation context. Preserve Visual Design organization metadata.",
-        }),
-      });
-      setProposal(nextProposal);
-    } catch (failure) { setError(failure instanceof Error ? failure.message : String(failure)); }
-    finally { setBusy(false); }
-  }
-
-  const documentFocus = selectedStage === "business" || selectedStage === "product" || selectedStage === "design" || selectedStage === "system" || selectedStage === "architecture" || applicationLayerSelected;
-  return <div className={`app-shell ${documentFocus ? "document-focus" : ""} ${applicationLayerSelected ? "application-context" : ""} ${globalGraphOpen ? "global-graph-open" : ""}`}>
+  const documentFocus = selectedStage === "business" || selectedStage === "solution" || selectedStage === "product" || selectedStage === "visual-design" || selectedStage === "design" || selectedStage === "system" || selectedStage === "architecture" || applicationLayerSelected;
+  return <DebugSourceContext.Provider value={{ enabled: debugMode, inspect: inspectSource }}><div className={`app-shell ${documentFocus ? "document-focus" : ""} ${applicationLayerSelected ? "application-context" : ""} ${globalGraphOpen ? "global-graph-open" : ""}`}>
     <header className="topbar">
       <div className="brand"><span className="brand-mark">M21</span><div><strong>{snapshot.name}</strong><small>Product engineering workspace</small></div></div>
       <div className="project-health">
+        <button className={`debug-mode-action ${debugMode ? "selected" : ""}`} onClick={() => { setDebugMode(!debugMode); if (debugMode) { setRawModalOpen(false); setRawSourceConceptId(undefined); } }} aria-pressed={debugMode} title="Show source actions on every Concept" aria-label={`Global debug mode ${debugMode ? "on" : "off"}`}><span aria-hidden="true">&lt;/&gt;</span>{debugMode ? "Debug on" : "Debug"}</button>
         <button className={`global-graph-action ${globalGraphOpen ? "selected" : ""}`} onClick={() => setGlobalGraph(!globalGraphOpen)} aria-pressed={globalGraphOpen}><span className="graph-action-icon" aria-hidden="true">✣</span>{globalGraphOpen ? "Return to workspace" : "Global graph"}</button>
         <button className="attention" onClick={() => setSelectedId(snapshot.diagnostics[0]?.conceptIds[0])} disabled={!snapshot.diagnostics.length}>
           <span>{snapshot.diagnostics.length}</span> needs attention
@@ -1053,13 +1171,14 @@ function App() {
     {!documentFocus && <ConceptNavigator concepts={scopedSnapshot.concepts} selectedId={selectedId} onSelect={select} />}
     <main className="canvas-region">
       <div className="canvas-toolbar"><span><strong>{selectedStage ? `${stages.find((stage) => stage.id === selectedStage)?.title ?? selectedStage} definition` : "Product overview"}</strong> · {scopedSnapshot.concepts.length} concepts · {scopedSnapshot.edges.length} relationships</span><span className="quiet">Concept types remain independent of definition layers</span></div>
-      <PurposeCanvas layer={selectedStage} snapshot={scopedSnapshot} fullSnapshot={snapshot} selectedId={selectedId} onSelect={select} selectedApplicationId={selectedApplicationId} onSelectApplication={selectApplication} onGenerateTheme={generateTheme} busy={busy} />
+      <PurposeCanvas layer={selectedStage} snapshot={scopedSnapshot} fullSnapshot={snapshot} selectedId={selectedId} onSelect={select} onFollowConcept={followConcept} selectedApplicationId={selectedApplicationId} onSelectApplication={selectApplication} />
       {proposal && <div className="review-drawer"><ProposalReview proposal={proposal} snapshot={snapshot} onAccept={acceptProposal} busy={busy} /></div>}
       {summary && <div className="summary-drawer"><div className="drawer-heading"><div><span className="eyebrow">Generated view{selectedStage ? ` · ${selectedStage}` : ""}</span><h2>Project summary</h2></div><button onClick={() => setSummary("")}>Close</button></div><pre>{summary}</pre></div>}
       {error && <div className="toast error" role="alert">{error}<button onClick={() => setError("")}>Dismiss</button></div>}
     </main>
     {!documentFocus && <Inspector concept={selected} snapshot={snapshot} stage={selectedStage} onProposal={setProposal} onAgentProposal={setProposal} />}
-  </div>;
+    {rawModalOpen && rawSourceConcept && <div className="raw-source-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setRawModalOpen(false); }}><section className="raw-source-modal" role="dialog" aria-modal="true" aria-labelledby="raw-source-title"><header><div><span className="eyebrow">Global debug mode · canonical source</span><h2 id="raw-source-title">{rawSourceConcept.filePath}</h2></div><button onClick={() => setRawModalOpen(false)} aria-label="Close raw Markdown">Close</button></header><pre><code>{rawSourceConcept.raw}</code></pre></section></div>}
+  </div></DebugSourceContext.Provider>;
 }
 
 createRoot(document.getElementById("root")!).render(<React.StrictMode><App /></React.StrictMode>);

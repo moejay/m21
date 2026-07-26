@@ -1,15 +1,12 @@
 ---
-type: System Service
+type: System Responsibility
 title: Knowledge Workspace
 description: The human-facing system boundary for navigating, reading, and shaping product knowledge through purpose-built definition views.
 tags: [architecture, system, workspace, interaction]
-status: active
-sdlc: [system]
+area: system
 system:
-  kind: subsystem
-  group: experience
+  section: responsibilities
   boundary: owned
-  criticality: high
 relationships:
   - type: part-of
     target: /architecture/systems/m21-workspace.md
@@ -28,7 +25,7 @@ Provide the human interaction boundary for M21 without making the graph the univ
 - Select and project Business-to-Deployment definition layers.
 - Present canonical OKF documents, architecture maps, contracts, and handoffs.
 - Preserve user control over proposals and accepted knowledge.
-- Apply the active product Visual Language as the workspace theme.
+- Preview accepted Visual Themes without applying one to workspace chrome until a separate explicit user action exists.
 - Expose generated views without replacing their source concepts.
 
 # Boundary

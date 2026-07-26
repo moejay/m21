@@ -3,12 +3,11 @@ type: Business Capability
 title: Product Knowledge Governance
 description: Maintain one portable, reviewable, traceable understanding of a software product across disciplines.
 tags: [business, capability, governance]
-status: active
-sdlc: [business]
+area: business
 business:
   section: capabilities
 relationships:
-  - type: realizes
+  - type: supports
     target: /business/coherent-product-understanding.md
   - type: addresses
     target: /business/problems/fragmented-product-knowledge.md

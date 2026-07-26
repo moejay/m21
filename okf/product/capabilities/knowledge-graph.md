@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: Non-Linear Knowledge Graph
 description: Explore and evolve connected product knowledge from any point without following a mandatory sequence.
 tags: [mvp, graph, navigation, traceability]
-status: draft
-sdlc: [product, components, code-design, implementation, deployment]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of

@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import YAML from "yaml";
-import type { Concept, ConceptRevision, Diagnostic, TypedRelationship } from "../domain/model.js";
+import type { Concept, ConceptRevision, Diagnostic, TypedRelationship, VisualArtifact, VisualArtifactRole } from "../domain/model.js";
 
 export interface LoadedProject {
   root: string;
@@ -33,6 +33,8 @@ export class OkfRepository {
         const parsed = parseDocument(content);
         const type = typeof parsed.metadata.type === "string" ? parsed.metadata.type : "Unknown";
         const id = relativePath.replace(/\.md$/, "");
+        const parsedRelationships = relationships(parsed.metadata.relationships, id, diagnostics);
+        const artifacts = await loadVisualArtifacts(root, parsed.metadata, id, diagnostics, hash);
         concepts.push({
           id,
           filePath: relativePath,
@@ -40,11 +42,14 @@ export class OkfRepository {
           title: stringValue(parsed.metadata.title) || path.basename(id),
           description: stringValue(parsed.metadata.description),
           body: parsed.body,
-          ...(typeof parsed.metadata.status === "string" ? { status: parsed.metadata.status } : {}),
+          raw: content,
           tags: stringArray(parsed.metadata.tags),
           owners: stringArray(parsed.metadata.owners),
+          ...(typeof parsed.metadata.area === "string" ? { area: parsed.metadata.area } : {}),
+          ...(typeof parsed.metadata["application-id"] === "string" ? { applicationId: parsed.metadata["application-id"] } : {}),
           sdlc: stringArray(parsed.metadata.sdlc),
-          relationships: relationships(parsed.metadata.relationships),
+          relationships: parsedRelationships,
+          artifacts,
           metadata: parsed.metadata,
         });
         if (type === "Unknown") {
@@ -83,7 +88,6 @@ export class OkfRepository {
 
     if (changes.title !== undefined) metadata.title = changes.title;
     if (changes.description !== undefined) metadata.description = changes.description;
-    if (changes.status !== undefined) metadata.status = changes.status;
     if (changes.relationships !== undefined) metadata.relationships = changes.relationships;
     if (changes.design !== undefined) metadata.design = changes.design;
     const body = changes.body ?? parsed.body;
@@ -118,11 +122,81 @@ function parseDocument(content: string): ParsedDocument {
   return { metadata: metadata as Record<string, unknown>, body: match[2] ?? "" };
 }
 
+async function loadVisualArtifacts(
+  root: string,
+  metadata: Record<string, unknown>,
+  conceptId: string,
+  diagnostics: Diagnostic[],
+  hash: ReturnType<typeof createHash>,
+): Promise<VisualArtifact[]> {
+  if (metadata.area !== "visual-design") return [];
+  const namespace = objectValue(metadata["visual-design"]);
+  if (!namespace) return [];
+  const sources: Array<{ field: string; role: VisualArtifactRole }> = [
+    { field: "css-source", role: "css" },
+    { field: "html-source", role: "html" },
+    { field: "script-source", role: "script" },
+    { field: "asset-source", role: "asset" },
+  ];
+  const artifacts: VisualArtifact[] = [];
+  for (const source of sources) {
+    const candidate = namespace[source.field];
+    if (typeof candidate !== "string" || !isBundleArtifactPath(candidate)) continue;
+    const destination = safeArtifactPath(root, candidate);
+    try {
+      const content = await readFile(destination);
+      const encoding = source.role === "asset" ? "base64" : "utf8";
+      artifacts.push({
+        role: source.role,
+        path: candidate,
+        mediaType: mediaType(candidate),
+        content: content.toString(encoding),
+        encoding,
+      });
+      hash.update(candidate).update("\0").update(content).update("\0");
+    } catch {
+      hash.update(candidate).update("\0missing\0");
+      diagnostics.push({
+        code: "missing-visual-artifact",
+        severity: "error",
+        message: `${conceptId} references missing or unreadable ${source.field} ${candidate}.`,
+        conceptIds: [conceptId],
+      });
+    }
+  }
+  return artifacts;
+}
+
 function safeConceptPath(root: string, relativePath: string): string {
   const destination = path.resolve(root, relativePath);
   const relative = path.relative(root, destination);
   if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error("concept path escapes project bundle");
   return destination;
+}
+
+function safeArtifactPath(root: string, bundlePath: string): string {
+  const destination = path.resolve(root, bundlePath.slice(1));
+  const relative = path.relative(root, destination);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error("artifact path escapes project bundle");
+  return destination;
+}
+
+function isBundleArtifactPath(value: string): boolean {
+  return value.startsWith("/") && !value.includes("\\") && !value.includes("//") && !value.split("/").some((segment) => segment === "..");
+}
+
+function mediaType(source: string): string {
+  const extension = path.extname(source).toLowerCase();
+  return ({
+    ".css": "text/css", ".html": "text/html", ".js": "text/javascript", ".svg": "image/svg+xml",
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
+    ".gif": "image/gif", ".avif": "image/avif", ".woff": "font/woff", ".woff2": "font/woff2",
+    ".ttf": "font/ttf", ".otf": "font/otf",
+  } as Record<string, string>)[extension] ?? "application/octet-stream";
+}
+
+function objectValue(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
 }
 
 function stringValue(value: unknown): string {
@@ -133,17 +207,53 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
-function relationships(value: unknown): TypedRelationship[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((candidate) => {
-    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+function relationships(value: unknown, conceptId: string, diagnostics: Diagnostic[]): TypedRelationship[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) {
+    diagnostics.push(relationshipDiagnostic(conceptId, "relationships must be a list"));
+    return [];
+  }
+  return value.flatMap((candidate, index) => {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+      diagnostics.push(relationshipDiagnostic(conceptId, `relationship ${index + 1} must be a mapping`));
+      return [];
+    }
     const item = candidate as Record<string, unknown>;
-    if (typeof item.type !== "string" || typeof item.target !== "string") return [];
+    if (typeof item.type !== "string" || !item.type.trim()) {
+      diagnostics.push(relationshipDiagnostic(conceptId, `relationship ${index + 1} requires a non-empty type`));
+      return [];
+    }
+    if (typeof item.target !== "string" || !isPortableRelationshipTarget(item.target)) {
+      diagnostics.push(relationshipDiagnostic(conceptId, `relationship ${index + 1} target must be an absolute bundle-relative Markdown path`));
+      return [];
+    }
+    if (item.rationale !== undefined && typeof item.rationale !== "string") {
+      diagnostics.push(relationshipDiagnostic(conceptId, `relationship ${index + 1} rationale must be a string`));
+      return [];
+    }
+    if (item.evidence !== undefined && (!Array.isArray(item.evidence) || item.evidence.some((entry) => typeof entry !== "string" || !isPortableRelationshipTarget(entry)))) {
+      diagnostics.push(relationshipDiagnostic(conceptId, `relationship ${index + 1} evidence must contain absolute bundle-relative Markdown paths`));
+      return [];
+    }
     return [{
-      type: item.type,
+      type: item.type.trim(),
       target: item.target,
       ...(typeof item.rationale === "string" ? { rationale: item.rationale } : {}),
       ...(Array.isArray(item.evidence) ? { evidence: stringArray(item.evidence) } : {}),
     }];
   });
+}
+
+function isPortableRelationshipTarget(target: string): boolean {
+  if (!target.startsWith("/") || !target.endsWith(".md") || target.includes("\\")) return false;
+  return !target.split("/").includes("..");
+}
+
+function relationshipDiagnostic(conceptId: string, detail: string): Diagnostic {
+  return {
+    code: "invalid-relationship",
+    severity: "error",
+    message: `${conceptId}: ${detail}.`,
+    conceptIds: [conceptId],
+  };
 }

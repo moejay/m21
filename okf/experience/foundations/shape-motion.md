@@ -1,14 +1,12 @@
 ---
-type: Design Foundation
-title: Shape, Spacing, and Motion
-description: Modest radii, deliberate grouping, compact rhythm, and short transitions that preserve spatial context.
-tags: [design, spacing, shape, motion, visual-language]
-status: active
-sdlc: [design]
-design:
-  section: visual-language
-  platforms: [web, cross-platform]
-  group: foundations
+type: Shape System
+title: Shape System
+description: Modest radii and recurring geometry soften major working surfaces without turning every artifact into a decorative card.
+tags: [visual-design, shape, geometry]
+area: visual-design
+visual-design:
+  section: foundations
+  css-source: /visual-design/styles/shape.css
 relationships:
   - type: part-of
     target: /experience/visual-language.md
@@ -16,16 +14,8 @@ relationships:
     target: /experience/accessibility.md
 ---
 
-# Shape, spacing, and motion
+# Shape system
 
-## Shape
+Modest radii soften working surfaces without making every artifact feel like a consumer card. Crisp geometry and clear grouping carry more structure than decoration. Larger radii are reserved for major containers; compact controls and nested context use smaller radii.
 
-Modest radii soften working surfaces without making every artifact feel like a consumer card. Crisp borders carry more structure than shadows. Larger radii are reserved for major containers.
-
-## Spacing
-
-Spacing communicates hierarchy. Related controls remain compact, document content breathes, and groups are separated by stronger intervals than items within a group.
-
-## Motion
-
-Transitions explain state changes and preserve spatial context. They are short, interruptible, and unnecessary to understand the result. Reduced-motion preferences disable nonessential animation.
+Shape must reinforce hierarchy without becoming a substitute for semantic labels, state, or ownership.

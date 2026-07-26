@@ -3,7 +3,6 @@ type: Screen
 title: Change Review
 description: Review proposed graph mutations and their directional impact before canonical persistence.
 tags: [screen, change, impact, review]
-status: draft
 sdlc: [design, components, code-design, implementation, deployment]
 design:
   section: screens

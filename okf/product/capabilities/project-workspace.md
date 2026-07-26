@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: OKF Project Workspace
 description: Create, open, inspect, and safely persist a portable OKF-backed product project.
 tags: [mvp, okf, workspace, persistence]
-status: draft
-sdlc: [product, components, code-design, implementation, deployment]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of

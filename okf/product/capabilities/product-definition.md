@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: Product Definition
 description: Connect product intent, users, outcomes, capabilities, constraints, and measures in the shared graph.
 tags: [mvp, business, product, discovery]
-status: draft
-sdlc: [product]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of

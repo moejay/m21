@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: SDLC Definition Flow
 description: Drive product engineering through Business, Product, Visual Design, System Design, Architecture, Application Architecture, Components, Code Design, Implementation, and Deployment views.
 tags: [mvp, sdlc, workflow, navigation]
-status: draft
-sdlc: [product, components, code-design, implementation, deployment]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of

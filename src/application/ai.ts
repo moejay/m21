@@ -100,7 +100,6 @@ function contextConcept(concept: Concept, bodyLimit: number) {
     type: concept.type,
     title: concept.title,
     description: concept.description,
-    status: concept.status,
     body: concept.body.slice(0, bodyLimit),
     relationships: concept.relationships,
     design: concept.metadata.design,

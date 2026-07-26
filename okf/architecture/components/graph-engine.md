@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: project-service
 title: Product Graph Engine
 description: Builds and queries the typed graph from normalized OKF concepts.
 tags: [architecture, component, graph, query]
-status: active
 sdlc: [components, implementation]
 components:
   section: components

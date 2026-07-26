@@ -3,20 +3,15 @@ type: Application
 title: Local Project Service
 description: The loopback service that coordinates OKF persistence and product-knowledge operations.
 tags: [architecture, application, service, local-first]
-status: active
-sdlc: [architecture, application, components, code-design, implementation, deployment]
+area: architecture
+application-id: project-service
 architecture:
   section: applications
-  kind: backend-service
-  group: workspace
-  runtime: [nodejs]
-  deployable: true
-application:
-  section: architecture
-  architecture_style: layered
+  application-kind: backend-service
+  independently-deployable: true
 relationships:
   - type: part-of
-    target: /architecture/systems/m21-workspace.md
+    target: /architecture/m21-architecture.md
   - type: realizes
     target: /architecture/systems/product-knowledge-runtime.md
   - type: realizes
@@ -29,7 +24,8 @@ relationships:
 
 # Responsibilities
 
-- Open one configured project bundle and expose a stable project snapshot
+- Open one configured project bundle, resolve admitted linked artifacts, and expose a stable project snapshot
+- Watch canonical project files and publish complete accepted snapshots after external changes
 - Translate semantic commands and queries between the browser and domain components
 - Serialize accepted writes to avoid partial graph state
 - Reassess diagnostics and impact after accepted changes

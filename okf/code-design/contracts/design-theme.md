@@ -1,9 +1,9 @@
 ---
 type: Code Contract
-title: Semantic Theme Contract
-description: Safe projection of accepted Visual Language tokens into M21 workspace variables and generated component previews.
+application-id: browser-workspace
+title: Visual Theme Composition Contract
+description: Deterministic composition of accepted linked Visual Design CSS into isolated theme and component previews.
 tags: [code-design, contract, theme, design-system]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: contracts
@@ -20,18 +20,15 @@ relationships:
     target: /experience/accessibility.md
 ---
 
-# Token classes
+# Composition
 
-- Semantic color roles for canvas, surfaces, text, borders, accent, chrome, status, and contrast
-- Interface and structured typography families
-- Small, medium, and large shape radii
-- Shared elevation shadow
+An accepted Visual Theme links one canonical CSS entry point. Local imports compose accepted foundation CSS in explicit CSS order. One inline `m21-css` block follows linked theme CSS. Component linked and inline CSS then follow the theme before effective component HTML and optional demonstration script.
 
 # Invariants
 
-- Only an active Visual Language may become the theme source.
-- AI-generated tokens remain inert until their proposal is accepted.
-- Values must pass the relevant color, font, radius, or shadow syntax check before application.
-- Unknown tokens are preserved as design knowledge but ignored by unsupported consumers.
-- Theme failure falls back to readable workspace defaults.
-- The same accepted token source themes M21 and the generated component preview.
+- Only an accepted singularly owned Visual Theme may supply preview composition.
+- Linked artifacts are revision-bearing canonical knowledge; composed CSS is disposable.
+- Remote, escaping, missing, cyclic, or unsupported imports are diagnostic.
+- Component specimens run in isolation and cannot restyle the workspace shell.
+- Theme presence never styles M21 automatically; activation requires a separate explicit user action.
+- Composition failure falls back to readable document/card presentation.

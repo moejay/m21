@@ -1,0 +1,4 @@
+:root { --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px; --space-12: 48px; }
+.m21-spacing-scale { display: flex; gap: 14px; align-items: end; }
+.m21-spacing-scale i { display: block; width: 38px; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--surface)); }
+.m21-spacing-scale i:nth-child(1) { height: var(--space-2); }.m21-spacing-scale i:nth-child(2) { height: var(--space-3); }.m21-spacing-scale i:nth-child(3) { height: var(--space-4); }.m21-spacing-scale i:nth-child(4) { height: var(--space-8); }.m21-spacing-scale i:nth-child(5) { height: var(--space-12); }

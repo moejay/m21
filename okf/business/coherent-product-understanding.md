@@ -1,16 +1,15 @@
 ---
-type: Business Goal
+type: Business Outcome
 title: Coherent Product Understanding
 description: Help builders make faster, safer decisions by maintaining one traceable understanding of their product.
 tags: [business-goal, coherence, traceability]
-status: active
-sdlc: [business]
+area: business
 business:
   section: outcomes
 relationships:
-  - type: realizes
+  - type: supports
     target: /vision.md
-    rationale: Coherent shared understanding is the central outcome promised by the vision.
+    rationale: Coherent shared understanding advances the desired future direction.
   - type: serves
     target: /people/product-builder.md
   - type: serves

@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: browser-workspace
 title: Proposal Review Workspace
 description: Presents user and AI revisions as explicit reviewable changes before canonical OKF persistence.
 tags: [architecture, component, browser, proposals, review]
-status: active
 sdlc: [components, implementation]
 components:
   section: components

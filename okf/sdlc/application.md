@@ -6,7 +6,6 @@ stage: application
 order: 60
 description: Define the internal architecture, interfaces, data, dependency rules, and qualities of one selected owned Application.
 tags: [sdlc, application, architecture, boundaries]
-status: active
 sdlc: [application]
 relationships:
   - type: informed-by

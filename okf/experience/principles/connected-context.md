@@ -3,7 +3,6 @@ type: Experience Principle
 title: Context Before Output
 description: Show how knowledge connects and why guidance matters before producing more artifacts.
 tags: [experience, context, ai]
-status: draft
 sdlc: [design, components, code-design]
 design:
   section: principles

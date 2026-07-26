@@ -1,15 +1,12 @@
 ---
-type: System Data Store
+type: Logical Data Store
 title: OKF Project Store
 description: User-owned Markdown and YAML files that remain the canonical portable persistence boundary for all product knowledge.
 tags: [architecture, system, data, okf, local-first]
-status: active
-sdlc: [system]
+area: system
 system:
-  kind: data-store
-  group: data
+  section: data
   boundary: managed
-  criticality: critical
 relationships:
   - type: part-of
     target: /architecture/systems/m21-workspace.md

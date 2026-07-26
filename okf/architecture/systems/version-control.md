@@ -1,15 +1,12 @@
 ---
-type: External System
+type: External Dependency
 title: Version Control System
 description: An optional external system providing distribution, history, attribution, diff, and merge workflows for the OKF bundle.
 tags: [architecture, system, external, git]
-status: active
-sdlc: [system]
+area: system
 system:
-  kind: external-system
-  group: external-services
+  section: dependencies
   boundary: external
-  criticality: low
 relationships:
   - type: supports
     target: /architecture/systems/okf-project-store.md

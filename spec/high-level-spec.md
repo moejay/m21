@@ -24,7 +24,7 @@ Frontmatter schema
 ```yaml
 
 category: 'business'
-type: enum[mission|vision|problem|persona|outcome|regulation|constraint]
+type: enum[mission|vision|problem|persona|outcome|regulation|constraint|competition|tam|market-research|monetiziation]
 title: string
 description: string
 
@@ -33,6 +33,7 @@ description: string
 How to visualize:
 
 * Simple expandable cards , showing linked product category cards as summary
+
 
 
 # Product/Business Solution

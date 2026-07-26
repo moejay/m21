@@ -1,15 +1,12 @@
 ---
-type: External System
+type: External Dependency
 title: Coding and Delivery Agents
 description: External execution systems that consume accepted implementation or deployment handoffs and return evidence or correction proposals.
 tags: [architecture, system, external, agents, handoff]
-status: active
-sdlc: [system]
+area: system
 system:
-  kind: external-system
-  group: delivery
+  section: dependencies
   boundary: external
-  criticality: medium
 relationships:
   - type: depends-on
     target: /architecture/systems/view-generation-pipeline.md

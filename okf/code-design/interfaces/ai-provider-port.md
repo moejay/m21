@@ -1,9 +1,9 @@
 ---
 type: Code Interface
+application-id: project-service
 title: AI Provider Port
 description: Replaceable inference boundary accepting bounded accepted context and returning one structured suggestion without persistence authority.
 tags: [code-design, interface, ai, port]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: interfaces
@@ -36,7 +36,7 @@ A summary and supported complete Concept revision fields. The response is untrus
 - Empty response
 - Invalid structured output
 - Unsupported revision fields
-- Visual Design metadata outside an active Visual Language request
+- Legacy Visual Design metadata or direct linked-artifact mutation outside an accepted proposal contract
 
 # Invariants
 

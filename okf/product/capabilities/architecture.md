@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: Progressive Architecture
 description: Model systems, applications, interfaces, and components with traceability to product and design intent.
 tags: [mvp, architecture, systems, applications, components]
-status: draft
-sdlc: [product, components, code-design, implementation, deployment]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of

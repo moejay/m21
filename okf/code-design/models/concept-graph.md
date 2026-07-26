@@ -1,9 +1,9 @@
 ---
 type: Code Model
+application-id: project-service
 title: Concept Graph Model
 description: Normalized Concept, typed Relationship, resolved Edge, Diagnostic, and stable identity contracts used by product-knowledge operations.
 tags: [code-design, model, graph, okf]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: models
@@ -22,7 +22,7 @@ relationships:
 
 # Concept
 
-A Concept has stable bundle-relative identity, descriptive type, title, description, status, Markdown body, SDLC layer membership, typed relationships, source file path, and preserved extension metadata.
+A Concept has stable bundle-relative identity, controlled or producer-defined type, title, description, status, Markdown body, singular Definition Area ownership where migrated, legacy layer membership where not yet migrated, typed relationships, resolved linked artifacts where its area schema admits them, source file path, and preserved extension metadata.
 
 # Relationship and Edge
 

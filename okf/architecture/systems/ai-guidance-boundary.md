@@ -1,15 +1,12 @@
 ---
-type: System Service
+type: System Responsibility
 title: AI Guidance Boundary
 description: Provider-neutral orchestration that assembles accepted context and converts model output into bounded reviewable proposals.
 tags: [architecture, system, ai, orchestration]
-status: active
-sdlc: [system]
+area: system
 system:
-  kind: service
-  group: guidance
+  section: responsibilities
   boundary: owned
-  criticality: medium
 relationships:
   - type: part-of
     target: /architecture/systems/m21-workspace.md

@@ -12,6 +12,9 @@ export class ProjectService {
   private graph!: ProductGraph;
   private current!: ProjectSnapshot;
   private readonly proposals = new Map<string, ChangeProposal>();
+  private readonly watchers = new Set<(snapshot: ProjectSnapshot) => void>();
+  private watchTimer: ReturnType<typeof setInterval> | undefined;
+  private refreshInFlight = false;
 
   private constructor(
     private readonly root: string,
@@ -106,6 +109,36 @@ export class ProjectService {
     return this.snapshot();
   }
 
+  watch(listener: (snapshot: ProjectSnapshot) => void, intervalMs = 350): () => void {
+    this.watchers.add(listener);
+    if (!this.watchTimer) {
+      this.watchTimer = setInterval(() => { void this.refreshFromDisk().catch(() => undefined); }, intervalMs);
+      this.watchTimer.unref();
+    }
+    return () => {
+      this.watchers.delete(listener);
+      if (this.watchers.size === 0 && this.watchTimer) {
+        clearInterval(this.watchTimer);
+        this.watchTimer = undefined;
+      }
+    };
+  }
+
+  async refreshFromDisk(): Promise<ProjectSnapshot | undefined> {
+    if (this.refreshInFlight) return undefined;
+    this.refreshInFlight = true;
+    try {
+      const loaded = await this.repository.load(this.root);
+      if (loaded.revision === this.current.revision) return undefined;
+      this.applyLoadedProject(loaded);
+      const snapshot = this.snapshot();
+      for (const listener of this.watchers) listener(snapshot);
+      return snapshot;
+    } finally {
+      this.refreshInFlight = false;
+    }
+  }
+
   generateSummary(stage?: string): string {
     if (!stage) return generateProjectSummary(this.graph, this.current.diagnostics);
     const stagedGraph = new ProductGraph(conceptsForLayer([...this.graph.concepts.values()], stage));
@@ -117,7 +150,10 @@ export class ProjectService {
   }
 
   private async reload(): Promise<void> {
-    const loaded = await this.repository.load(this.root);
+    this.applyLoadedProject(await this.repository.load(this.root));
+  }
+
+  private applyLoadedProject(loaded: Awaited<ReturnType<OkfRepository["load"]>>): void {
     this.graph = new ProductGraph(loaded.concepts);
     const diagnostics = [...loaded.diagnostics, ...validateGraph(this.graph)];
     const projectName = loaded.concepts.find((concept) => concept.type === "Project")?.title ?? loaded.name;

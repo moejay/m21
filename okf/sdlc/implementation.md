@@ -6,7 +6,6 @@ stage: implementation
 order: 90
 description: Package accepted code design, behavior, constraints, and impact context for an external coding agent.
 tags: [sdlc, implementation, coding-agent, handoff]
-status: active
 sdlc: [implementation]
 relationships:
   - type: depends-on

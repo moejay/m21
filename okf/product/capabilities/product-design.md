@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: Integrated Product Design
 description: Develop experience, interaction, and visual design as connected product knowledge rather than a detached handoff.
 tags: [mvp, ux, ui, visual-language, accessibility]
-status: draft
-sdlc: [product, components, code-design, implementation]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of

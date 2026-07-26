@@ -3,7 +3,6 @@ type: Domain Model
 title: Purpose-Built Definition Projections
 description: Each SDLC definition layer projects the shared OKF graph into an interface designed for that layer's work.
 tags: [domain-model, projections, workspace, metadata]
-status: draft
 sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: governs
@@ -20,9 +19,9 @@ The graph is canonical persistence, not the mandatory interface. Each definition
 
 # Layer projections
 
-- **Business:** structured documents grouped into vision, problems, personas, business capabilities, outcomes, regulation, constraints, and risks
-- **Product:** product-definition documents grouped into proposition, users, product capabilities, policies, measures, and boundaries
-- **Visual Design:** brand board, semantic tokens, journeys, screens, patterns, component stories, accessibility, live theme preview, and generated catalog
+- **Business:** expandable cards grouped first by controlled Business section and then controlled type, with section, type, and status filters plus incoming and outgoing relationship context
+- **Business Solution:** expandable cards grouped by controlled Solution section and type, including propositions, options, outcomes, capabilities, behaviors, delivery, boundaries, assumptions, risks, and decisions
+- **Visual Design:** direction boards, live linked-CSS foundation specimens, composed themes, sandboxed linked-HTML Visual Components, asset galleries, visual accessibility evidence, decisions, and document fallbacks
 - **System Design:** conceptual responsibility and information-flow map plus canonical documents for the owned system, logical services, data boundaries, external dependencies, trust boundaries, qualities, and typed links without choosing executable topology
 - **Architecture:** realization matrix and portfolio of actual owned Applications, supporting one full-stack or monolithic Application as well as separate frontend, backend, worker, or service Applications
 - **Application Architecture:** persistent selected-Application workspace for internal responsibilities, interfaces, data, constraints, qualities, and dependency rules
@@ -33,15 +32,16 @@ The graph is canonical persistence, not the mandatory interface. Each definition
 
 # Global knowledge graph
 
-A separate product-wide 3D graph projects every accepted OKF concept and every resolved typed relationship, regardless of active layer or selected Application. It is entered from global workspace navigation rather than offered as a layer presentation. Selecting a node focuses canonical concept context; navigating the graph never changes membership, ownership, or accepted knowledge.
+A separate product-wide 3D graph projects every accepted OKF concept and every resolved typed relationship, regardless of active area or selected Application. It is entered from global workspace navigation rather than offered as an area presentation. Selecting a node focuses canonical concept context; highlighting a Definition Area changes emphasis without removing other knowledge; navigating the graph never changes membership, ownership, or accepted knowledge.
 
 The global graph complements rather than replaces purpose-built authoring views. Layer and Application projections remain scoped to their own work.
 
 # Namespaced metadata
 
-Concept frontmatter may include metadata named for a layer, for example:
+Migrated concepts declare singular ownership and matching area metadata; unmigrated concepts may still use legacy layer metadata during transition. For example:
 
 ```yaml
+area: business
 business:
   section: capabilities
 system:
@@ -67,7 +67,9 @@ Each projection owns its metadata schema. Generic OKF consumers preserve it, and
 # Invariants
 
 - Projection metadata never changes concept identity or canonical meaning.
-- A concept may appear in multiple projections with different presentation metadata.
+- A migrated concept is primary in exactly its owning Definition Area; relationships provide cross-area context without transferring ownership.
 - Missing optional presentation metadata degrades to a generic document or ungrouped item.
+- Linked Visual Design artifacts are canonical and revision-bearing; specimen state and generated previews remain disposable.
+- Fenced Mermaid in canonical Markdown renders as a strict explanatory view without replacing typed relationships or source text.
 - The global graph always uses the complete accepted Project Snapshot and never inherits a layer or Application scope.
 - Editing through any projection creates the same reviewable graph change.

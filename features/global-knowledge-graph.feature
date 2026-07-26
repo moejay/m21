@@ -12,3 +12,9 @@ Feature: global-knowledge-graph
     Given accepted OKF concepts span several product and Application layers
     When I open the global graph from a scoped Application workspace
     Then the global graph still contains knowledge outside that Application
+
+  Scenario: Retain singular Definition Areas for highlighting
+    Given accepted OKF concepts belong to Business and Solution areas
+    When I project the global knowledge graph
+    Then every area-owned graph node retains its Definition Area
+    And highlighting Business does not remove Solution knowledge

@@ -7,8 +7,14 @@ import YAML from "yaml";
 import { DevelopmentAiProvider, type AiProvider, type AiSuggestion } from "../../src/application/ai.js";
 import { ProjectService } from "../../src/application/project-service.js";
 import { applicationScopes, snapshotForApplicationLayer, snapshotForLayer } from "../../src/domain/definition-flow.js";
+import { businessArtifacts, businessSection } from "../../src/domain/business.js";
+import { solutionArtifacts, solutionSection } from "../../src/domain/solution.js";
 import { componentFeatureFiles, mainArtifactsForLayer, productCapabilityArtifacts, projectionForLayer, systemArchitectureArtifacts, type ProjectionKind } from "../../src/domain/projections.js";
 import { projectTheme, type ProjectTheme } from "../../src/domain/theme.js";
+import { mermaidDiagrams, type MermaidDiagramSource } from "../../src/domain/markdown.js";
+import { composeVisualTheme, renderVisualComponent, visualDesignArtifacts } from "../../src/domain/visual-design.js";
+import { architectureArtifacts } from "../../src/domain/architecture.js";
+import { systemBoundary } from "../../src/domain/system-design.js";
 import { generateDesignPreview } from "../../src/domain/design-preview.js";
 import { projectGlobalGraph, type GlobalGraphProjection } from "../../src/domain/global-graph.js";
 import type { ChangeProposal, Concept, ProjectSnapshot } from "../../src/domain/model.js";
@@ -41,6 +47,21 @@ class M21World extends World {
   globalGraph?: GlobalGraphProjection;
   globalGraphSource?: ProjectSnapshot;
   scopedConceptIds: string[] = [];
+  businessGroups = new Map<string, Set<string>>();
+  solutionGroups = new Map<string, Set<string>>();
+  solutionArtifacts: Concept[] = [];
+  unwatch?: () => void;
+  watchedSnapshot?: Promise<ProjectSnapshot>;
+  visualArtifacts: Concept[] = [];
+  composedTheme = "";
+  visualSpecimen = "";
+  visualSandbox = "";
+  mermaidSources: MermaidDiagramSource[] = [];
+  originalMarkdown = "";
+  artifactRevisionChanged = false;
+  debugRaw = "";
+  debugSourceIds: string[] = [];
+  architectureArtifacts: Concept[] = [];
 }
 
 setWorldConstructor(M21World);
@@ -50,6 +71,7 @@ Before(async function (this: M21World) {
 });
 
 After(async function (this: M21World) {
+  this.unwatch?.();
   await rm(this.root, { recursive: true, force: true });
 });
 
@@ -64,6 +86,12 @@ async function writeConcept(
   await writeFile(destination, `---\n${YAML.stringify(metadata).trimEnd()}\n---\n${body}`, "utf8");
 }
 
+async function writeArtifact(world: M21World, bundlePath: string, content: string): Promise<void> {
+  const destination = path.join(world.root, bundlePath.replace(/^\//, ""));
+  await mkdir(path.dirname(destination), { recursive: true });
+  await writeFile(destination, content, "utf8");
+}
+
 async function open(world: M21World): Promise<ProjectService> {
   world.service ??= await ProjectService.open(world.root);
   world.snapshot = world.service.snapshot();
@@ -76,36 +104,36 @@ async function activeVision(world: M21World): Promise<void> {
     type: "Vision",
     title: "Active Vision",
     description: "Original vision",
-    status: "active",
   }, "# Mission\n\nBuild a coherent product.\n");
 }
 
 Given("two conceptual System Design responsibilities", async function (this: M21World) {
-  await writeConcept(this, "systems/workspace.md", { type: "System Service", title: "Workspace", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" } });
-  await writeConcept(this, "systems/runtime.md", { type: "System Service", title: "Runtime", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" } });
+  await writeConcept(this, "systems/workspace.md", { type: "System Responsibility", title: "Workspace", description: "Presents accepted knowledge.", area: "system", system: { section: "responsibilities", boundary: "owned" } }, "# Responsibility\n\nPresent accepted knowledge.\n");
+  await writeConcept(this, "systems/runtime.md", { type: "System Responsibility", title: "Runtime", description: "Maintains accepted knowledge.", area: "system", system: { section: "responsibilities", boundary: "owned" } }, "# Responsibility\n\nMaintain accepted knowledge.\n");
 });
 
 Given("one full-stack Application realizes both responsibilities", async function (this: M21World) {
-  await writeConcept(this, "applications/full-stack.md", { type: "Application", title: "Full-Stack Application", sdlc: ["architecture", "application"], architecture: { section: "applications", kind: "full-stack", runtime: ["nodejs", "browser"], deployable: true }, application: { section: "architecture", architecture_style: "modular-monolith" }, relationships: [{ type: "realizes", target: "/systems/workspace.md" }, { type: "realizes", target: "/systems/runtime.md" }] });
+  await writeConcept(this, "architecture.md", { type: "Architecture", title: "Architecture", description: "One full-stack boundary.", area: "architecture", architecture: { section: "overview" } }, "# Topology\n\nOne Application is sufficient.\n");
+  await writeConcept(this, "applications/full-stack.md", { type: "Application", title: "Full-Stack Application", description: "Owns browser and project responsibilities.", area: "architecture", "application-id": "full-stack", architecture: { section: "applications", "application-kind": "full-stack", "independently-deployable": true }, relationships: [{ type: "part-of", target: "/architecture.md" }, { type: "realizes", target: "/systems/workspace.md" }, { type: "realizes", target: "/systems/runtime.md" }] }, "# Application\n\nOne executable boundary.\n");
 });
 
 Given("product knowledge exists for several Applications", async function (this: M21World) {
-  await writeConcept(this, "applications/one.md", { type: "Application", title: "One", sdlc: ["architecture", "application", "components"], architecture: { section: "applications", kind: "web-client" }, application: { section: "architecture" } });
-  await writeConcept(this, "applications/two.md", { type: "Application", title: "Two", sdlc: ["architecture", "application", "components"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" } });
-  await writeConcept(this, "components/one.md", { type: "Component", title: "One Component", sdlc: ["components"], components: { section: "components", kind: "module", features: ["features/architecture-topology.feature"] }, relationships: [{ type: "part-of", target: "/applications/one.md" }] });
+  await writeConcept(this, "applications/one.md", { type: "Application", title: "One", description: "First Application.", area: "architecture", "application-id": "one", architecture: { section: "applications", "application-kind": "web-client", "independently-deployable": true } }, "# Application\n\nFirst boundary.\n");
+  await writeConcept(this, "applications/two.md", { type: "Application", title: "Two", description: "Second Application.", area: "architecture", "application-id": "two", architecture: { section: "applications", "application-kind": "backend-service", "independently-deployable": true } }, "# Application\n\nSecond boundary.\n");
+  await writeConcept(this, "components/one.md", { type: "Component", title: "One Component", "application-id": "one", sdlc: ["components"], components: { section: "components", kind: "module", features: ["features/architecture-topology.feature"] }, relationships: [{ type: "part-of", target: "/applications/one.md" }] });
 });
 
 Given("a selected Application Component declares a Gherkin feature", async function (this: M21World) {
-  await writeConcept(this, "applications/service.md", { type: "Application", title: "Service", status: "active", sdlc: ["architecture", "application", "implementation"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" } });
-  await writeConcept(this, "components/engine.md", { type: "Component", title: "Engine", status: "active", sdlc: ["components", "implementation"], components: { section: "components", kind: "domain-service", features: ["features/engine.feature"] }, relationships: [{ type: "part-of", target: "/applications/service.md" }] });
+  await writeConcept(this, "applications/service.md", { type: "Application", title: "Service", sdlc: ["architecture", "application", "implementation"], architecture: { section: "applications", kind: "backend-service" }, application: { section: "architecture" } });
+  await writeConcept(this, "components/engine.md", { type: "Component", title: "Engine", sdlc: ["components", "implementation"], components: { section: "components", kind: "domain-service", features: ["features/engine.feature"] }, relationships: [{ type: "part-of", target: "/applications/service.md" }] });
 });
 
 Given("accepted OKF concepts span several product and Application layers", async function (this: M21World) {
-  await writeConcept(this, "business/outcome.md", { type: "Business Goal", title: "Outcome", status: "active", sdlc: ["business"], business: { section: "outcomes" } });
-  await writeConcept(this, "product/capability.md", { type: "Product Capability", title: "Capability", status: "active", sdlc: ["product"], product: { section: "capabilities" }, relationships: [{ type: "realizes", target: "/business/outcome.md" }] });
-  await writeConcept(this, "systems/runtime.md", { type: "System Service", title: "Runtime", status: "active", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" }, relationships: [{ type: "realizes", target: "/product/capability.md" }] });
-  await writeConcept(this, "applications/service.md", { type: "Application", title: "Service", status: "active", sdlc: ["architecture", "application"], architecture: { section: "applications", kind: "backend-service", runtime: ["nodejs"], deployable: true }, application: { section: "architecture" }, relationships: [{ type: "realizes", target: "/systems/runtime.md" }] });
-  await writeConcept(this, "components/engine.md", { type: "Component", title: "Engine", status: "active", sdlc: ["components"], components: { section: "components", features: ["features/global-knowledge-graph.feature"] }, relationships: [{ type: "part-of", target: "/applications/service.md" }] });
+  await writeConcept(this, "business/outcome.md", { type: "Business Outcome", title: "Outcome", description: "A measurable business result.", area: "business", business: { section: "outcomes" } }, "# Outcome\n\nCreate a coherent result.\n");
+  await writeConcept(this, "product/capability.md", { type: "Product Capability", title: "Capability", sdlc: ["product"], product: { section: "capabilities" }, relationships: [{ type: "realizes", target: "/business/outcome.md" }] });
+  await writeConcept(this, "systems/runtime.md", { type: "System Service", title: "Runtime", sdlc: ["system"], system: { kind: "subsystem", boundary: "owned" }, relationships: [{ type: "realizes", target: "/product/capability.md" }] });
+  await writeConcept(this, "applications/service.md", { type: "Application", title: "Service", sdlc: ["architecture", "application"], architecture: { section: "applications", kind: "backend-service", runtime: ["nodejs"], deployable: true }, application: { section: "architecture" }, relationships: [{ type: "realizes", target: "/systems/runtime.md" }] });
+  await writeConcept(this, "components/engine.md", { type: "Component", title: "Engine", sdlc: ["components"], components: { section: "components", features: ["features/global-knowledge-graph.feature"] }, relationships: [{ type: "part-of", target: "/applications/service.md" }] });
 });
 
 Given("the product-level definition workflow specification", async function (this: M21World) {
@@ -114,7 +142,7 @@ Given("the product-level definition workflow specification", async function (thi
 
 Given("the canonical M21 Component definitions", async function (this: M21World) {
   const project = await ProjectService.open(path.join(process.cwd(), "okf"));
-  this.canonicalComponents = project.snapshot().concepts.filter((concept) => concept.type === "Component" && concept.status === "active");
+  this.canonicalComponents = project.snapshot().concepts.filter((concept) => concept.type === "Component");
 });
 
 Given("an Application owns a Component with a Code Design contract", async function (this: M21World) {
@@ -145,6 +173,44 @@ Given("two owned Applications with separate Components", async function (this: M
   });
   await writeConcept(this, "contracts/browser-navigation.md", { type: "Code Contract", title: "Browser Navigation", sdlc: ["code-design"], "code-design": { section: "contracts" }, relationships: [{ type: "part-of", target: "/components/browser-shell.md" }] });
   await writeConcept(this, "contracts/graph-query.md", { type: "Code Contract", title: "Graph Query", sdlc: ["code-design"], "code-design": { section: "contracts" }, relationships: [{ type: "part-of", target: "/components/graph-engine.md" }] });
+});
+
+Given("an owned System Responsibility is owned by System Design", async function (this: M21World) {
+  await writeConcept(this, "responsibility.md", { type: "System Responsibility", title: "Accepted knowledge", description: "Maintains accepted product knowledge.", area: "system", system: { section: "responsibilities", boundary: "owned" } }, "# Responsibility\n\nMaintain accepted knowledge without choosing an Application.\n");
+});
+
+Given("an Application realizes that responsibility without System ownership", async function (this: M21World) {
+  await writeConcept(this, "application.md", { type: "Application", title: "Project Service", description: "Executable project authority.", area: "architecture", "application-id": "project-service", architecture: { section: "applications", "application-kind": "backend-service", "independently-deployable": true }, relationships: [{ type: "realizes", target: "/responsibility.md" }] }, "# Application\n\nRealizes conceptual responsibility.\n");
+});
+
+Given("System Design contains a managed Logical Data Store and an external dependency", async function (this: M21World) {
+  await writeConcept(this, "store.md", { type: "Logical Data Store", title: "Project store", description: "Retains canonical knowledge.", area: "system", system: { section: "data", boundary: "managed" } }, "# Store\n\nConceptual durable storage.\n");
+  await writeConcept(this, "provider.md", { type: "External Dependency", title: "Model provider", description: "Supplies bounded inference.", area: "system", system: { section: "dependencies", boundary: "external" } }, "# Dependency\n\nExternal inference capability.\n");
+});
+
+Given("a System Flow connects two System Responsibilities", async function (this: M21World) {
+  await writeConcept(this, "source.md", { type: "System Responsibility", title: "Source", description: "Provides accepted knowledge.", area: "system", system: { section: "responsibilities", boundary: "owned" } }, "# Source\n\nProvides information.\n");
+  await writeConcept(this, "destination.md", { type: "System Responsibility", title: "Destination", description: "Consumes accepted knowledge.", area: "system", system: { section: "responsibilities", boundary: "owned" } }, "# Destination\n\nConsumes information.\n");
+  await writeConcept(this, "flow.md", { type: "System Flow", title: "Accepted knowledge flow", description: "Carries accepted knowledge from source to destination.", area: "system", system: { section: "flows" }, relationships: [{ type: "source", target: "/source.md" }, { type: "destination", target: "/destination.md" }] }, "# Flow\n\nCarries accepted project knowledge.\n");
+});
+
+Given("a System Responsibility contains a runtime field", async function (this: M21World) {
+  await writeConcept(this, "runtime.md", { type: "System Responsibility", title: "Runtime-shaped responsibility", description: "Incorrectly contains an Architecture choice.", area: "system", system: { section: "responsibilities", boundary: "owned", runtime: "nodejs" } }, "# Responsibility\n\nRuntime does not belong here.\n");
+});
+
+Given("two owned Applications use the same Application ID", async function (this: M21World) {
+  await writeConcept(this, "one.md", { type: "Application", title: "One", description: "First boundary.", area: "architecture", "application-id": "duplicate", architecture: { section: "applications", "application-kind": "web-client", "independently-deployable": true } }, "# One\n\nFirst.\n");
+  await writeConcept(this, "two.md", { type: "Application", title: "Two", description: "Second boundary.", area: "architecture", "application-id": "duplicate", architecture: { section: "applications", "application-kind": "backend-service", "independently-deployable": true } }, "# Two\n\nSecond.\n");
+});
+
+Given("a migrated Component has no Application ID", async function (this: M21World) {
+  await writeConcept(this, "component.md", { type: "Component", title: "Unscoped Component", description: "A migrated downstream concept without required scope.", area: "components", components: { section: "components", kind: "module" } }, "# Component\n\nScope is intentionally missing.\n");
+});
+
+Given("two owned Applications communicate by event", async function (this: M21World) {
+  await writeConcept(this, "one.md", { type: "Application", title: "Publisher", description: "Publishes accepted events.", area: "architecture", "application-id": "publisher", architecture: { section: "applications", "application-kind": "backend-service", "independently-deployable": true } }, "# Publisher\n\nPublishes events.\n");
+  await writeConcept(this, "two.md", { type: "Application", title: "Consumer", description: "Consumes accepted events.", area: "architecture", "application-id": "consumer", architecture: { section: "applications", "application-kind": "worker", "independently-deployable": true } }, "# Consumer\n\nConsumes events.\n");
+  await writeConcept(this, "communication.md", { type: "Application Communication", title: "Accepted event", description: "Carries accepted events from publisher to consumer.", area: "architecture", architecture: { section: "communications", "communication-mode": "event" }, relationships: [{ type: "source", target: "/one.md" }, { type: "destination", target: "/two.md" }] }, "# Communication\n\nEvent direction and failure remain explicit.\n");
 });
 
 Given("an owned conceptual System subsystem", async function (this: M21World) {
@@ -183,6 +249,27 @@ Given("two linked conceptual System parts", async function (this: M21World) {
   });
 });
 
+Given("a Solution Capability is owned by the Solution area", async function (this: M21World) {
+  await writeConcept(this, "capability.md", { type: "Solution Capability", title: "Connected workspace", description: "Maintains accepted connected product knowledge.", area: "solution", solution: { section: "capabilities" }, relationships: [{ type: "serves", target: "/persona.md" }] }, "# Capability\n\nProvide a connected definition workspace.\n");
+});
+
+Given("a related Persona is owned by the Business area", async function (this: M21World) {
+  await writeConcept(this, "persona.md", { type: "Persona", title: "Builder", description: "A multidisciplinary product builder.", area: "business", business: { section: "people" } }, "# Persona\n\nBuilds products across disciplines.\n");
+});
+
+Given("Solution delivery includes a Human Service and a Digital Product", async function (this: M21World) {
+  await writeConcept(this, "workshop.md", { type: "Human Service", title: "Guided workshop", description: "A facilitator helps establish initial definitions.", area: "solution", solution: { section: "delivery" } }, "# Service\n\nA facilitated definition session.\n");
+  await writeConcept(this, "workspace.md", { type: "Digital Product", title: "M21 workspace", description: "A digital workspace maintains connected knowledge.", area: "solution", solution: { section: "delivery" } }, "# Product\n\nA local connected knowledge workspace.\n");
+});
+
+Given("a Solution Option contains an unsupported Solution field", async function (this: M21World) {
+  await writeConcept(this, "option.md", { type: "Solution Option", title: "Facilitated adoption", description: "Combine a workshop with the workspace.", area: "solution", solution: { section: "options", selected: true } }, "# Option\n\nCombine human guidance and a digital workspace.\n");
+});
+
+Given("a Solution Measure is placed in the Solution delivery section", async function (this: M21World) {
+  await writeConcept(this, "measure.md", { type: "Solution Measure", title: "Adoption completion", description: "Measures completion of guided adoption.", area: "solution", solution: { section: "delivery" } }, "# Measure\n\nObserve completion without treating it as a Business outcome.\n");
+});
+
 Given("a product capability is tagged for Product", async function (this: M21World) {
   await writeConcept(this, "capability.md", {
     type: "Product Capability",
@@ -211,28 +298,43 @@ Given("a Product-tagged decision concept", async function (this: M21World) {
   });
 });
 
-Given("a business goal is tagged for Business", async function (this: M21World) {
+Given("a Business Outcome is owned by the Business area", async function (this: M21World) {
   await writeConcept(this, "goal.md", {
-    type: "Business Goal",
+    type: "Business Outcome",
     title: "Business Outcome",
-    sdlc: ["business"],
+    description: "Create coherent product understanding.",
+    area: "business",
     business: { section: "outcomes" },
   }, "# Outcome\n\nCreate coherent product understanding.\n");
 });
 
-Given("a connected product capability is tagged only for Product", async function (this: M21World) {
+Given("a connected Solution Capability is owned by the Solution area", async function (this: M21World) {
   await writeConcept(this, "capability.md", {
-    type: "Product Capability",
+    type: "Solution Capability",
     title: "Product Workspace",
-    sdlc: ["product"],
-    product: { section: "capabilities" },
-    relationships: [{ type: "realizes", target: "/goal.md" }],
-  });
+    description: "A workspace for connected product definition.",
+    area: "solution",
+    solution: { section: "capabilities" },
+    relationships: [{ type: "addresses", target: "/goal.md" }],
+  }, "# Capability\n\nProvide a connected workspace.\n");
 });
 
-Given("the Business definition-layer registry concept", async function (this: M21World) {
+Given("Business people include a Persona and a Business Role", async function (this: M21World) {
+  await writeConcept(this, "persona.md", { type: "Persona", title: "Builder", description: "A multidisciplinary product builder.", area: "business", business: { section: "people" } }, "# Persona\n\nBuilds products across disciplines.\n");
+  await writeConcept(this, "role.md", { type: "Business Role", title: "Buyer", description: "Selects and funds the solution.", area: "business", business: { section: "people" } }, "# Role\n\nOwns the buying decision.\n");
+});
+
+Given("a Business Problem contains an unsupported Business field", async function (this: M21World) {
+  await writeConcept(this, "problem.md", { type: "Business Problem", title: "Fragmented knowledge", description: "Knowledge is disconnected.", area: "business", business: { section: "problems", priority: "high" } }, "# Problem\n\nTeams reconstruct context manually.\n");
+});
+
+Given("a Success Metric is placed in the Business people section", async function (this: M21World) {
+  await writeConcept(this, "metric.md", { type: "Success Metric", title: "Decision time", description: "Time needed to make a reviewed decision.", area: "business", business: { section: "people" } }, "# Metric\n\nMeasure elapsed decision time.\n");
+});
+
+Given("the Business definition-area registry concept", async function (this: M21World) {
   await writeConcept(this, "business-layer.md", {
-    type: "Definition Layer",
+    type: "Definition Area",
     title: "Business",
     stage: "business",
     order: 10,
@@ -240,15 +342,67 @@ Given("the Business definition-layer registry concept", async function (this: M2
   });
 });
 
+Given("accepted OKF concepts belong to Business and Solution areas", async function (this: M21World) {
+  await writeConcept(this, "business/problem.md", { type: "Business Problem", title: "Problem", description: "A meaningful present condition.", area: "business", business: { section: "problems" } }, "# Problem\n\nA current condition needs change.\n");
+  await writeConcept(this, "solution/capability.md", { type: "Solution Capability", title: "Capability", description: "An ability in the response.", area: "solution", solution: { section: "capabilities" }, relationships: [{ type: "addresses", target: "/business/problem.md" }] }, "# Capability\n\nAddresses the accepted problem.\n");
+});
+
 Given("the definition layer is {word}", function (this: M21World, layer: string) {
   this.definitionLayer = layer;
+});
+
+Given("a Color System is owned by Visual Design with linked CSS", async function (this: M21World) {
+  await writeArtifact(this, "/visual-design/styles/colors.css", ":root { --accent: #4455aa; --surface: #ffffff; }\n");
+  await writeConcept(this, "color.md", { type: "Color System", title: "Semantic colors", description: "Defines shared semantic color roles.", area: "visual-design", "visual-design": { section: "foundations", "css-source": "/visual-design/styles/colors.css" } }, "# Color system\n\nColor roles carry semantic meaning.\n");
+});
+
+Given("a legacy User Journey remains outside Visual Design ownership", async function (this: M21World) {
+  await writeConcept(this, "journey.md", { type: "User Journey", title: "Legacy journey", description: "An unmigrated Application Experience concept.", sdlc: ["design"], design: { section: "journeys" } }, "# Journey\n\nApplication-specific flow.\n");
+});
+
+Given("a Visual Theme links foundation CSS and contains an inline CSS override", async function (this: M21World) {
+  await writeArtifact(this, "/visual-design/styles/colors.css", ":root { --accent: #4455aa; }\n");
+  await writeArtifact(this, "/visual-design/styles/theme.css", "@import \"./colors.css\";\n:root { --surface: #ffffff; }\n");
+  await writeConcept(this, "color.md", { type: "Color System", title: "Colors", description: "Shared colors.", area: "visual-design", "visual-design": { section: "foundations", "css-source": "/visual-design/styles/colors.css" } }, "# Colors\n\nSemantic roles.\n");
+  await writeConcept(this, "theme.md", { type: "Visual Theme", title: "Theme", description: "Composed accepted foundations.", area: "visual-design", "visual-design": { section: "themes", "css-source": "/visual-design/styles/theme.css" } }, "# Theme\n\n```m21-css\n:root { --accent: #7357a6; }\n```\n");
+});
+
+Given("an accepted Visual Component links safe HTML and CSS", async function (this: M21World) {
+  await writeArtifact(this, "/visual-design/components/action.html", "<button class=\"action\" type=\"button\">Accept proposal</button>\n");
+  await writeArtifact(this, "/visual-design/components/action.css", ".action { color: var(--accent-contrast); background: var(--accent); }\n");
+  await writeConcept(this, "action.md", { type: "Visual Component", title: "Action", description: "Shared action appearance.", area: "visual-design", "visual-design": { section: "components", "html-source": "/visual-design/components/action.html", "css-source": "/visual-design/components/action.css" } }, "# Action\n\nPrimary and secondary visual states.\n");
+});
+
+Given("an accepted Visual Theme links foundation CSS", async function (this: M21World) {
+  await writeArtifact(this, "/visual-design/styles/colors.css", ":root { --accent: #4455aa; --accent-contrast: white; }\n");
+  await writeArtifact(this, "/visual-design/styles/theme.css", "@import \"./colors.css\";\n");
+  await writeConcept(this, "color.md", { type: "Color System", title: "Colors", description: "Shared colors.", area: "visual-design", "visual-design": { section: "foundations", "css-source": "/visual-design/styles/colors.css" } }, "# Colors\n\nSemantic roles.\n");
+  await writeConcept(this, "theme.md", { type: "Visual Theme", title: "Theme", description: "Composed accepted foundations.", area: "visual-design", "visual-design": { section: "themes", "css-source": "/visual-design/styles/theme.css" } }, "# Theme\n\nAccepted composition.\n");
+});
+
+Given("a Visual Component links HTML containing an embedded script", async function (this: M21World) {
+  await writeArtifact(this, "/visual-design/components/unsafe.html", "<button>Unsafe</button><script>alert('no')</script>\n");
+  await writeConcept(this, "unsafe.md", { type: "Visual Component", title: "Unsafe component", description: "Readable concept with unsafe specimen markup.", area: "visual-design", "visual-design": { section: "components", "html-source": "/visual-design/components/unsafe.html" } }, "# Unsafe component\n\nThe concept remains readable when preview is blocked.\n");
+});
+
+Given("a Visual Component references a missing HTML source", async function (this: M21World) {
+  await writeConcept(this, "missing-component.md", { type: "Visual Component", title: "Missing component", description: "References an unavailable specimen.", area: "visual-design", "visual-design": { section: "components", "html-source": "/visual-design/components/missing.html" } }, "# Missing component\n\nFallback to canonical detail.\n");
+});
+
+Given("a concept body contains a fenced Mermaid diagram", async function (this: M21World) {
+  this.originalMarkdown = "# Flow\n\n```mermaid\ngraph TD\n  A[Business] --> B[Solution]\n```\n";
+  await writeConcept(this, "flow.md", { type: "Decision", title: "Definition flow", description: "Explains an accepted relationship flow." }, this.originalMarkdown);
+});
+
+Given("a concept body contains a fenced TypeScript example", async function (this: M21World) {
+  this.originalMarkdown = "# Example\n\n```typescript\nconst accepted = true;\n```\n";
+  await writeConcept(this, "example.md", { type: "Decision", title: "Code example", description: "An ordinary code block." }, this.originalMarkdown);
 });
 
 Given("an active visual language without a theme", async function (this: M21World) {
   await writeConcept(this, "visual-language.md", {
     type: "Visual Language",
     title: "Project Visual Language",
-    status: "active",
     sdlc: ["design"],
     design: { section: "visual-language" },
   });
@@ -274,7 +428,6 @@ Given("an active visual language defines an accent theme token", async function 
   await writeConcept(this, "visual-language.md", {
     type: "Visual Language",
     title: "Project Visual Language",
-    status: "active",
     sdlc: ["design"],
     design: { section: "visual-language", theme: { accent: "#4455aa" } },
   });
@@ -285,7 +438,6 @@ Given("an active component story defines an actions preview", async function (th
     type: "Component Story",
     title: "Actions",
     description: "Primary and secondary controls.",
-    status: "active",
     sdlc: ["design"],
     design: {
       section: "components",
@@ -298,7 +450,6 @@ Given("a draft visual language defines an accent theme token", async function (t
   await writeConcept(this, "visual-language.md", {
     type: "Visual Language",
     title: "Draft Visual Language",
-    status: "draft",
     sdlc: ["design"],
     design: { section: "visual-language", theme: { accent: "#4455aa" } },
   });
@@ -312,11 +463,10 @@ Given("a decision contributes to Product and System", async function (this: M21W
   });
 });
 
-Given("a draft screen contributes to Visual Design", async function (this: M21World) {
+Given("a screen contributes to Visual Design", async function (this: M21World) {
   await writeConcept(this, "screen.md", {
     type: "Screen",
     title: "Draft Workspace",
-    status: "draft",
     sdlc: ["design"],
   });
 });
@@ -366,8 +516,12 @@ Given("an OKF concept with an unknown producer extension", async function (this:
   });
 });
 
-Given("an OKF project containing an active vision", async function (this: M21World) {
+Given("an OKF project containing an accepted vision", async function (this: M21World) {
   await activeVision(this);
+});
+
+Given("an accepted Business Goal is visible beside it", async function (this: M21World) {
+  await writeConcept(this, "goal.md", { type: "Business Goal", title: "Coherent decisions", description: "Improve product decisions.", area: "business", business: { section: "direction" } }, "# Goal\n\nImprove product decisions from coherent knowledge.\n");
 });
 
 Given("a user journey realizes a product capability", async function (this: M21World) {
@@ -414,7 +568,7 @@ Given("a configured development AI provider", function (this: M21World) {
   this.aiProvider = new DevelopmentAiProvider();
 });
 
-Given("an AI proposal to clarify an active vision", async function (this: M21World) {
+Given("an AI proposal to clarify an accepted vision", async function (this: M21World) {
   await activeVision(this);
   this.aiProvider = new DevelopmentAiProvider();
   const service = await open(this);
@@ -454,6 +608,12 @@ When("I list the Architecture Applications", async function (this: M21World) {
   const service = await open(this);
   this.applicationScopes = applicationScopes(service.snapshot().concepts);
   this.applicationSnapshot = service.snapshot();
+});
+
+When("I inspect the Architecture topology", async function (this: M21World) {
+  const service = await open(this);
+  this.applicationSnapshot = service.snapshot();
+  this.architectureArtifacts = architectureArtifacts(this.applicationSnapshot.concepts);
 });
 
 When("I request Components for an unknown Application", async function (this: M21World) {
@@ -532,6 +692,22 @@ When("I select the System architecture map", async function (this: M21World) {
   this.systemSnapshot = snapshotForLayer(service.snapshot(), "system");
 });
 
+When("I select the Business Solution main artifacts", async function (this: M21World) {
+  const service = await open(this);
+  this.solutionArtifacts = solutionArtifacts(service.snapshot().concepts);
+});
+
+When("I group the Business Solution main artifacts", async function (this: M21World) {
+  const service = await open(this);
+  for (const concept of solutionArtifacts(service.snapshot().concepts)) {
+    const section = solutionSection(concept);
+    if (!section) continue;
+    const types = this.solutionGroups.get(section) ?? new Set<string>();
+    types.add(concept.type);
+    this.solutionGroups.set(section, types);
+  }
+});
+
 When("I select the Product capability artifacts", async function (this: M21World) {
   const service = await open(this);
   this.productArtifacts = productCapabilityArtifacts(service.snapshot().concepts);
@@ -542,9 +718,61 @@ When("I select the Business main artifacts", async function (this: M21World) {
   this.mainArtifacts = mainArtifactsForLayer(service.snapshot().concepts, "business");
 });
 
+When("I group the Business main artifacts", async function (this: M21World) {
+  const service = await open(this);
+  for (const concept of businessArtifacts(service.snapshot().concepts)) {
+    const section = businessSection(concept);
+    if (!section) continue;
+    const types = this.businessGroups.get(section) ?? new Set<string>();
+    types.add(concept.type);
+    this.businessGroups.set(section, types);
+  }
+});
+
+Given("I am watching the open project", async function (this: M21World) {
+  const service = await open(this);
+  this.watchedSnapshot = new Promise<ProjectSnapshot>((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error("Timed out waiting for project reload")), 3_000);
+    this.unwatch = service.watch((snapshot) => { clearTimeout(timeout); resolve(snapshot); }, 25);
+  });
+});
+
+When("the canonical vision file changes outside M21", async function (this: M21World) {
+  await writeConcept(this, "vision.md", { type: "Vision", title: "Active Vision", description: "Changed outside M21" }, "# Mission\n\nExternally changed product knowledge.\n");
+});
+
 When("I choose its workspace projection", function (this: M21World) {
   assert(this.definitionLayer);
   this.projection = projectionForLayer(this.definitionLayer);
+});
+
+When("I select the Visual Design main artifacts", async function (this: M21World) {
+  const service = await open(this);
+  this.visualArtifacts = visualDesignArtifacts(service.snapshot().concepts);
+});
+
+When("I compose the accepted Visual Theme", async function (this: M21World) {
+  const service = await open(this);
+  const theme = service.snapshot().concepts.find((concept) => concept.type === "Visual Theme");
+  assert(theme);
+  this.composedTheme = composeVisualTheme(theme, service.snapshot().concepts);
+});
+
+When("I render the Visual Component specimen", async function (this: M21World) {
+  const service = await open(this);
+  const snapshot = service.snapshot();
+  const component = snapshot.concepts.find((concept) => concept.type === "Visual Component");
+  assert(component);
+  const specimen = renderVisualComponent(component, snapshot.concepts);
+  this.visualSpecimen = specimen.html;
+  this.visualSandbox = specimen.sandbox;
+});
+
+When("I inspect its Markdown preview content", async function (this: M21World) {
+  const service = await open(this);
+  const concept = service.snapshot().concepts[0];
+  assert(concept);
+  this.mermaidSources = mermaidDiagrams(concept.body);
 });
 
 When("I ask the agent to generate the Visual Design theme", async function (this: M21World) {
@@ -565,6 +793,19 @@ When("I generate the Visual Design component preview", async function (this: M21
 
 When("I open the project", async function (this: M21World) {
   await open(this);
+});
+
+When("I open the project in global debug mode", async function (this: M21World) {
+  await open(this);
+  this.debugSourceIds = this.snapshot?.concepts.map((concept) => concept.id) ?? [];
+});
+
+When("I inspect the Business Goal source action", function (this: M21World) {
+  this.debugRaw = this.snapshot?.concepts.find((concept) => concept.id === "goal")?.raw ?? "";
+});
+
+When("I inspect the raw vision Markdown", function (this: M21World) {
+  this.debugRaw = this.snapshot?.concepts.find((concept) => concept.id === "vision")?.raw ?? "";
 });
 
 When("I open the Visual Design definition view", async function (this: M21World) {
@@ -668,6 +909,10 @@ Then("one owned Application is defined", function (this: M21World) {
   assert.equal(this.applicationScopes[0]?.id, "applications/full-stack");
 });
 
+Then("it has a stable Application ID", function (this: M21World) {
+  assert.equal(this.applicationScopes[0]?.applicationId, "full-stack");
+});
+
 Then("it realizes both System Design responsibilities", function (this: M21World) {
   const edges = this.applicationSnapshot?.edges.filter((edge) => edge.source === "applications/full-stack" && edge.type === "realizes") ?? [];
   assert.equal(edges.length, 2);
@@ -733,7 +978,7 @@ Then("the declared Component feature is required by Implementation", function (t
   assert.deepEqual(this.implementationFeatures, ["features/engine.feature"]);
 });
 
-Then("every active Component references one or more existing Gherkin feature files", function (this: M21World) {
+Then("every canonical Component references one or more existing Gherkin feature files", function (this: M21World) {
   assert(this.canonicalComponents.length > 0);
   assert.deepEqual(this.invalidComponentFeatures, []);
 });
@@ -765,16 +1010,89 @@ Then("the Browser Application internals remain excluded", function (this: M21Wor
   assert(!this.applicationSnapshot?.concepts.some((concept) => concept.id.includes("browser")));
 });
 
+Then("the System Responsibility is displayed", function (this: M21World) {
+  assert(this.systemArtifacts.some((concept) => concept.type === "System Responsibility"));
+});
+
+Then("the realizing Application is not a System architecture artifact", function (this: M21World) {
+  assert(!this.systemArtifacts.some((concept) => concept.type === "Application"));
+});
+
+Then("the managed store retains its managed boundary", function (this: M21World) {
+  assert.equal(systemBoundary(this.systemArtifacts.find((concept) => concept.type === "Logical Data Store")!), "managed");
+});
+
+Then("the external dependency retains its external boundary", function (this: M21World) {
+  assert.equal(systemBoundary(this.systemArtifacts.find((concept) => concept.type === "External Dependency")!), "external");
+});
+
+Then("the System Flow remains a first-class concept", function (this: M21World) {
+  assert(this.systemSnapshot?.concepts.some((concept) => concept.type === "System Flow"));
+});
+
+Then("the directed flow relationships are displayed", function (this: M21World) {
+  const edges = this.systemSnapshot?.edges.filter((edge) => edge.source === "flow") ?? [];
+  assert(edges.some((edge) => edge.type === "source" && edge.targetId === "source"));
+  assert(edges.some((edge) => edge.type === "destination" && edge.targetId === "destination"));
+});
+
+Then("validation reports the unsupported System field", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "unknown-system-field"));
+});
+
+Then("validation reports the duplicate Application ID", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "duplicate-application-id"));
+});
+
+Then("validation reports the missing downstream Application ID", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "missing-downstream-application-id"));
+});
+
+Then("the Application Communication uses event mode", function (this: M21World) {
+  const communication = this.architectureArtifacts.find((concept) => concept.type === "Application Communication");
+  assert.equal((communication?.metadata.architecture as Record<string, unknown> | undefined)?.["communication-mode"], "event");
+});
+
+Then("its source and destination relationships remain directed", function (this: M21World) {
+  const edges = this.applicationSnapshot?.edges.filter((edge) => edge.source === "communication") ?? [];
+  assert(edges.some((edge) => edge.type === "source" && edge.targetId === "one"));
+  assert(edges.some((edge) => edge.type === "destination" && edge.targetId === "two"));
+});
+
 Then("the System subsystem is displayed", function (this: M21World) {
   assert(this.systemArtifacts.some((concept) => concept.id === "runtime"));
 });
 
-Then("the realizing Application is not a System architecture artifact", function (this: M21World) {
-  assert(!this.systemArtifacts.some((concept) => concept.id === "application"));
-});
-
 Then("the System architecture link is displayed", function (this: M21World) {
   assert(this.systemSnapshot?.edges.some((edge) => edge.source === "store" && edge.targetId === "workspace" && edge.type === "part-of"));
+});
+
+Then("the Solution Capability is a main artifact", function (this: M21World) {
+  assert(this.solutionArtifacts.some((concept) => concept.id === "capability"));
+});
+
+Then("the Business Persona is not a Solution main artifact", function (this: M21World) {
+  assert(!this.solutionArtifacts.some((concept) => concept.id === "persona"));
+});
+
+Then("the delivery section contains the Human Service type", function (this: M21World) {
+  assert(this.solutionGroups.get("delivery")?.has("Human Service"));
+});
+
+Then("the delivery section contains the Digital Product type", function (this: M21World) {
+  assert(this.solutionGroups.get("delivery")?.has("Digital Product"));
+});
+
+Then("validation reports the unsupported Solution field", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "unknown-solution-field"));
+});
+
+Then("the readable Solution Option remains in the graph", function (this: M21World) {
+  assert(this.snapshot?.concepts.some((concept) => concept.id === "option" && concept.body.includes("human guidance")));
+});
+
+Then("validation reports the Solution type and section mismatch", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "solution-type-section-mismatch"));
 });
 
 Then("the product capability is displayed", function (this: M21World) {
@@ -789,16 +1107,51 @@ Then("the decision is not displayed as a Product capability", function (this: M2
   assert(!this.productArtifacts.some((concept) => concept.id === "decision"));
 });
 
-Then("the business goal is a main artifact", function (this: M21World) {
+Then("the Business Outcome is a main artifact", function (this: M21World) {
   assert(this.mainArtifacts.some((concept) => concept.id === "goal"));
 });
 
-Then("the product capability is not a main artifact", function (this: M21World) {
+Then("the Solution Capability is not a main artifact", function (this: M21World) {
   assert(!this.mainArtifacts.some((concept) => concept.id === "capability"));
 });
 
-Then("the definition-layer registry concept is not a main artifact", function (this: M21World) {
-  assert(!this.mainArtifacts.some((concept) => concept.type === "Definition Layer"));
+Then("the people section contains the Persona type", function (this: M21World) {
+  assert(this.businessGroups.get("people")?.has("Persona"));
+});
+
+Then("the people section contains the Business Role type", function (this: M21World) {
+  assert(this.businessGroups.get("people")?.has("Business Role"));
+});
+
+Then("validation reports the unsupported Business field", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "unknown-business-field"));
+});
+
+Then("the readable Business Problem remains in the graph", function (this: M21World) {
+  assert(this.snapshot?.concepts.some((concept) => concept.id === "problem" && concept.body.includes("Teams reconstruct context")));
+});
+
+Then("validation reports the Business type and section mismatch", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "business-type-section-mismatch"));
+});
+
+Then("the definition-area registry concept is not a main artifact", function (this: M21World) {
+  assert(!this.mainArtifacts.some((concept) => ["Definition Area", "Definition Layer"].includes(concept.type)));
+});
+
+Then("every area-owned graph node retains its Definition Area", function (this: M21World) {
+  assert(this.globalGraph);
+  assert.equal(this.globalGraph.nodes.find((node) => node.id === "business/problem")?.area, "business");
+  assert.equal(this.globalGraph.nodes.find((node) => node.id === "solution/capability")?.area, "solution");
+});
+
+Then("highlighting Business does not remove Solution knowledge", function (this: M21World) {
+  assert(this.globalGraph?.nodes.some((node) => node.id === "solution/capability"));
+});
+
+Then("the open project publishes the changed vision", async function (this: M21World) {
+  const snapshot = await this.watchedSnapshot;
+  assert.equal(snapshot?.concepts.find((concept) => concept.id === "vision")?.description, "Changed outside M21");
 });
 
 Then("the projection is {word}", function (this: M21World, projection: string) {
@@ -807,6 +1160,73 @@ Then("the projection is {word}", function (this: M21World, projection: string) {
 
 Then("the active definition layer remains {word}", function (this: M21World, layer: string) {
   assert.equal(this.definitionLayer, layer);
+});
+
+Then("the Color System is a main artifact", function (this: M21World) {
+  assert(this.visualArtifacts.some((concept) => concept.type === "Color System"));
+});
+
+Then("the User Journey is not a Visual Design main artifact", function (this: M21World) {
+  assert(!this.visualArtifacts.some((concept) => concept.type === "User Journey"));
+});
+
+Then("the Color System contains its accepted CSS artifact", function (this: M21World) {
+  const concept = this.snapshot?.concepts.find((candidate) => candidate.type === "Color System");
+  assert(concept?.artifacts.some((artifact) => artifact.role === "css" && artifact.content.includes("--accent")));
+});
+
+Then("the linked CSS contributes to the project revision", async function (this: M21World) {
+  const service = await open(this);
+  const before = service.snapshot().revision;
+  await writeArtifact(this, "/visual-design/styles/colors.css", ":root { --accent: #7357a6; --surface: #ffffff; }\n");
+  const refreshed = await service.refreshFromDisk();
+  assert(refreshed);
+  this.artifactRevisionChanged = refreshed.revision !== before;
+  assert(this.artifactRevisionChanged);
+});
+
+Then("linked theme CSS appears before the inline theme override", function (this: M21World) {
+  const linked = this.composedTheme.indexOf("--accent: #4455aa");
+  const inline = this.composedTheme.indexOf("--accent: #7357a6");
+  assert(linked >= 0 && inline > linked);
+});
+
+Then("the specimen contains the accepted component markup", function (this: M21World) {
+  assert.match(this.visualSpecimen, /Accept proposal/);
+});
+
+Then("the specimen applies theme CSS before component CSS", function (this: M21World) {
+  assert(this.visualSpecimen.indexOf("--accent: #4455aa") < this.visualSpecimen.indexOf("\.action"));
+});
+
+Then("the specimen requires an isolated script sandbox", function (this: M21World) {
+  assert(["", "allow-scripts"].includes(this.visualSandbox));
+  assert.doesNotMatch(this.visualSandbox, /allow-same-origin/);
+});
+
+Then("validation reports unsafe Visual Component HTML", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "unsafe-visual-html"));
+});
+
+Then("the readable Visual Component remains in the graph", function (this: M21World) {
+  assert(this.snapshot?.concepts.some((concept) => concept.id === "unsafe" && concept.body.includes("remains readable")));
+});
+
+Then("validation reports the missing Visual Design artifact", function (this: M21World) {
+  assert(this.snapshot?.diagnostics.some((diagnostic) => diagnostic.code === "missing-visual-artifact"));
+});
+
+Then("the Mermaid diagram source is recognized", function (this: M21World) {
+  assert.equal(this.mermaidSources.length, 1);
+  assert.match(this.mermaidSources[0]?.source ?? "", /graph TD/);
+});
+
+Then("the canonical Markdown source remains unchanged", function (this: M21World) {
+  assert.equal(this.snapshot?.concepts[0]?.body, this.originalMarkdown);
+});
+
+Then("no Mermaid diagram source is recognized", function (this: M21World) {
+  assert.deepEqual(this.mermaidSources, []);
 });
 
 Then("the project theme uses the visual language as its source", function (this: M21World) {
@@ -860,7 +1280,7 @@ Then("the project contains only one copy of the decision", function (this: M21Wo
   assert.equal(this.snapshot?.concepts.filter((concept) => concept.id === "decision").length, 1);
 });
 
-Then("the draft screen is available for work", function (this: M21World) {
+Then("the screen is available for work", function (this: M21World) {
   assert(this.lifecycleSnapshot?.concepts.some((concept) => concept.id === "screen"));
 });
 
@@ -870,6 +1290,22 @@ Then("the product definition diagnostic remains visible when relevant", function
 
 Then("the AI provider receives Product as the definition-layer context", function (this: M21World) {
   assert.equal(this.receivedStage, "product");
+});
+
+Then("every visible Concept card offers a source action without expansion", function (this: M21World) {
+  assert.deepEqual(this.debugSourceIds.sort(), ["goal", "vision"]);
+});
+
+Then("the modal contains the exact raw Business Goal Markdown", function (this: M21World) {
+  assert.match(this.debugRaw, /title: Coherent decisions/);
+  assert.match(this.debugRaw, /# Goal/);
+});
+
+Then("the vision exposes its exact raw Markdown file", function (this: M21World) {
+  const raw = this.snapshot?.concepts.find((concept) => concept.id === "vision")?.raw ?? "";
+  assert.match(raw, /^---\n/);
+  assert.match(raw, /title: Active Vision/);
+  assert.match(raw, /# Mission/);
 });
 
 Then("the project graph contains both concepts", function (this: M21World) {
@@ -947,7 +1383,7 @@ Then("the canonical vision contains the proposed clarification", function (this:
   assert.match(this.snapshot?.concepts.find((concept) => concept.id === "vision")?.body ?? "", /Make the user outcome explicit/);
 });
 
-Then("the summary includes the draft screen", function (this: M21World) {
+Then("the summary includes the screen", function (this: M21World) {
   assert.match(this.summaries[0] ?? "", /Draft Workspace/);
 });
 

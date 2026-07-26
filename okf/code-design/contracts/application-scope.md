@@ -1,9 +1,9 @@
 ---
 type: Code Contract
+application-id: project-service
 title: Application Scope Contract
 description: Deterministic ownership query that keeps downstream definition layers rooted in one selected owned Application.
 tags: [code-design, contract, application-scope, query]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: contracts

@@ -3,7 +3,6 @@ type: Experience Principle
 title: Non-Linear Agency
 description: Users may work wherever useful while M21 preserves coherence across dependencies.
 tags: [experience, navigation, agency]
-status: draft
 sdlc: [design, components, code-design, implementation, deployment]
 design:
   section: principles

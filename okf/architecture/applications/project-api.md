@@ -1,9 +1,9 @@
 ---
 type: Application Interface
+application-id: project-service
 title: Project Workspace API
 description: Semantic loopback interface through which the Browser Workspace queries accepted knowledge and submits reviewable commands.
 tags: [application, interface, api, local-first]
-status: active
 sdlc: [application, code-design, implementation]
 application:
   section: interfaces
@@ -28,9 +28,9 @@ relationships:
 
 # Queries
 
-- Open the current project snapshot.
+- Open the current project snapshot, including validated linked artifact projections.
 - Generate a project or layer summary.
-- Generate the accepted Design component preview.
+- Generate the accepted sandboxed Visual Design component catalog.
 - Read a proposal by stable proposal identity.
 
 # Commands

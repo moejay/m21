@@ -9,7 +9,7 @@ Use this skill for source, tests, architecture, UI, or contract work in this rep
 
 ## Required reading order
 
-1. Read `spec/product-definition-workflow.md` and `spec/m21-workspace.md` completely. The first owns product-wide definition metadata and authoring; the second owns the regeneration-quality workspace implementation contract.
+1. Read `spec/m21-workspace.md` completely. For a migrated Definition Area, read `m21-spec/CONTEXT.md`, `m21-spec/SCHEMA-CONVENTIONS.md`, and that area's accepted specification completely; then read its implementation contract under `spec/`. `spec/product-definition-workflow.md` remains authoritative only for areas not yet migrated.
 2. Read every affected executable scenario under `features/` before changing behavior.
 3. Read the affected canonical OKF concepts under `okf/`, especially:
    - `okf/domain/sdlc-workflow.md`
@@ -24,7 +24,12 @@ If the spec, executable feature, and OKF knowledge disagree, stop and resolve th
 
 ## Architecture rules
 
-- Keep Business, Product, Visual Design, System Design, and Architecture product-wide.
+- Keep Business, Business Solution, Visual Design, System Design, and Architecture product-wide.
+- Treat singular `area` as canonical ownership for migrated Definition Areas; tolerate legacy `sdlc` only for unmigrated areas during the incremental transition.
+- Keep Business Solution socio-technical: human services, processes, policies, digital and physical products, and partners are equal first-class possibilities.
+- Keep Visual Design product-wide and separate from Application Experience: shared direction, linked CSS foundations, themes, visual components, assets, and visual accessibility only.
+- Treat linked Visual Design artifacts as canonical and revision-bearing; render HTML and optional demonstrations only in isolated previews, and never auto-activate a theme on M21.
+- Render fenced Mermaid as strict disposable Markdown views; typed relationships and source Markdown remain authoritative.
 - Keep System Design conceptual: responsibilities, flows, data ownership, qualities, and external boundaries without deciding executable topology.
 - Use Architecture to choose actual owned Applications; allow one full-stack or monolithic Application or several frontend, backend, worker, and service Applications.
 - Require one selected owned Application for Application Architecture, Components, Code Design, Implementation, and Deployment.
@@ -62,7 +67,7 @@ Code Design describes models, semantic interfaces, stateful contracts, dependenc
 - Persistence, provider, and generated-view dependencies use ports.
 - Failures preserve accepted state and expose actionable categories without leaking secrets.
 - Application-scoped contracts must be linked through the owning Application or Component.
-- Every active Component declares the Gherkin feature files that verify its public behavior and durable guarantees.
+- Every canonical Component declares the Gherkin feature files that verify its public behavior and durable guarantees.
 - Implementation and coding-agent handoffs derive required testing primarily from those Component feature sets.
 - Gherkin scenarios demonstrate observable guarantees; do not use scenarios for private helpers.
 

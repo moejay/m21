@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: Continuous Graph Validation
 description: Detect incomplete, inconsistent, risky, or untraceable product knowledge without forcing false completeness.
 tags: [mvp, validation, risk, traceability]
-status: draft
-sdlc: [product, components, code-design, implementation, deployment]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of
@@ -31,7 +30,7 @@ A user can distinguish intentional uncertainty from accidental gaps and understa
 - Capabilities with no user or business traceability
 - Journeys, screens, or components disconnected from product intent
 - Architecture responsibilities without realized capabilities
-- Conflicting or superseded decisions still treated as active
+- Conflicting decisions or explicit replacements that remain unreconciled
 - Violated constraints
 - Undefined ownership where review is required
 - Circular hard dependencies

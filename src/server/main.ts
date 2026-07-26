@@ -52,6 +52,22 @@ export async function createServer(
     response.json(project.snapshot());
   });
 
+  app.get("/api/events", (request, response) => {
+    response.status(200);
+    response.set({
+      "content-type": "text/event-stream",
+      "cache-control": "no-cache, no-transform",
+      connection: "keep-alive",
+    });
+    response.flushHeaders();
+    const publish = (snapshot: ReturnType<ProjectService["snapshot"]>) => {
+      response.write(`event: project\ndata: ${JSON.stringify(snapshot)}\n\n`);
+    };
+    publish(project.snapshot());
+    const unwatch = project.watch(publish);
+    request.on("close", unwatch);
+  });
+
   app.post("/api/proposals", (request, response, next) => {
     try {
       const { conceptId, changes, changeKind = "contract", summary = "Revise concept" } = request.body as Record<string, unknown>;

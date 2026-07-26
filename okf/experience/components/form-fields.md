@@ -1,17 +1,13 @@
 ---
-type: Component Story
+type: Visual Component
 title: Form Fields
 description: Labeled text, selection, and instruction controls support deliberate editing and AI guidance.
 tags: [design-system, component-story, forms]
-status: active
-sdlc: [design]
-design:
+area: visual-design
+visual-design:
   section: components
-  platforms: [web]
-  group: controls
-  preview:
-    kind: form-fields
-    variants: [text, select, textarea, error]
+  html-source: /visual-design/components/form-fields.html
+  css-source: /visual-design/components/form-fields.css
 relationships:
   - type: part-of
     target: /experience/design-system.md

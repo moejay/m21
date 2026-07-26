@@ -1,9 +1,9 @@
 ---
 type: Code Contract
+application-id: project-service
 title: Project Snapshot Contract
 description: Immutable accepted view of concepts, typed edges, diagnostics, project identity, and revision used by every workspace projection.
 tags: [code-design, contract, snapshot, immutable]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: contracts
@@ -20,11 +20,11 @@ relationships:
 
 # Data
 
-A Project Snapshot contains project identity, canonical root, revision, normalized Concepts, resolved typed Edges, and current Diagnostics.
+A Project Snapshot contains project identity, canonical root, revision, normalized Concepts including exact raw Markdown and validated linked artifacts, resolved typed Edges, and current Diagnostics.
 
 # Invariants
 
-- A snapshot represents one accepted project revision.
+- A snapshot represents one accepted project revision, including linked canonical artifact content consumed by migrated area schemas.
 - Consumers treat every collection as immutable.
 - Edges reference Concept identities present in the complete project snapshot.
 - A layer or Application-scoped snapshot may omit unrelated Concepts and Edges but preserves the source revision.

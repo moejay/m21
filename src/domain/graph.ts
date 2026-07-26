@@ -7,13 +7,14 @@ export class ProductGraph {
 
   constructor(concepts: Concept[]) {
     this.concepts = new Map(concepts.map((concept) => [concept.id, concept]));
-    this.edges = concepts.flatMap((concept) =>
-      concept.relationships.map((relationship) => ({
-        ...relationship,
-        source: concept.id,
-        targetId: relationshipTargetId(relationship.target),
-      })),
-    );
+    const edgeIdentities = new Set<string>();
+    this.edges = concepts.flatMap((concept) => concept.relationships.flatMap((relationship) => {
+      const targetId = relationshipTargetId(relationship.target);
+      const identity = `${concept.id}\0${relationship.type}\0${targetId}`;
+      if (edgeIdentities.has(identity)) return [];
+      edgeIdentities.add(identity);
+      return [{ ...relationship, source: concept.id, targetId }];
+    }));
   }
 
   concept(id: string): Concept | undefined {

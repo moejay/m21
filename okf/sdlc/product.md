@@ -1,13 +1,12 @@
 ---
-type: Definition Layer
-title: Product
-short_title: Product
-stage: product
+type: Definition Area
+title: Business Solution
+short_title: Solution
+stage: solution
 order: 20
-description: Define how the product solves the business problem and what outcomes and capabilities it promises.
-tags: [sdlc, product, capabilities, outcomes]
-status: active
-sdlc: [product]
+description: Define the complete socio-technical response and solution space for accepted Business context.
+tags: [definition-area, solution, capabilities, delivery]
+sdlc: [solution]
 relationships:
   - type: informed-by
     target: /sdlc/business.md
@@ -17,20 +16,19 @@ relationships:
 
 # Purpose
 
-Translate business problems, users, and outcomes into a coherent product contract.
+Translate Business problems, needs, goals, and outcomes into a coherent socio-technical response without prematurely choosing experience or technical realization.
 
 # Defines
 
-- Product proposition and boundaries
-- User outcomes and product capabilities
-- Product behavior, policies, and requirements
-- Success measures and acceptance outcomes
-- Product assumptions, constraints, and risks
-- Traceability from business needs to product responses
+- Solution proposition, options, outcomes, and boundaries
+- Solution capabilities, behavior, policies, and delivery mechanisms
+- Human services, processes, policy interventions, digital and physical products, and partner services
+- Solution measures, assumptions, constraints, and risks
+- Traceability from Business needs and problems to the response
 
 # Agent posture
 
-Ask how the product creates the intended outcome, challenge features without business or persona traceability, clarify product boundaries, and avoid embedding design or implementation choices unless they are true constraints.
+Ask what complete response could create the intended outcome, challenge options without Business traceability, distinguish capabilities from delivery mechanisms, and avoid assuming the response must be software.
 
 # Downstream influence
 

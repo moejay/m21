@@ -1,0 +1,5 @@
+:root { --radius-small: 6px; --radius-medium: 10px; --radius-large: 16px; --shadow: 0 12px 36px rgba(31,36,43,.12); }
+.m21-foundation-sample { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.m21-foundation-sample div { height: 90px; border: 1px solid var(--border); background: var(--surface); }
+.m21-foundation-sample div:nth-child(1) { border-radius: var(--radius-small); }.m21-foundation-sample div:nth-child(2) { border-radius: var(--radius-medium); }.m21-foundation-sample div:nth-child(3) { border-radius: var(--radius-large); box-shadow: var(--shadow); }
+.m21-foundation-sample p { grid-column: 1/-1; color: var(--muted); }

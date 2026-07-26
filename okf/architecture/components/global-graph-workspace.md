@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: browser-workspace
 title: Global Graph Workspace
 description: Renders the complete accepted OKF graph as an interactive product-wide 3D knowledge view.
 tags: [architecture, component, browser, graph, webgl]
-status: active
 sdlc: [components, implementation]
 components:
   section: components
@@ -28,7 +28,7 @@ relationships:
 
 - Project every accepted OKF Concept and resolved typed relationship from the complete Project Snapshot into one interactive 3D graph.
 - Keep global graph scope independent from active definition layer and selected Application.
-- Encode definition depth with a stable visual legend while keeping spatial coordinates non-canonical.
+- Encode Definition Area with a stable visual legend and allow one area to be highlighted without removing the rest of the graph, while keeping spatial coordinates non-canonical.
 - Support orbit, zoom, pan, search, node focus, relationship traversal, and return to the remembered workspace.
 - Provide focused textual concept and relationship context alongside the spatial view.
 - Fail visibly when 3D rendering is unavailable without affecting accepted knowledge.

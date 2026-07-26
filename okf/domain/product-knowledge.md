@@ -3,7 +3,6 @@ type: Domain Model
 title: Product Knowledge Graph Model
 description: The canonical concepts and typed relationships that represent a product in M21.
 tags: [domain-model, graph, concepts, relationships]
-status: draft
 sdlc: [components, code-design, implementation]
 relationships:
   - type: governs
@@ -20,12 +19,13 @@ A Concept is one independently addressable unit of accepted or proposed product 
 - **Type:** open, descriptive concept type used for routing, validation, and presentation
 - **Title and description:** concise human orientation
 - **Body:** structured Markdown carrying the concept's domain knowledge
-- **Status:** draft, active, superseded, or retired
+- **Definition Area:** exactly one primary ownership area for migrated M21 concepts; legacy layer membership remains readable during migration
 - **Tags:** cross-cutting categorization
 - **Owners:** people or teams accountable for review
 - **Extension metadata:** producer-defined values preserved losslessly
+- **Linked artifacts:** validated revision-bearing bundle-local sources for concepts whose accepted area schema requires executable or media content
 
-The initial product profile recognizes Project, Vision, Definition Layer, Business Problem, Business Goal, Business Capability, Success Metric, Persona, Product Capability, Experience Principle, User Journey, Information Architecture, Screen, Visual Language, Design System, UI Pattern, UI Component, System, Application, Component, Decision, Constraint, Risk, AI Agent, Change Set, Impact Assessment, and Generated View.
+The controlled Business profile recognizes Mission, Vision, Business Problem, Stakeholder, Business Role, Persona, Persona Goal, Business Need, Business Outcome, Success Metric, Business Capability, Market, Market Segment, Competitor, Market Sizing, Research Study, Research Finding, Evidence Source, Business Model, Revenue Model, Cost Model, Regulation, Business Constraint, Business Risk, and Business Decision. The controlled Business Solution profile recognizes Solution Proposition, Solution Option, Solution Outcome, Solution Measure, Solution Capability, Solution Behavior, Solution Policy, Human Service, Business Process, Policy Intervention, Digital Product, Physical Product, Partner Service, Solution Boundary, Solution Constraint, Solution Assumption, Solution Risk, and Solution Decision. The controlled Visual Design profile recognizes shared direction, visual foundations, themes, components, assets, accessibility rules, and decisions. Other Definition Areas retain their current profile until migrated.
 
 # Typed relationship
 
@@ -48,4 +48,4 @@ A Product Graph is the set of valid Concepts and Typed Relationships in one proj
 - Unknown concept types and extension metadata remain usable and round-trip intact.
 - A missing relationship target is diagnosable but does not make the rest of the bundle unreadable.
 - Generated views do not become canonical concepts merely by being generated.
-- Retired and superseded knowledge remains available to history and decision reasoning.
+- Replacement is expressed explicitly through relationships and rationale; removal and historical recovery belong to version control.

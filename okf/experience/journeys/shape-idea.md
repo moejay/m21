@@ -3,7 +3,6 @@ type: User Journey
 title: Shape an Idea into a Product Model
 description: A product builder turns an incomplete idea into connected business, product, design, and architecture knowledge.
 tags: [journey, discovery, onboarding]
-status: draft
 sdlc: [design]
 design:
   section: journeys

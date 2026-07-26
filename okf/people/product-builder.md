@@ -3,10 +3,9 @@ type: Persona
 title: Product Builder
 description: An individual transforming an idea into a product while covering several product and engineering disciplines.
 tags: [persona, founder, engineer, designer]
-status: draft
-sdlc: [business]
+area: business
 business:
-  section: personas
+  section: people
 ---
 
 # Context

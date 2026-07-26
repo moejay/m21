@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: project-service
 title: AI Orchestrator
 description: Builds bounded project context, invokes replaceable model providers, and validates structured agent proposals.
 tags: [architecture, component, ai, prompts]
-status: active
 sdlc: [components, implementation]
 components:
   section: components
@@ -13,7 +13,6 @@ components:
   visibility: internal
   features:
     - features/ai-guidance.feature
-    - features/design-visual-language.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md

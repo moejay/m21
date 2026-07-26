@@ -6,7 +6,6 @@ stage: components
 order: 70
 description: Decompose each owned application into cohesive components with explicit responsibilities and dependencies.
 tags: [sdlc, components, modules, dependencies]
-status: active
 sdlc: [components]
 relationships:
   - type: informed-by

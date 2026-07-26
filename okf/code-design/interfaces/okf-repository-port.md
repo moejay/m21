@@ -1,9 +1,9 @@
 ---
 type: Code Interface
+application-id: project-service
 title: OKF Repository Port
 description: Persistence boundary for loading complete portable concepts and atomically applying accepted revisions within one bundle root.
 tags: [code-design, interface, persistence, port]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: interfaces
@@ -22,7 +22,7 @@ relationships:
 
 # Operations
 
-- Load bundle → normalized Concepts plus parse Diagnostics
+- Load bundle → normalized Concepts with admitted linked artifacts plus parse Diagnostics
 - Revise accepted Concept → durable replacement or explicit failure
 
 # Preconditions
@@ -39,3 +39,4 @@ A successful revision replaces one canonical document and preserves unmodified f
 - Temporary writes are not canonical.
 - Rename into place is the mutation boundary.
 - Unknown producer metadata survives supported revisions.
+- Linked artifact content admitted by an accepted area schema contributes to revision identity.

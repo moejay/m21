@@ -3,11 +3,12 @@ type: Business Problem
 title: Hidden Cross-Disciplinary Change Impact
 description: Teams cannot reliably see which product, design, or engineering knowledge a meaningful change may affect.
 tags: [business, problem, change-impact]
-status: active
-sdlc: [business]
+area: business
 business:
   section: problems
 relationships:
+  - type: affects
+    target: /people/product-team.md
   - type: informed-by
     target: /risks/false-impact-propagation.md
 ---

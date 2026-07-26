@@ -4,7 +4,7 @@ export interface GlobalGraphNode {
   id: string;
   title: string;
   type: string;
-  status?: string;
+  area?: string;
   layers: string[];
 }
 
@@ -28,7 +28,7 @@ export function projectGlobalGraph(snapshot: ProjectSnapshot): GlobalGraphProjec
         id: concept.id,
         title: concept.title,
         type: concept.type,
-        ...(concept.status ? { status: concept.status } : {}),
+        ...(concept.area ? { area: concept.area } : {}),
         layers: [...concept.sdlc],
       }))
       .sort((left, right) => left.id.localeCompare(right.id)),

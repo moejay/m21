@@ -13,7 +13,7 @@ Feature: directional-change-impact
     Then the proposal does not flag the product capability for review
 
   Scenario: Accepting a proposal persists the change and refreshes the graph
-    Given an OKF project containing an active vision
+    Given an OKF project containing an accepted vision
     And I have proposed a revision to the vision
     When I accept the proposal
     Then the canonical vision contains the revision

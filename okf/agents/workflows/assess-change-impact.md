@@ -3,7 +3,6 @@ type: AI Workflow
 title: Assess Semantic Change Impact
 description: Enrich deterministic dependency findings when concept meaning requires contextual judgment.
 tags: [ai, prompt-contract, impact, review]
-status: draft
 sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: part-of

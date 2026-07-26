@@ -6,7 +6,6 @@ stage: code-design
 order: 80
 description: Define implementation-facing concepts, models, interfaces, patterns, contracts, and executable behavior for each application.
 tags: [sdlc, code-design, models, interfaces, patterns, gherkin]
-status: active
 sdlc: [code-design]
 relationships:
   - type: informed-by

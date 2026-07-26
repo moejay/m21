@@ -60,6 +60,32 @@ describe("ProjectService", () => {
     expect(await readFile(path.join(root, "vision.md"), "utf8")).toContain("preserved: true");
   });
 
+  it("parses singular Definition Area ownership and validates closed Business metadata", async () => {
+    const root = await fixture();
+    await writeFile(path.join(root, "problem.md"), document({
+      type: "Business Problem",
+      title: "Fragmented knowledge",
+      description: "Knowledge is disconnected.",
+      area: "business",
+      business: { section: "problems", priority: "high" },
+    }).replace("# Knowledge", "# Problem\n\nTeams reconstruct context manually."), "utf8");
+    const snapshot = (await ProjectService.open(root)).snapshot();
+    expect(snapshot.concepts.find((concept) => concept.id === "problem")?.area).toBe("business");
+    expect(snapshot.diagnostics).toContainEqual(expect.objectContaining({ code: "unknown-business-field", conceptIds: ["problem"] }));
+  });
+
+  it("diagnoses malformed portable relationships instead of silently resolving them", async () => {
+    const root = await fixture();
+    await writeFile(path.join(root, "invalid-link.md"), document({
+      type: "Decision",
+      title: "Invalid relationship",
+      relationships: [{ type: "supports", target: "vision.md" }],
+    }), "utf8");
+    const snapshot = (await ProjectService.open(root)).snapshot();
+    expect(snapshot.diagnostics).toContainEqual(expect.objectContaining({ code: "invalid-relationship", conceptIds: ["invalid-link"] }));
+    expect(snapshot.edges.some((edge) => edge.source === "invalid-link")).toBe(false);
+  });
+
   it("does not propagate internal realization changes upstream", async () => {
     const service = await ProjectService.open(await fixture());
     const proposal = service.proposeRevision({

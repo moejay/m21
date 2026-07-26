@@ -5,6 +5,11 @@ group: product-engineering
 tags: [okf, workspace, application-scope, proposals, generated-views]
 depends_on:
   - product-definition-workflow
+  - business-definition-area
+  - business-solution-definition-area
+  - visual-design-definition-area
+  - system-design-definition-area
+  - architecture-definition-area
 features: features/
 ---
 
@@ -14,7 +19,7 @@ features: features/
 
 ### Concept
 
-A portable OKF knowledge document with stable bundle-relative identity, descriptive type, title, description, lifecycle status, Markdown body, definition-layer membership, typed Relationships, and preserved producer metadata.
+A portable OKF knowledge document with stable bundle-relative identity, controlled or producer-defined type, title, description, exact raw Markdown, parsed body, singular Definition Area ownership where migrated, legacy definition-layer membership where not yet migrated, typed Relationships, resolved admitted artifacts, and preserved producer metadata. Concepts have no generic lifecycle status.
 
 ### Project snapshot
 
@@ -28,9 +33,9 @@ One selected owned Application established by the product-wide Architecture laye
 
 A revision-bound, reviewable set of operations with provenance, impact findings, and lifecycle state. Proposal values remain separate from accepted Project Snapshot values until successful explicit acceptance.
 
-### Semantic theme
+### Visual artifact projection
 
-A validated projection of color, typography, shape, and elevation tokens from one active Visual Language. The accepted theme styles both M21 and generated Visual Design previews.
+Validated bundle-local CSS, HTML, script, and media content resolved from accepted Visual Design source paths. Linked artifacts contribute to the accepted project revision; composed themes and sandboxed specimens remain disposable generated views.
 
 ```m21-model
 entities:
@@ -47,10 +52,12 @@ entities:
       type: { type: string, required: true }
       title: { type: string, required: true }
       description: { type: string, required: true }
-      status: { type: enum, values: [draft, active, superseded, retired], required: true }
       body: { type: string, required: true }
-      sdlc: { type: array, items: string, required: true }
+      raw: { type: string, required: true }
+      area: { type: string }
+      sdlc: { type: array, items: string }
       relationships: { type: array, items: Relationship }
+      artifacts: { type: array, items: object, required: true }
       metadata: { type: object, required: true }
   Diagnostic:
     fields:
@@ -67,14 +74,14 @@ entities:
       diagnostics: { type: array, items: Diagnostic, required: true }
   LayerSelection:
     fields:
-      layer: { type: enum, values: [business, product, design, system, architecture, application, components, code-design, implementation, deployment], required: true }
+      layer: { type: enum, values: [business, solution, visual-design, product, design, system, architecture, application, components, code-design, implementation, deployment], required: true }
       applicationId: { type: string }
   GlobalGraphNode:
     fields:
       id: { type: string, required: true }
       title: { type: string, required: true }
       type: { type: string, required: true }
-      status: { type: string }
+      area: { type: string }
       layers: { type: array, items: string, required: true }
   GlobalGraphLink:
     fields:
@@ -123,6 +130,12 @@ entities:
       mediaType: { type: string, required: true }
       content: { type: string, required: true }
       sourceRevision: { type: string, required: true }
+  DebugSourceView:
+    fields:
+      conceptId: { type: string, required: true }
+      filePath: { type: string, required: true }
+      rawMarkdown: { type: string, required: true }
+      sourceRevision: { type: string, required: true }
 ```
 
 ## Interfaces
@@ -144,7 +157,7 @@ operations:
     output: ProjectSnapshot
     failures: [UnknownApplication, ApplicationScopeRequired]
   project-global-graph:
-    purpose: Project every accepted OKF concept and resolved typed relationship into one interactive product-wide graph independent of active layer or Application scope.
+    purpose: Project every accepted OKF concept and resolved typed relationship into one interactive product-wide graph independent of active area or Application scope, retaining singular Definition Area ownership for optional highlighting.
     input: ProjectSnapshot
     output: GlobalGraphProjection
     failures: []
@@ -165,6 +178,17 @@ operations:
     input: ViewRequest
     output: GeneratedView
     failures: [UnknownView, InvalidViewScope]
+  watch-project:
+    purpose: Publish a reloaded accepted Project Snapshot when canonical project files change outside the current M21 process.
+    output: ProjectSnapshot
+    failures: [UnreadableProject]
+    effects: [Replaces derived in-memory state only after a complete reload]
+  inspect-debug-source:
+    purpose: Expose the exact raw Markdown of one accepted Concept selected directly from any visible card or opened graph node while global debug mode is enabled.
+    input: Concept
+    output: DebugSourceView
+    failures: [UnknownConcept]
+    effects: [Leaves canonical knowledge unchanged]
 ```
 
 ## Contract
@@ -172,13 +196,19 @@ operations:
 ### Responsibilities
 
 - Keep OKF Markdown and YAML as canonical portable product knowledge.
-- Present Business, Product, Visual Design, System Design, and Architecture as product-wide purpose-built workspaces governed by the Product Definition Workflow contract.
+- Present Business and Business Solution through singular Definition Area schemas and purpose-built grouped-card workspaces.
+- Present Visual Design through its singular Definition Area schema, linked CSS/HTML artifacts, composed themes, and sandboxed specimen catalog.
+- Present System Design through its singular Definition Area schema and relationship-driven conceptual system map.
+- Present Architecture through its singular Definition Area schema, stable Application IDs, owned topology, directed communications, and responsibility realization matrix.
 - Keep System Design conceptual and use Architecture to define one or more actual owned Applications that realize it.
 - Present Application Architecture, Components, Code Design, Implementation, and Deployment under one persistent selected Application scope.
-- Make each active Component's declared Gherkin feature set the primary implementation testing contract.
+- Make each canonical Component's declared Gherkin feature set the primary implementation testing contract.
 - Preserve explicit user review between proposals and accepted knowledge.
-- Apply accepted Visual Language tokens to M21 and generated component previews.
-- Provide one product-wide interactive 3D graph of every accepted OKF concept and resolved typed relationship, independent of current layer or Application scope.
+- Resolve accepted Visual Design artifacts, render isolated foundation and component previews, and never activate a workspace theme without a separate explicit user action.
+- Render fenced Mermaid blocks in canonical Markdown as strict, disposable diagrams while preserving source text and typed graph semantics.
+- Provide one product-wide interactive 3D graph of every accepted OKF concept and resolved typed relationship, independent of current area or Application scope, with optional visual highlighting by Definition Area.
+- Watch canonical project files and publish a fresh accepted snapshot to the open browser when their content, presence, or relationships change.
+- Provide a global browser-only debug mode that places a `</>` source action on every visible Concept card and opened graph node and opens that specific Concept's exact raw Markdown in a modal without requiring expansion or focus.
 - Generate reproducible views and external-agent handoffs without creating another source of truth.
 
 ### Component boundaries
@@ -190,17 +220,22 @@ The Local Project Service contains a transport adapter, Project Coordinator, Pro
 ### Invariants
 
 - The global graph contains every accepted concept exactly once and every resolved typed relationship exactly once.
-- Opening, rotating, filtering, or focusing the global graph never mutates canonical knowledge or changes layer membership.
+- Area highlighting changes emphasis only; it never removes knowledge from the global projection.
+- Opening, rotating, filtering, highlighting, or focusing the global graph never mutates canonical knowledge or changes Definition Area ownership.
 - Layer-specific workspaces remain purpose-built and do not embed a substitute global graph.
 - Primary artifacts require explicit active-layer membership.
 - System Design never implies a monolith or distributed Application topology; Architecture records that decision explicitly.
 - Application scope never widens silently when its selected identity is invalid.
-- Every active Component declares at least one existing executable Gherkin feature file, and implementation verifies those features.
+- Every canonical Component declares at least one existing executable Gherkin feature file, and implementation verifies those features.
 - Cross-Application dependencies do not transfer ownership.
-- Unknown OKF producer extensions survive supported revisions.
+- Unknown OKF producer extensions survive supported revisions; unknown fields inside a closed migrated area namespace remain preserved but produce diagnostics.
+- A failed external reload leaves the last complete accepted snapshot available and exposes a diagnostic or transport failure.
 - Failed or stale mutation leaves accepted canonical knowledge unchanged.
 - AI output is untrusted proposal input and has no persistence authority.
-- Generated documents, diagrams, previews, and handoffs are disposable projections.
+- Generated documents, Mermaid diagrams, visual specimens, previews, and handoffs are disposable projections.
+- Linked Visual Design artifacts are canonical and revision-bearing; rendered output, iframe state, Mermaid SVG, debug-mode state, and raw-source modal state are not.
+- Debug inspection is read-only, does not activate its containing card or node, and displays the selected Concept's exact source associated with the accepted snapshot revision.
+- Visual Component scripts run only in isolated previews without same-origin or workspace authority.
 - Switching between a purpose-built workspace and its graph preserves the active definition layer, selected Application scope, and focused Concept.
 - Application and domain contracts remain independent of browser, transport, filesystem, and model-provider implementation details.
 

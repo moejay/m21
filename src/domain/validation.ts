@@ -1,5 +1,11 @@
 import type { Diagnostic } from "./model.js";
+import { relationshipTargetId } from "./model.js";
+import { validateBusinessConcept } from "./business.js";
 import { ProductGraph } from "./graph.js";
+import { validateSolutionConcept } from "./solution.js";
+import { validateVisualArtifacts, validateVisualDesignConcept } from "./visual-design.js";
+import { validateSystemConcept } from "./system-design.js";
+import { validateArchitectureConcept, validateArchitectureGraph } from "./architecture.js";
 
 export function validateGraph(graph: ProductGraph): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
@@ -17,7 +23,22 @@ export function validateGraph(graph: ProductGraph): Diagnostic[] {
   }
 
   for (const concept of graph.concepts.values()) {
-    if (!["Product Capability", "Capability"].includes(concept.type)) continue;
+    const relationshipIdentities = new Set<string>();
+    for (const relationship of concept.relationships) {
+      const targetId = relationshipTargetId(relationship.target);
+      const identity = `${relationship.type}\0${targetId}`;
+      if (relationshipIdentities.has(identity)) {
+        diagnostics.push({
+          code: "duplicate-relationship",
+          severity: "error",
+          message: `${concept.id} repeats the ${relationship.type} relationship to ${targetId}.`,
+          conceptIds: [concept.id, targetId],
+        });
+      }
+      relationshipIdentities.add(identity);
+    }
+    diagnostics.push(...validateBusinessConcept(concept), ...validateSolutionConcept(concept), ...validateVisualDesignConcept(concept), ...validateSystemConcept(concept), ...validateArchitectureConcept(concept));
+    if (!["Solution Capability", "Product Capability", "Capability"].includes(concept.type)) continue;
     const hasTraceability = concept.relationships.some((relationship) =>
       ["serves", "realizes", "addresses"].includes(relationship.type),
     );
@@ -31,5 +52,6 @@ export function validateGraph(graph: ProductGraph): Diagnostic[] {
     }
   }
 
+  diagnostics.push(...validateVisualArtifacts([...graph.concepts.values()]), ...validateArchitectureGraph([...graph.concepts.values()], graph.edges));
   return diagnostics;
 }

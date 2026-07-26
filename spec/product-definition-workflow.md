@@ -13,7 +13,7 @@ features: features/product-definition-workflow/
 
 ### Definition document
 
-A Definition Document is one canonical OKF Markdown concept that contributes primary knowledge to one or more product-wide definition layers. Its YAML frontmatter carries machine-readable identity, lifecycle, classification, projection, and traceability metadata. Its Markdown body carries the durable human-readable meaning that cannot be reduced to labels or enums.
+A Definition Document is one canonical OKF Markdown concept that contributes primary knowledge to one or more product-wide definition layers. Its YAML frontmatter carries machine-readable identity, classification, projection, and traceability metadata. Its Markdown body carries the durable human-readable meaning that cannot be reduced to labels or enums. Concepts have no generic lifecycle status; unaccepted work remains a Change Proposal.
 
 The five product-wide layers are ordered by increasing realization depth:
 
@@ -30,7 +30,6 @@ Every managed Definition Document has:
 - `type` — descriptive OKF concept type. It classifies what the document means; it does not select a workflow layer.
 - `title` — concise human-readable identity.
 - `description` — one sentence explaining the concept's significance without requiring the body to be opened.
-- `status` — `draft`, `active`, `superseded`, or `retired`.
 - `sdlc` — non-empty unique list of layer identifiers. Membership makes the document a primary artifact in each listed layer.
 - A namespace object matching each `sdlc` value, except on the Definition Layer documents that describe the workflow itself.
 - `relationships` when semantic traceability, realization, dependency, constraint, or impact exists.
@@ -44,7 +43,6 @@ entities:
       type: { type: string, required: true }
       title: { type: string, required: true }
       description: { type: string, required: true }
-      status: { type: enum, values: [draft, active, superseded, retired], required: true }
       sdlc: { type: array, items: string, required: true }
       tags: { type: array, items: string }
       owners: { type: array, items: string }
@@ -94,7 +92,7 @@ entities:
 
 ### Body contract
 
-Every active Definition Document has a non-empty Markdown body that:
+Every accepted Definition Document has a non-empty Markdown body that:
 
 - Explains the concept in the vocabulary of its layer.
 - States scope and boundaries where ambiguity could change downstream work.
@@ -135,7 +133,7 @@ For every product-wide layer, the agent:
 - Suggests concept types, namespace metadata, body structure, and typed relationships together so prose and machine-readable meaning remain aligned.
 - Detects missing upstream context, contradictions, duplicate concepts, weak boundaries, and unsupported certainty.
 - Explains likely downstream impact without claiming that layer order itself proves impact.
-- Produces reviewable proposals. It never silently fills gaps, changes status, invents evidence, or persists AI output.
+- Produces reviewable proposals. It never silently fills gaps, invents evidence, or persists AI output.
 
 ### Business
 
@@ -155,7 +153,6 @@ A Business document includes `sdlc: [business]` and a `business` object with req
 type: Business Problem
 title: Fragmented product knowledge
 description: Product intent and engineering decisions drift when they live in disconnected tools.
-status: active
 sdlc: [business]
 business:
   section: problems
@@ -188,7 +185,6 @@ A Product document includes `sdlc: [product]` and a `product` object with requir
 type: Product Capability
 title: Reviewable change proposals
 description: Users can inspect and explicitly accept or reject proposed knowledge changes.
-status: active
 sdlc: [product]
 product:
   section: capabilities
@@ -220,7 +216,6 @@ A Visual Design document includes `sdlc: [design]` and a `design` object with re
 type: Component Story
 title: Knowledge cards
 description: Cards present concise concept context and reveal canonical detail on demand.
-status: active
 sdlc: [design]
 design:
   section: components
@@ -256,7 +251,6 @@ A System Design document includes `sdlc: [system]` and a `system` object with re
 type: System Service
 title: Product Knowledge Runtime
 description: Resolves accepted concepts and relationships into coherent product knowledge.
-status: active
 sdlc: [system]
 system:
   kind: subsystem
@@ -290,7 +284,6 @@ Every Architecture document includes `sdlc: [architecture]` and an `architecture
 type: Application
 title: Local Project Service
 description: Owned executable service coordinating accepted project knowledge and reviewable changes.
-status: active
 sdlc: [architecture, application]
 architecture:
   section: applications
@@ -325,7 +318,7 @@ Typed relationships are authoritative. A connected document is contextual unless
 - `type` and `sdlc` remain independent.
 - Each declared product-wide layer has exactly one matching namespace object, except Definition Layer documents.
 - Namespace metadata controls validation and presentation but never duplicates semantic relationships.
-- Active documents have meaningful non-empty bodies.
+- Accepted documents have meaningful non-empty bodies.
 - The agent never manufactures evidence, certainty, priority, ownership, or acceptance.
 - AI output remains a proposal until explicit successful acceptance.
 - System Design does not decide Application topology.

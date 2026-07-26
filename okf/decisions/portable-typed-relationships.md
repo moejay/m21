@@ -3,7 +3,6 @@ type: Decision
 title: Extend OKF with Portable Typed Relationships
 description: Use preserved OKF extension metadata for deterministic graph semantics while retaining ordinary Markdown portability.
 tags: [decision, okf, graph, interoperability]
-status: proposed
 sdlc: [components, code-design, implementation]
 relationships:
   - type: governs

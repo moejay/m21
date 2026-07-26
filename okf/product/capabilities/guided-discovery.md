@@ -1,11 +1,10 @@
 ---
-type: Product Capability
+type: Solution Capability
 title: AI-Guided Product Discovery
 description: Develop an incomplete idea through contextual questions, challenges, explanations, and proposed graph changes.
 tags: [mvp, ai, discovery, coaching]
-status: draft
-sdlc: [product]
-product:
+area: solution
+solution:
   section: capabilities
 relationships:
   - type: part-of

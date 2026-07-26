@@ -3,7 +3,6 @@ type: Decision
 title: TypeScript Web Workspace for the First Vertical Slice
 description: Use one TypeScript codebase with a browser client, local HTTP service, and framework-independent domain core.
 tags: [decision, typescript, web, architecture]
-status: proposed
 sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: governs

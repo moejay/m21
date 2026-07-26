@@ -32,7 +32,7 @@ export interface ProjectTheme {
 
 export function projectTheme(concepts: Concept[]): ProjectTheme | undefined {
   const visualLanguage = concepts.find(
-    (concept) => concept.type === "Visual Language" && concept.status === "active" && themeCandidate(concept),
+    (concept) => concept.type === "Visual Language" && themeCandidate(concept),
   );
   const candidate = visualLanguage ? themeCandidate(visualLanguage) : undefined;
   if (!visualLanguage || !candidate) return undefined;

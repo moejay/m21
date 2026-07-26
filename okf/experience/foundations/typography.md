@@ -1,14 +1,12 @@
 ---
-type: Design Foundation
+type: Typography System
 title: Typography
 description: A legible humanist interface voice paired with restrained monospace for structured product knowledge.
 tags: [design, typography, visual-language]
-status: active
-sdlc: [design]
-design:
-  section: visual-language
-  platforms: [web, cross-platform]
-  group: foundations
+area: visual-design
+visual-design:
+  section: foundations
+  css-source: /visual-design/styles/typography.css
 relationships:
   - type: part-of
     target: /experience/visual-language.md

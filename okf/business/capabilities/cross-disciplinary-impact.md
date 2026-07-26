@@ -3,12 +3,11 @@ type: Business Capability
 title: Cross-Disciplinary Impact Governance
 description: Direct meaningful changes to affected owners without turning every graph connection into review work.
 tags: [business, capability, impact, collaboration]
-status: active
-sdlc: [business]
+area: business
 business:
   section: capabilities
 relationships:
-  - type: realizes
+  - type: supports
     target: /business/coherent-product-understanding.md
   - type: addresses
     target: /business/problems/hidden-change-impact.md

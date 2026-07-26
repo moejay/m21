@@ -1,9 +1,9 @@
 ---
 type: Code Contract
+application-id: browser-workspace
 title: Proposal Review Interaction Contract
 description: User interaction state that keeps pending revisions visibly separate from accepted project knowledge until explicit acceptance.
 tags: [code-design, contract, proposals, interaction]
-status: active
 sdlc: [code-design, implementation]
 code-design:
   section: contracts

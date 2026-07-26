@@ -7,10 +7,10 @@ Feature: code-design-contracts
     Then the owned Code Design contract is displayed
     And the Component is not duplicated as a Code Design artifact
 
-  Scenario: Every active Component declares executable Gherkin coverage
+  Scenario: Every canonical Component declares executable Gherkin coverage
     Given the canonical M21 Component definitions
     When I inspect their executable feature sets
-    Then every active Component references one or more existing Gherkin feature files
+    Then every canonical Component references one or more existing Gherkin feature files
 
   Scenario: Derive Implementation testing from the selected Components
     Given a selected Application Component declares a Gherkin feature

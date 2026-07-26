@@ -3,7 +3,6 @@ type: Screen
 title: Global Knowledge Graph
 description: A global interactive 3D view of every accepted OKF concept and resolved typed relationship.
 tags: [screen, graph, workspace]
-status: draft
 sdlc: [design, components, code-design, implementation]
 design:
   section: screens

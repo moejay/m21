@@ -1,14 +1,11 @@
 ---
-type: Design Direction
+type: Character and Feel
 title: Character and Feel
 description: A focused, intelligent working studio that feels trustworthy, calm, direct, and distinctly non-theatrical.
 tags: [design, feel, tone, visual-language]
-status: active
-sdlc: [design]
-design:
-  section: brand
-  platforms: [cross-platform]
-  group: foundations
+area: visual-design
+visual-design:
+  section: direction
 relationships:
   - type: part-of
     target: /experience/visual-language.md

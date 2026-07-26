@@ -6,7 +6,6 @@ stage: deployment
 order: 100
 description: Define how applications are built, configured, released, deployed, observed, and recovered for a coding agent to realize.
 tags: [sdlc, deployment, release, operations, coding-agent]
-status: active
 sdlc: [deployment]
 relationships:
   - type: informed-by

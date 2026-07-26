@@ -3,10 +3,14 @@ type: Business Problem
 title: Fragmented Product Knowledge
 description: Product intent, design, architecture, implementation context, and operations are split across tools and conversations.
 tags: [business, problem, knowledge]
-status: active
-sdlc: [business]
+area: business
 business:
   section: problems
+relationships:
+  - type: affects
+    target: /people/product-builder.md
+  - type: affects
+    target: /people/product-team.md
 ---
 
 # Problem

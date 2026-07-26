@@ -1,15 +1,12 @@
 ---
-type: External System
+type: External Dependency
 title: Configured AI Model Provider
 description: A replaceable external inference service that returns structured suggestions from bounded context supplied by M21.
 tags: [architecture, system, external, ai]
-status: active
-sdlc: [system]
+area: system
 system:
-  kind: external-system
-  group: external-services
+  section: dependencies
   boundary: external
-  criticality: medium
 relationships:
   - type: supports
     target: /architecture/systems/ai-guidance-boundary.md

@@ -1,14 +1,26 @@
-Feature: system-architecture
-  System Design presents conceptual responsibilities, data boundaries, and typed links without choosing or exposing actual Application internals as primary nodes.
+Feature: system-design-workspace
+  System Design presents conceptual responsibilities, information, flows, boundaries, and dependencies without choosing Application topology.
 
-  Scenario: Show System architecture artifacts only
-    Given an owned conceptual System subsystem
-    And an Application realizes that subsystem without System membership
+  Scenario: Singular area ownership selects controlled System concepts
+    Given an owned System Responsibility is owned by System Design
+    And an Application realizes that responsibility without System ownership
     When I select the System architecture artifacts
-    Then the System subsystem is displayed
+    Then the System Responsibility is displayed
     And the realizing Application is not a System architecture artifact
 
-  Scenario: Preserve typed links between System architecture documents
-    Given two linked conceptual System parts
+  Scenario: Boundary metadata distinguishes managed and external dependencies
+    Given System Design contains a managed Logical Data Store and an external dependency
+    When I select the System architecture artifacts
+    Then the managed store retains its managed boundary
+    And the external dependency retains its external boundary
+
+  Scenario: First-class System Flows retain directed relationship detail
+    Given a System Flow connects two System Responsibilities
     When I select the System architecture map
-    Then the System architecture link is displayed
+    Then the System Flow remains a first-class concept
+    And the directed flow relationships are displayed
+
+  Scenario: Application-shaped metadata is diagnostic in System Design
+    Given a System Responsibility contains a runtime field
+    When I open the project
+    Then validation reports the unsupported System field

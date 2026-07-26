@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: project-service
 title: Generated View Projector
 description: Produces reproducible documents and diagrams from selected graph knowledge.
 tags: [architecture, component, generation, views]
-status: active
 sdlc: [components, implementation]
 components:
   section: components
@@ -13,7 +13,7 @@ components:
   visibility: internal
   features:
     - features/generated-views.feature
-    - features/design-visual-language.feature
+    - features/visual-design-workspace.feature
 relationships:
   - type: part-of
     target: /architecture/applications/project-service.md
@@ -28,9 +28,9 @@ relationships:
 # Responsibilities
 
 - Select concepts and relationship paths required by a view definition
-- Render stable Markdown and diagram source
+- Render stable Markdown, strict Mermaid diagrams, and isolated Visual Design catalogs
 - Include source concept references and unresolved caveats
-- Avoid writing generated content back into canonical concept bodies
+- Avoid writing generated Mermaid SVG, specimen state, or catalog content back into canonical concepts and linked artifacts
 - Produce equivalent output for an unchanged graph
 
 # First vertical slice

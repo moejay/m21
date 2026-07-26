@@ -3,10 +3,7 @@ type: Constraint
 title: MVP Boundary
 description: Keep the first release focused on creating, reasoning over, and projecting shared product knowledge.
 tags: [mvp, scope]
-status: active
-sdlc: [business, components, code-design, implementation, deployment]
-business:
-  section: constraints
+sdlc: [components, code-design, implementation, deployment]
 ---
 
 # Included depth

@@ -3,7 +3,6 @@ type: Impact Policy
 title: Directional Impact Semantics
 description: Initial rules for determining when a change may require review elsewhere in the product graph.
 tags: [impact, relationships, policy]
-status: draft
 sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: governs

@@ -3,7 +3,6 @@ type: Knowledge Model
 title: M21 OKF Profile
 description: Minimal OKF extensions for a typed, navigable product knowledge graph.
 tags: [okf, graph, interoperability]
-status: draft
 sdlc: [code-design, implementation]
 ---
 
@@ -18,7 +17,6 @@ A concept's stable identity is its bundle-relative file path without the `.md` s
 Concepts may add:
 
 ```yaml
-status: draft | active | superseded | retired
 owners: [person-or-team]
 sdlc: [business, product, design] # zero or more definition-layer lenses
 relationships:
@@ -27,7 +25,7 @@ relationships:
     rationale: Why this relationship exists.
 ```
 
-`target` is an absolute, bundle-relative concept path. `sdlc` identifies workflow relevance and is deliberately many-to-many with concept types. Unknown fields must be preserved when a document is read and written.
+`target` is an absolute, bundle-relative concept path. Migrated concepts use singular `area`; `sdlc` remains temporary compatibility for unmigrated areas. Concept lifecycle status is not part of the M21 profile. Unknown fields must be preserved when a document is read and written.
 
 # Initial relationship vocabulary
 

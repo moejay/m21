@@ -1,9 +1,9 @@
 ---
 type: Component
+application-id: browser-workspace
 title: Application Scope Controller
 description: Maintains the selected owned Application and scopes downstream definition views through canonical relationship ownership.
 tags: [architecture, component, browser, application-scope]
-status: active
 sdlc: [components, implementation]
 components:
   section: components

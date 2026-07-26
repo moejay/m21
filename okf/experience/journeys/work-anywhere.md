@@ -3,7 +3,6 @@ type: User Journey
 title: Work at Any Point in the Product Graph
 description: A user focuses on any concept and develops it with relevant context and guidance.
 tags: [journey, graph, non-linear]
-status: draft
 sdlc: [design, components, code-design, implementation, deployment]
 design:
   section: journeys

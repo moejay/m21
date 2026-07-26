@@ -1,0 +1,5 @@
+:root { --font-sans: Manrope, system-ui, sans-serif; --font-mono: "DM Mono", ui-monospace, monospace; }
+.m21-type-scale h1 { margin: 0 0 10px; font: 700 32px/1.08 var(--font-sans); letter-spacing: -.035em; }
+.m21-type-scale h2 { margin: 22px 0 8px; font: 650 20px/1.2 var(--font-sans); }
+.m21-type-scale p { max-width: 62ch; font: 400 15px/1.65 var(--font-sans); }
+.m21-type-scale code { font: 500 12px/1.4 var(--font-mono); color: var(--muted); }

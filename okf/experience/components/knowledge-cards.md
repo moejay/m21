@@ -1,17 +1,13 @@
 ---
-type: Component Story
+type: Visual Component
 title: Knowledge Cards
 description: Expandable concept cards present orientation first and reveal the complete canonical document on demand.
 tags: [design-system, component-story, knowledge]
-status: active
-sdlc: [design]
-design:
+area: visual-design
+visual-design:
   section: components
-  platforms: [web]
-  group: knowledge
-  preview:
-    kind: knowledge-cards
-    variants: [collapsed, expanded, proposed]
+  html-source: /visual-design/components/knowledge-cards.html
+  css-source: /visual-design/components/knowledge-cards.css
 relationships:
   - type: part-of
     target: /experience/design-system.md

@@ -3,7 +3,6 @@ type: Risk
 title: False Impact Propagation
 description: Overly broad dependency traversal could flood users with irrelevant review work and destroy trust in change analysis.
 tags: [risk, impact, dependencies, trust]
-status: active
 sdlc: [components, code-design, implementation]
 relationships:
   - type: informed-by

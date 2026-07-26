@@ -1,10 +1,11 @@
 ---
-type: Product Definition
+type: Solution Proposition
 title: M21 MVP
 description: An OKF-native workspace for collaboratively defining, designing, architecting, and validating a product through a living graph.
 tags: [mvp, product]
-status: draft
-sdlc: [components, code-design, implementation, deployment]
+area: solution
+solution:
+  section: proposition
 relationships:
   - type: realizes
     target: /vision.md

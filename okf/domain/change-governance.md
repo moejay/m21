@@ -3,7 +3,6 @@ type: Domain Model
 title: Change Governance Model
 description: Proposals, impact findings, reviews, and acceptance that protect canonical product knowledge.
 tags: [domain-model, change, impact, review]
-status: draft
 sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: governs
