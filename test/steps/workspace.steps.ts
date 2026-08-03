@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
+import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { once } from "node:events";
 import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
+import { createServer as createNetServer } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { After, Before, Given, Then, When, setWorldConstructor, World } from "@cucumber/cucumber";
 import YAML from "yaml";
 import { DevelopmentAiProvider, type AiProvider, type AiSuggestion } from "../../src/application/ai.js";
 import { ProjectService } from "../../src/application/project-service.js";
-import { applicationScopes, snapshotForApplicationLayer, snapshotForLayer } from "../../src/domain/definition-flow.js";
+import { applicationScopes, definitionLayers, snapshotForApplicationLayer, snapshotForLayer, type DefinitionLayer } from "../../src/domain/definition-flow.js";
 import { businessArtifacts, businessSection } from "../../src/domain/business.js";
 import { solutionArtifacts, solutionSection } from "../../src/domain/solution.js";
 import { componentFeatureFiles, mainArtifactsForLayer, productCapabilityArtifacts, projectionForLayer, systemArchitectureArtifacts, type ProjectionKind } from "../../src/domain/projections.js";
@@ -62,6 +65,9 @@ class M21World extends World {
   debugRaw = "";
   debugSourceIds: string[] = [];
   architectureArtifacts: Concept[] = [];
+  workspacePorts: number[] = [];
+  workspaceProcesses: ChildProcessWithoutNullStreams[] = [];
+  availableDefinitionAreas: DefinitionLayer[] = [];
 }
 
 setWorldConstructor(M21World);
@@ -72,6 +78,7 @@ Before(async function (this: M21World) {
 
 After(async function (this: M21World) {
   this.unwatch?.();
+  await Promise.all(this.workspaceProcesses.map(stopProcess));
   await rm(this.root, { recursive: true, force: true });
 });
 
@@ -106,6 +113,125 @@ async function activeVision(world: M21World): Promise<void> {
     description: "Original vision",
   }, "# Mission\n\nBuild a coherent product.\n");
 }
+
+async function availablePort(): Promise<number> {
+  const server = createNetServer();
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const address = server.address();
+  assert(address && typeof address === "object");
+  const port = address.port;
+  server.close();
+  await once(server, "close");
+  return port;
+}
+
+async function waitForWorkspace(process: ChildProcessWithoutNullStreams, port: number, log: () => string): Promise<void> {
+  const deadline = Date.now() + 10_000;
+  while (Date.now() < deadline) {
+    if (process.exitCode !== null || process.signalCode !== null) {
+      throw new Error(`Workspace on port ${port} exited during startup:\n${log()}`);
+    }
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/health`);
+      if (response.ok) return;
+    } catch {
+      // The listener may not be ready yet.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(`Workspace on port ${port} did not start:\n${log()}`);
+}
+
+async function connectLiveReload(port: number): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const socket = new WebSocket(`ws://127.0.0.1:${port}/`, "vite-hmr");
+    const timeout = setTimeout(() => {
+      socket.close();
+      reject(new Error(`No live-reload connection on selected port ${port}`));
+    }, 2_000);
+    socket.addEventListener("message", (event) => {
+      const message = JSON.parse(String(event.data)) as { type?: string };
+      if (message.type !== "connected") return;
+      clearTimeout(timeout);
+      socket.close();
+      resolve();
+    });
+    socket.addEventListener("error", () => {
+      clearTimeout(timeout);
+      reject(new Error(`Live-reload connection failed on selected port ${port}`));
+    });
+  });
+}
+
+async function stopProcess(process: ChildProcessWithoutNullStreams): Promise<void> {
+  if (process.exitCode !== null || process.signalCode !== null) return;
+  process.kill("SIGTERM");
+  const exited = once(process, "exit");
+  const forced = new Promise<void>((resolve) => setTimeout(() => {
+    if (process.exitCode === null && process.signalCode === null) process.kill("SIGKILL");
+    resolve();
+  }, 1_000));
+  await Promise.race([exited, forced]);
+}
+
+Given("two local workspace instances use different selected ports", async function (this: M21World) {
+  const first = await availablePort();
+  let second = await availablePort();
+  while (second === first) second = await availablePort();
+  this.workspacePorts = [first, second];
+});
+
+When("I start both instances in development mode", async function (this: M21World) {
+  const tsxCli = path.resolve("node_modules/tsx/dist/cli.mjs");
+  for (const port of this.workspacePorts) {
+    assert(port !== undefined);
+    let output = "";
+    const child = spawn(process.execPath, [tsxCli, path.resolve("src/server/main.ts"), this.root, "--port", String(port), "--dev"], {
+      cwd: process.cwd(),
+      env: process.env,
+    });
+    child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
+    child.stderr.on("data", (chunk: Buffer) => { output += chunk.toString(); });
+    this.workspaceProcesses.push(child);
+    await waitForWorkspace(child, port, () => output);
+  }
+});
+
+Then("both workspace APIs are available on their selected ports", async function (this: M21World) {
+  const responses = await Promise.all(this.workspacePorts.map((port) => fetch(`http://127.0.0.1:${port}/api/health`)));
+  assert(responses.every((response) => response.ok));
+});
+
+Then("each selected port provides its own live-reload connection", async function (this: M21World) {
+  await Promise.all(this.workspacePorts.map(connectLiveReload));
+});
+
+Given("accepted concepts belong to Business, Business Solution, and Visual Design", async function (this: M21World) {
+  await writeConcept(this, "business/outcome.md", { type: "Business Outcome", title: "Business outcome", description: "A represented Business area.", area: "business", business: { section: "outcomes" } }, "# Outcome\n\nAccepted Business knowledge.\n");
+  await writeConcept(this, "solution/proposition.md", { type: "Solution Proposition", title: "Solution proposition", description: "A represented Business Solution area.", area: "solution", solution: { section: "proposition" } }, "# Proposition\n\nAccepted Solution knowledge.\n");
+  await writeConcept(this, "visual-design/theme.md", { type: "Visual Theme", title: "Visual theme", description: "A represented Visual Design area.", area: "visual-design", "visual-design": { section: "themes", "css-source": "/visual-design/theme.css" } }, "# Theme\n\nAccepted Visual Design knowledge.\n");
+  await writeArtifact(this, "/visual-design/theme.css", ":root { --surface: white; }\n");
+});
+
+Given("the bundle has no Definition Area registry documents", async function (this: M21World) {
+  const service = await open(this);
+  assert.equal(service.snapshot().concepts.some((concept) => concept.type === "Definition Area"), false);
+});
+
+When("I inspect the available Definition Areas", async function (this: M21World) {
+  const service = await open(this);
+  this.availableDefinitionAreas = definitionLayers(service.snapshot().concepts);
+});
+
+Then("Business, Business Solution, and Visual Design are available in the area navigation", function (this: M21World) {
+  assert.deepEqual(this.availableDefinitionAreas.map((area) => area.id), ["business", "solution", "visual-design"]);
+  assert.deepEqual(this.availableDefinitionAreas.map((area) => area.title), ["Business", "Business Solution", "Visual Design"]);
+});
+
+Then("unrepresented Definition Areas are absent from the area navigation", function (this: M21World) {
+  assert.equal(this.availableDefinitionAreas.some((area) => area.id === "system" || area.id === "architecture"), false);
+});
 
 Given("two conceptual System Design responsibilities", async function (this: M21World) {
   await writeConcept(this, "systems/workspace.md", { type: "System Responsibility", title: "Workspace", description: "Presents accepted knowledge.", area: "system", system: { section: "responsibilities", boundary: "owned" } }, "# Responsibility\n\nPresent accepted knowledge.\n");
@@ -664,7 +790,7 @@ When("I inspect their executable feature sets", async function (this: M21World) 
 });
 
 When("I open the project engineering SKILL", async function (this: M21World) {
-  this.engineeringSkill = await readFile(path.join(process.cwd(), ".agents/skills/m21-workspace/SKILL.md"), "utf8");
+  this.engineeringSkill = await readFile(path.join(process.cwd(), "skills/m21-product-engineering/SKILL.md"), "utf8");
 });
 
 When("I list the Application scopes", async function (this: M21World) {
@@ -985,6 +1111,32 @@ Then("every canonical Component references one or more existing Gherkin feature 
 
 Then("it directs the agent to the M21 workspace spec", function (this: M21World) {
   assert.match(this.engineeringSkill, /spec\/m21-workspace\.md/);
+});
+
+Then("it provides standalone M21 specification and feature authoring guidance", async function (this: M21World) {
+  assert.match(this.engineeringSkill, /references\/m21-spec-authoring\.md/);
+  assert.match(this.engineeringSkill, /references\/m21-project-workflow\.md/);
+  assert.match(this.engineeringSkill, /Do \*\*not\*\* generate one generic spec/);
+  const authoring = await readFile(path.join(process.cwd(), "skills/m21-product-engineering/references/m21-spec-authoring.md"), "utf8");
+  assert.match(authoring, /## What an M21 spec is/);
+  assert.match(authoring, /```m21-model/);
+  assert.match(authoring, /```m21-interface/);
+  assert.match(authoring, /## Executable features/);
+  const projectWorkflow = await readFile(path.join(process.cwd(), "skills/m21-product-engineering/references/m21-project-workflow.md"), "utf8");
+  assert.match(projectWorkflow, /## Concern map before files/);
+  await readFile(path.join(process.cwd(), "skills/m21-product-engineering/assets/spec-template.md"), "utf8");
+  await readFile(path.join(process.cwd(), "skills/m21-product-engineering/assets/feature-template.feature"), "utf8");
+});
+
+Then("it exposes expert resources for every Definition Area", async function (this: M21World) {
+  const areaResources = ["business", "business-solution", "visual-design", "system-design", "architecture", "application-experience", "application-architecture", "components", "code-design", "implementation", "deployment"];
+  for (const resource of areaResources) {
+    assert.match(this.engineeringSkill, new RegExp(`references/${resource}\\.md`));
+    const content = await readFile(path.join(process.cwd(), `skills/m21-product-engineering/references/${resource}.md`), "utf8");
+    assert.match(content, /## Expert stance/);
+    assert.match(content, /## Best practices/);
+    assert.match(content, /## High-value questions/);
+  }
 });
 
 Then("it requires specification, feature, test, and build validation", function (this: M21World) {

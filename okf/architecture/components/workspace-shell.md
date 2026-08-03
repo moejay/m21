@@ -30,7 +30,7 @@ relationships:
 
 # Responsibilities
 
-- Present product-wide Business, Product, Visual Design, System Design, and Architecture navigation plus the selected-Application downstream workspace.
+- Present every recognized Definition Area represented by accepted project concepts, plus the selected-Application downstream workspace, even when the portable bundle omits optional area registry documents.
 - Preserve layer and Application scope in deep-linkable route state.
 - Provide a global action that opens the complete product-wide 3D knowledge graph and restores the remembered purpose-built workspace when closed.
 - Keep project Visual Themes inert with respect to workspace chrome until a separate explicit user activation exists.

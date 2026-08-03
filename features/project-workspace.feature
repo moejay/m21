@@ -1,6 +1,12 @@
 Feature: okf-project-workspace
   M21 opens and safely changes portable OKF product projects.
 
+  Scenario: Run independent development workspaces
+    Given two local workspace instances use different selected ports
+    When I start both instances in development mode
+    Then both workspace APIs are available on their selected ports
+    And each selected port provides its own live-reload connection
+
   Scenario: Open an OKF project as a typed graph
     Given an OKF project containing a vision and a capability that realizes it
     When I open the project

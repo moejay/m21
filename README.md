@@ -44,7 +44,7 @@ For development with live reload:
 npm run dev
 ```
 
-Development uses one HTTP server. Vite runs as middleware inside the local project service rather than listening on a second port.
+Development uses one per-instance HTTP server. Vite middleware and live reload share the selected workspace port, so multiple instances can run concurrently on different `--port` values.
 
 ### AI provider
 
@@ -65,7 +65,13 @@ AI output is always returned as a proposal; it is never persisted without explic
 - Product-wide workflow, metadata, and authoring spec: [`spec/product-definition-workflow.md`](spec/product-definition-workflow.md)
 - Regeneration-quality workspace implementation spec: [`spec/m21-workspace.md`](spec/m21-workspace.md)
 - Executable behavior: [`features/`](features/)
-- Project-local coding-agent skill: [`.agents/skills/m21-workspace/SKILL.md`](.agents/skills/m21-workspace/SKILL.md)
+- Cross-agent product-engineering skill: [`skills/m21-product-engineering/SKILL.md`](skills/m21-product-engineering/SKILL.md)
+
+Install the skill through the open Agent Skills ecosystem:
+
+```bash
+npx skills add https://github.com/moejay/m21 --skill m21-product-engineering
+```
 
 ```bash
 npx @moejay/m21 validate ./spec --json

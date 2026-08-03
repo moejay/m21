@@ -1,6 +1,13 @@
 Feature: sdlc-definition-flow
   Business-to-deployment layers guide work without becoming a one-to-one concept taxonomy or mandatory pipeline.
 
+  Scenario: Accepted areas remain navigable without registry documents
+    Given accepted concepts belong to Business, Business Solution, and Visual Design
+    And the bundle has no Definition Area registry documents
+    When I inspect the available Definition Areas
+    Then Business, Business Solution, and Visual Design are available in the area navigation
+    And unrepresented Definition Areas are absent from the area navigation
+
   Scenario: One concept participates in multiple definition layers
     Given a decision contributes to Product and System
     When I open the project

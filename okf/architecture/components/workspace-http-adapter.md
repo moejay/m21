@@ -30,6 +30,7 @@ relationships:
 - Validate required request shape before delegation.
 - Return stable JSON snapshots, proposals, diagnostics, and errors.
 - Stream accepted snapshot updates to the browser when watched canonical files change.
+- Attach development live reload to the same selected loopback listener as that workspace instance so other instances can use different ports concurrently.
 - Serve generated Markdown or HTML with explicit content types.
 - Keep model-provider credentials and filesystem paths outside browser authority.
 

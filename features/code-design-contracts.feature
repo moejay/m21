@@ -17,7 +17,9 @@ Feature: code-design-contracts
     When I assemble the Application Implementation feature set
     Then the declared Component feature is required by Implementation
 
-  Scenario: Provide the coding agent with the validated workspace specification
+  Scenario: Provide the product-engineering agent with validated contracts and expert guidance
     When I open the project engineering SKILL
     Then it directs the agent to the M21 workspace spec
+    And it provides standalone M21 specification and feature authoring guidance
+    And it exposes expert resources for every Definition Area
     And it requires specification, feature, test, and build validation

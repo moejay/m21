@@ -125,6 +125,14 @@ entities:
       kind: { type: enum, values: [project-summary, design-preview], required: true }
       layer: { type: string }
       applicationId: { type: string }
+  LocalWorkspaceLaunch:
+    fields:
+      port: { type: integer, required: true }
+      development: { type: boolean, required: true }
+  LocalWorkspaceEndpoint:
+    fields:
+      url: { type: string, required: true }
+      liveReload: { type: boolean, required: true }
   GeneratedView:
     fields:
       mediaType: { type: string, required: true }
@@ -146,8 +154,14 @@ operations:
     purpose: Load an OKF bundle into one immutable accepted Project Snapshot while preserving readable partial knowledge and diagnostics.
     output: ProjectSnapshot
     failures: [UnsafeProjectPath, UnreadableProject]
+  serve-local-workspace:
+    purpose: Expose one project workspace on its selected loopback port, with development live reload sharing that instance's endpoint when enabled.
+    input: LocalWorkspaceLaunch
+    output: LocalWorkspaceEndpoint
+    failures: [PortUnavailable, UnreadableProject]
+    effects: [Starts an isolated local workspace listener without claiming a process-global live-reload port]
   select-definition-layer:
-    purpose: Project accepted knowledge through the purpose-built workspace for one product-wide definition layer.
+    purpose: Keep every recognized Definition Area represented by accepted knowledge selectable through its purpose-built workspace, using optional canonical area registry documents for richer guidance.
     input: LayerSelection
     output: ProjectSnapshot
     failures: [UnknownDefinitionLayer]
@@ -200,6 +214,7 @@ operations:
 - Present Visual Design through its singular Definition Area schema, linked CSS/HTML artifacts, composed themes, and sandboxed specimen catalog.
 - Present System Design through its singular Definition Area schema and relationship-driven conceptual system map.
 - Present Architecture through its singular Definition Area schema, stable Application IDs, owned topology, directed communications, and responsibility realization matrix.
+- Keep recognized Definition Areas represented by accepted concepts in workspace navigation even when a portable bundle omits optional Definition Area registry documents.
 - Keep System Design conceptual and use Architecture to define one or more actual owned Applications that realize it.
 - Present Application Architecture, Components, Code Design, Implementation, and Deployment under one persistent selected Application scope.
 - Make each canonical Component's declared Gherkin feature set the primary implementation testing contract.
@@ -208,6 +223,7 @@ operations:
 - Render fenced Mermaid blocks in canonical Markdown as strict, disposable diagrams while preserving source text and typed graph semantics.
 - Provide one product-wide interactive 3D graph of every accepted OKF concept and resolved typed relationship, independent of current area or Application scope, with optional visual highlighting by Definition Area.
 - Watch canonical project files and publish a fresh accepted snapshot to the open browser when their content, presence, or relationships change.
+- Serve each local development workspace and its live-reload channel through that instance's selected loopback port so multiple instances can run concurrently.
 - Provide a global browser-only debug mode that places a `</>` source action on every visible Concept card and opened graph node and opens that specific Concept's exact raw Markdown in a modal without requiring expansion or focus.
 - Generate reproducible views and external-agent handoffs without creating another source of truth.
 
@@ -224,12 +240,14 @@ The Local Project Service contains a transport adapter, Project Coordinator, Pro
 - Opening, rotating, filtering, highlighting, or focusing the global graph never mutates canonical knowledge or changes Definition Area ownership.
 - Layer-specific workspaces remain purpose-built and do not embed a substitute global graph.
 - Primary artifacts require explicit active-layer membership.
+- Canonical Definition Area registry documents may enrich navigation labels, ordering, and guidance, but their absence never hides a recognized area that owns accepted concepts.
 - System Design never implies a monolith or distributed Application topology; Architecture records that decision explicitly.
 - Application scope never widens silently when its selected identity is invalid.
 - Every canonical Component declares at least one existing executable Gherkin feature file, and implementation verifies those features.
 - Cross-Application dependencies do not transfer ownership.
 - Unknown OKF producer extensions survive supported revisions; unknown fields inside a closed migrated area namespace remain preserved but produce diagnostics.
 - A failed external reload leaves the last complete accepted snapshot available and exposes a diagnostic or transport failure.
+- A development workspace never claims a fixed process-global live-reload port separate from its selected workspace listener.
 - Failed or stale mutation leaves accepted canonical knowledge unchanged.
 - AI output is untrusted proposal input and has no persistence authority.
 - Generated documents, Mermaid diagrams, visual specimens, previews, and handoffs are disposable projections.

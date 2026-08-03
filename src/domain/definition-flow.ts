@@ -4,15 +4,31 @@ export const APPLICATION_SCOPED_LAYERS = ["application", "components", "code-des
 
 export interface DefinitionLayer {
   id: string;
-  conceptId: string;
+  conceptId?: string;
   title: string;
   shortTitle: string;
   description: string;
   order: number;
 }
 
+const RECOGNIZED_DEFINITION_AREAS: DefinitionLayer[] = [
+  { id: "business", title: "Business", shortTitle: "Business", description: "Define why change is needed and which outcomes matter.", order: 10 },
+  { id: "solution", title: "Business Solution", shortTitle: "Solution", description: "Define the complete socio-technical response to accepted Business context.", order: 20 },
+  { id: "product", title: "Product", shortTitle: "Product", description: "Open legacy Product-layer knowledge during migration.", order: 20 },
+  { id: "visual-design", title: "Visual Design", shortTitle: "Visual Design", description: "Define shared visual direction, foundations, themes, components, and accessibility.", order: 30 },
+  { id: "design", title: "Visual Design", shortTitle: "Visual Design", description: "Open legacy Visual Design-layer knowledge during migration.", order: 30 },
+  { id: "system", title: "System Design", shortTitle: "System", description: "Define conceptual technical responsibilities and information flows.", order: 40 },
+  { id: "architecture", title: "Architecture", shortTitle: "Architecture", description: "Define owned Application boundaries and responsibility realization.", order: 50 },
+  { id: "experience", title: "Application Experience", shortTitle: "App Experience", description: "Define the experience of one selected Application.", order: 55 },
+  { id: "application", title: "Application Architecture", shortTitle: "App Architecture", description: "Define the internals of one selected Application.", order: 60 },
+  { id: "components", title: "Components", shortTitle: "Components", description: "Define cohesive Components owned by one selected Application.", order: 70 },
+  { id: "code-design", title: "Code Design", shortTitle: "Code Design", description: "Define semantic models, interfaces, states, failures, and contracts.", order: 80 },
+  { id: "implementation", title: "Implementation", shortTitle: "Implementation", description: "Prepare bounded implementation handoffs and verification.", order: 90 },
+  { id: "deployment", title: "Deployment", shortTitle: "Deployment", description: "Define delivery, operation, recovery, and deployment handoffs.", order: 100 },
+];
+
 export function definitionLayers(concepts: Concept[]): DefinitionLayer[] {
-  return concepts
+  const registered = concepts
     .filter((concept) => ["Definition Area", "Definition Layer", "Lifecycle Stage"].includes(concept.type))
     .flatMap((concept) => {
       const id = typeof concept.metadata.stage === "string" ? concept.metadata.stage : concept.sdlc[0];
@@ -25,7 +41,11 @@ export function definitionLayers(concepts: Concept[]): DefinitionLayer[] {
         description: concept.description,
         order: typeof concept.metadata.order === "number" ? concept.metadata.order : Number.MAX_SAFE_INTEGER,
       }];
-    })
+    });
+  const registeredIds = new Set(registered.map((area) => area.id));
+  const representedIds = new Set(concepts.flatMap((concept) => concept.area ? [concept.area, ...concept.sdlc] : concept.sdlc));
+  const inferred = RECOGNIZED_DEFINITION_AREAS.filter((area) => representedIds.has(area.id) && !registeredIds.has(area.id));
+  return [...registered, ...inferred]
     .sort((left, right) => left.order - right.order || left.title.localeCompare(right.title));
 }
 

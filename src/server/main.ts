@@ -1,3 +1,4 @@
+import { createServer as createHttpServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
@@ -42,6 +43,7 @@ export async function createServer(
 ) {
   const project = await ProjectService.open(bundle);
   const app = express();
+  const server = createHttpServer(app);
   app.use(express.json({ limit: "1mb" }));
 
   app.get("/api/health", (_request, response) => {
@@ -137,8 +139,9 @@ export async function createServer(
     const vite = await createViteServer({
       root: path.resolve("web"),
       appType: "spa",
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, hmr: { server } },
     });
+    server.once("close", () => { void vite.close(); });
     app.use(vite.middlewares);
   } else {
     const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -161,7 +164,7 @@ export async function createServer(
     response.status(status).json({ error: message });
   });
 
-  return app;
+  return server;
 }
 
 function configuredAiProvider(): AiProvider {
@@ -178,8 +181,8 @@ function providerName(provider: AiProvider): string {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const options = parseOptions(process.argv.slice(2));
-  const app = await createServer(options.bundle, configuredAiProvider(), { development: options.development });
-  app.listen(options.port, "127.0.0.1", () => {
+  const server = await createServer(options.bundle, configuredAiProvider(), { development: options.development });
+  server.listen(options.port, "127.0.0.1", () => {
     console.log(`M21 workspace: http://127.0.0.1:${options.port}`);
     console.log(`OKF project: ${options.bundle}`);
     console.log(`Mode: ${options.development ? "development (Vite middleware)" : "production"}`);

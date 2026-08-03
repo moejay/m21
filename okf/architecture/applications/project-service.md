@@ -30,7 +30,7 @@ relationships:
 - Serialize accepted writes to avoid partial graph state
 - Reassess diagnostics and impact after accepted changes
 - Keep AI-provider secrets outside browser state
-- Serve the built browser application on loopback
+- Serve the browser application on each instance's selected loopback listener, including development live reload without a fixed shared endpoint
 
 # Failure behavior
 
