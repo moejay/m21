@@ -19,8 +19,6 @@ relationships:
     target: /architecture/applications/project-service.md
   - type: realizes
     target: /architecture/systems/product-knowledge-runtime.md
-  - type: realizes
-    target: /product/capabilities/knowledge-graph.md
   - type: constrained-by
     target: /domain/product-knowledge.md
 ---

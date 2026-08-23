@@ -17,6 +17,36 @@ The current codebase is an important source of tested ideas, but it is not the a
 
 The current `@moejay/m21` validator does not validate this redesigned model. At most it can parse the familiar outer spec format, dependencies, and fenced model syntax. It does not know the new singular `area`, controlled type-to-section rules, metadata schemas, Application IDs, projection contracts, or conditional validation. During redesign, explicit user decisions and documented cross-area consistency are authoritative; a future validator will implement the accepted schemas.
 
+## Language
+
+**M21**:
+A human-operated product-definition system comprising a specification model, agent skills that help people author that model, and tooling that visualizes, validates, and edits it. M21 does not autonomously decide or implement software changes.
+_Avoid_: Autonomous development agent, M21 Agent when referring to the whole system
+
+**Operator**:
+The person using M21 who retains authority over accepted product knowledge and whether to act on diagnostics, proposals, or implementation results.
+_Avoid_: Autonomous controller
+
+**Software Product**:
+The software whose accepted knowledge M21 helps establish and maintain, whether or not the software was originally created using M21.
+_Avoid_: System when referring to the whole implemented product; M21 reserves System for the conceptual System Design model
+
+**Sufficient Product Context**:
+The smallest reviewed, connected set of accepted knowledge needed to understand and safely act on the current decision or change. It grows progressively as real work exposes material gaps.
+_Avoid_: Complete product model, one concept of every type
+
+**Accepted Specification**:
+Operator-approved knowledge describing intended product behavior, rationale, and constraints. It governs intent but does not silently override contradictory implemented or observed behavior.
+_Avoid_: Infallible description of the running software
+
+**Specification Discrepancy**:
+A visible disagreement between the Accepted Specification and implemented or observed software behavior. M21 reports the disagreement; the Operator decides whether to change the specification, change the implementation, or defer resolution.
+_Avoid_: Automatically resolved drift
+
+**Executable Gherkin Feature**:
+A behavior contract authored as part of M21-managed product knowledge and supplied to an external coding agent for implementation and execution. Its execution result can return to M21 as reportable verification evidence.
+_Avoid_: M21-generated source code, autonomous implementation
+
 ## Decisions made so far
 
 ### Definition Areas replace SDLC membership

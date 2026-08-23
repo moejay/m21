@@ -18,8 +18,6 @@ relationships:
     target: /architecture/applications/project-service.md
   - type: realizes
     target: /architecture/systems/product-knowledge-runtime.md
-  - type: realizes
-    target: /product/capabilities/change-impact.md
   - type: depends-on
     target: /architecture/components/graph-engine.md
   - type: constrained-by

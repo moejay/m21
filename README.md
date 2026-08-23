@@ -5,8 +5,6 @@ M21 is an AI-native product engineering workspace built around a shared, living 
 The product is being specified by dogfooding its own OKF project before and during implementation.
 
 - [Browse the product knowledge](okf/index.md)
-- [Read the vision](okf/vision.md)
-- [Read the MVP definition](okf/product/mvp.md)
 - [Read the system architecture](okf/architecture/systems/m21-workspace.md)
 
 ## First vertical slice

@@ -19,8 +19,6 @@ relationships:
     target: /architecture/applications/project-service.md
   - type: realizes
     target: /architecture/systems/okf-project-store.md
-  - type: realizes
-    target: /product/capabilities/project-workspace.md
   - type: constrained-by
     target: /decisions/portable-typed-relationships.md
 ---

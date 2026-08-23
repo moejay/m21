@@ -6,11 +6,6 @@ tags: [experience, navigation, agency]
 sdlc: [design, components, code-design, implementation, deployment]
 design:
   section: principles
-relationships:
-  - type: realizes
-    target: /vision.md
-  - type: supports
-    target: /product/capabilities/knowledge-graph.md
 ---
 
 # Principle

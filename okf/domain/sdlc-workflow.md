@@ -6,8 +6,6 @@ tags: [domain-model, sdlc, workflow, abstraction]
 sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: governs
-    target: /product/capabilities/lifecycle-workflows.md
-  - type: governs
     target: /agents/m21-agent.md
   - type: informed-by
     target: /experience/principles/non-linear-agency.md

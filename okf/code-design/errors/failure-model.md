@@ -14,8 +14,6 @@ code-design:
 relationships:
   - type: part-of
     target: /architecture/components/project-coordinator.md
-  - type: constrained-by
-    target: /constraints/mvp-boundary.md
 ---
 
 # Categories

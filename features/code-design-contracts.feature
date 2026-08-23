@@ -22,4 +22,6 @@ Feature: code-design-contracts
     Then it directs the agent to the M21 workspace spec
     And it provides standalone M21 specification and feature authoring guidance
     And it exposes expert resources for every Definition Area
+    And its Business resource requires evidence-led business-case interrogation
+    And its Business Solution resource requires socio-technical option interrogation
     And it requires specification, feature, test, and build validation

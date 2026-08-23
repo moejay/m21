@@ -8,16 +8,10 @@ system:
   section: overview
   boundary: owned
 relationships:
-  - type: realizes
-    target: /product/mvp.md
   - type: constrained-by
     target: /decisions/local-first-workspace.md
   - type: constrained-by
     target: /experience/accessibility.md
-  - type: serves
-    target: /people/product-builder.md
-  - type: serves
-    target: /people/product-team.md
 ---
 
 # Responsibilities

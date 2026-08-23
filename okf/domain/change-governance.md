@@ -5,8 +5,6 @@ description: Proposals, impact findings, reviews, and acceptance that protect ca
 tags: [domain-model, change, impact, review]
 sdlc: [components, code-design, implementation, deployment]
 relationships:
-  - type: governs
-    target: /product/capabilities/change-impact.md
   - type: informed-by
     target: /experience/journeys/review-impact.md
   - type: informed-by

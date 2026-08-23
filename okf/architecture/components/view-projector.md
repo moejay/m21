@@ -19,8 +19,6 @@ relationships:
     target: /architecture/applications/project-service.md
   - type: realizes
     target: /architecture/systems/view-generation-pipeline.md
-  - type: realizes
-    target: /product/capabilities/generated-views.md
   - type: depends-on
     target: /architecture/components/graph-engine.md
 ---

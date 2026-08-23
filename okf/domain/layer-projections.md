@@ -6,8 +6,6 @@ tags: [domain-model, projections, workspace, metadata]
 sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: governs
-    target: /product/capabilities/lifecycle-workflows.md
-  - type: governs
     target: /architecture/applications/web-workspace.md
   - type: informed-by
     target: /domain/sdlc-workflow.md

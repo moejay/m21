@@ -10,8 +10,6 @@ sdlc: [solution]
 relationships:
   - type: informed-by
     target: /sdlc/business.md
-  - type: supports
-    target: /product/capabilities/product-definition.md
 ---
 
 # Purpose

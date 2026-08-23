@@ -7,12 +7,6 @@ sdlc: [design]
 design:
   section: journeys
 relationships:
-  - type: serves
-    target: /people/product-builder.md
-  - type: depends-on
-    target: /product/capabilities/project-workspace.md
-  - type: depends-on
-    target: /product/capabilities/guided-discovery.md
   - type: informed-by
     target: /experience/principles/non-linear-agency.md
 ---

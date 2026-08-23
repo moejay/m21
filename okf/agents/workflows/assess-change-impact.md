@@ -7,8 +7,6 @@ sdlc: [components, code-design, implementation, deployment]
 relationships:
   - type: part-of
     target: /agents/m21-agent.md
-  - type: supports
-    target: /product/capabilities/change-impact.md
   - type: constrained-by
     target: /domain/impact-semantics.md
   - type: addresses

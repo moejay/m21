@@ -12,8 +12,6 @@ relationships:
     target: /sdlc/business.md
   - type: informed-by
     target: /sdlc/product.md
-  - type: supports
-    target: /product/capabilities/product-design.md
 ---
 
 # Purpose

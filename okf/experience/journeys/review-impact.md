@@ -7,10 +7,6 @@ sdlc: [design, components, code-design, implementation, deployment]
 design:
   section: journeys
 relationships:
-  - type: serves
-    target: /people/product-team.md
-  - type: depends-on
-    target: /product/capabilities/change-impact.md
   - type: informed-by
     target: /experience/principles/user-control.md
 ---

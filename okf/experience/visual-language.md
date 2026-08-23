@@ -8,8 +8,6 @@ visual-design:
   section: themes
   css-source: /visual-design/styles/m21-theme.css
 relationships:
-  - type: supports
-    target: /product/capabilities/product-design.md
   - type: informed-by
     target: /experience/foundations/feel.md
   - type: constrained-by

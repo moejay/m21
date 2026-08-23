@@ -21,7 +21,9 @@ Act as an expert product-engineering partner over one connected, canonical produ
 2. Read [Operating model](references/operating-model.md) for every task that changes or evaluates product knowledge.
 3. Before creating, editing, reviewing, or implementing `spec/` or `features/`, read [M21 specification authoring](references/m21-spec-authoring.md) and [M21 project workflow](references/m21-project-workflow.md) completely.
 4. Read only the area references needed for the active request, plus [Application scope](references/application-scope.md) for any Application-specific work.
-5. Treat project-local accepted contracts as authoritative. Bundled references provide expert practice and questions; they never override a project's accepted schema or user decisions.
+5. For a Business-case discovery or rebuild, read [Business](references/business.md) and its bundled Definition Area contract completely, then run the evidence-led interrogation before drafting canonical knowledge.
+6. For Business Solution discovery or rebuild, read [Business Solution](references/business-solution.md) and its bundled Definition Area contract completely, verify accepted Business anchors, then interrogate and compare socio-technical options before drafting canonical knowledge.
+7. Treat project-local accepted contracts as authoritative. Bundled references provide expert practice and questions; they never override a project's accepted schema or user decisions.
 
 ## M21 contracts are not Definition Area documents
 
@@ -35,8 +37,8 @@ A valid M21 spec has `name` frontmatter, meaningful concern ownership, optional 
 
 | Area | Scope | Load when working on |
 |---|---|---|
-| [Business](references/business.md) | Product-wide | Mission, problems, people, outcomes, evidence, market, economics, governance, capabilities, risks |
-| [Business Solution](references/business-solution.md) | Product-wide | Propositions, options, socio-technical capabilities, behavior, delivery, boundaries, assumptions |
+| [Business](references/business.md) | Product-wide | Evidence-led Business-case interrogation; mission, problems, people, outcomes, market, economics, governance, capabilities, risks |
+| [Business Solution](references/business-solution.md) | Product-wide | Upstream-anchored Solution interrogation; propositions, options, socio-technical capabilities, behavior, delivery, adoption, operation, boundaries, assumptions |
 | [Visual Design](references/visual-design.md) | Product-wide | Character, brand, visual foundations, CSS themes, visual components, assets, visual accessibility |
 | [System Design](references/system-design.md) | Product-wide | Conceptual responsibilities, information, flows, logical data, trust, qualities, failures, dependencies |
 | [Architecture](references/architecture.md) | Product-wide | Owned Applications, stable identities, topology, realization, communication, authority, trade-offs |

@@ -7,8 +7,6 @@ sdlc: [components, code-design]
 relationships:
   - type: part-of
     target: /agents/m21-agent.md
-  - type: supports
-    target: /product/capabilities/guided-discovery.md
   - type: informed-by
     target: /experience/principles/connected-context.md
   - type: constrained-by

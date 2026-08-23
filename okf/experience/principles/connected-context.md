@@ -6,11 +6,6 @@ tags: [experience, context, ai]
 sdlc: [design, components, code-design]
 design:
   section: principles
-relationships:
-  - type: part-of
-    target: /product/capabilities/product-design.md
-  - type: supports
-    target: /product/capabilities/guided-discovery.md
 ---
 
 # Principle

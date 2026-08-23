@@ -7,10 +7,6 @@ order: 10
 description: Define why the product should exist, who it serves, and the business environment it must satisfy.
 tags: [definition-area, business, people, capabilities, governance]
 sdlc: [business]
-relationships:
-  - type: supports
-    target: /product/capabilities/product-definition.md
-    rationale: Business context informs the socio-technical Business Solution response.
 ---
 
 # Purpose

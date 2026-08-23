@@ -5,8 +5,6 @@ description: Initial rules for determining when a change may require review else
 tags: [impact, relationships, policy]
 sdlc: [components, code-design, implementation, deployment]
 relationships:
-  - type: governs
-    target: /product/capabilities/change-impact.md
   - type: addresses
     target: /risks/false-impact-propagation.md
   - type: informed-by

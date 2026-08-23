@@ -10,8 +10,6 @@ system:
 relationships:
   - type: supports
     target: /architecture/systems/ai-guidance-boundary.md
-  - type: constrained-by
-    target: /business/regulatory-context.md
 ---
 
 # Role

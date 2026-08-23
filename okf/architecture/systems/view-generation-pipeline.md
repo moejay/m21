@@ -12,8 +12,6 @@ relationships:
     target: /architecture/systems/m21-workspace.md
   - type: depends-on
     target: /architecture/systems/product-knowledge-runtime.md
-  - type: realizes
-    target: /product/capabilities/generated-views.md
 ---
 
 # Responsibility

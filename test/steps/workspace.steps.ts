@@ -1139,6 +1139,34 @@ Then("it exposes expert resources for every Definition Area", async function (th
   }
 });
 
+Then("its Business resource requires evidence-led business-case interrogation", async function (this: M21World) {
+  assert.match(this.engineeringSkill, /evidence-led interrogation/);
+  const business = await readFile(path.join(process.cwd(), "skills/m21-product-engineering/references/business.md"), "utf8");
+  assert.match(business, /## Business-case interrogation/);
+  assert.match(business, /### Maintain a live case ledger/);
+  assert.match(business, /## Challenge weak answers/);
+  assert.match(business, /## Interview exit and adversarial review/);
+  assert.match(business, /business-definition-area\.md/);
+  const contract = await readFile(path.join(process.cwd(), "skills/m21-product-engineering/references/business-definition-area.md"), "utf8");
+  assert.match(contract, /## Data model/);
+  assert.match(contract, /```m21-model/);
+  assert.match(contract, /## Interfaces/);
+});
+
+Then("its Business Solution resource requires socio-technical option interrogation", async function (this: M21World) {
+  assert.match(this.engineeringSkill, /interrogate and compare socio-technical options/);
+  const solution = await readFile(path.join(process.cwd(), "skills/m21-product-engineering/references/business-solution.md"), "utf8");
+  assert.match(solution, /## Solution interrogation and option design/);
+  assert.match(solution, /### Maintain a live option ledger/);
+  assert.match(solution, /## Challenge weak answers/);
+  assert.match(solution, /## Interview exit and adversarial review/);
+  assert.match(solution, /business-solution-definition-area\.md/);
+  const contract = await readFile(path.join(process.cwd(), "skills/m21-product-engineering/references/business-solution-definition-area.md"), "utf8");
+  assert.match(contract, /## Data model/);
+  assert.match(contract, /```m21-model/);
+  assert.match(contract, /## Interfaces/);
+});
+
 Then("it requires specification, feature, test, and build validation", function (this: M21World) {
   assert.match(this.engineeringSkill, /npx @moejay\/m21 validate \.\/spec --json/);
   assert.match(this.engineeringSkill, /npm test/);

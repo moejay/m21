@@ -5,8 +5,6 @@ description: The canonical concepts and typed relationships that represent a pro
 tags: [domain-model, graph, concepts, relationships]
 sdlc: [components, code-design, implementation]
 relationships:
-  - type: governs
-    target: /product/capabilities/knowledge-graph.md
   - type: informed-by
     target: /profile.md
 ---

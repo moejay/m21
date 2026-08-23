@@ -7,8 +7,6 @@ sdlc: [components, code-design, implementation]
 relationships:
   - type: governs
     target: /profile.md
-  - type: governs
-    target: /product/capabilities/knowledge-graph.md
   - type: addresses
     target: /risks/false-impact-propagation.md
 ---

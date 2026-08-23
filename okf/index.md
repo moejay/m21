@@ -1,52 +1,22 @@
 # M21 Product Knowledge
 
 * [Project](project.md) - The product being defined by this knowledge bundle.
-* [Vision](vision.md) - The long-term direction for an AI-native product engineering workspace.
 * [M21 OKF Profile](profile.md) - The minimal typed-graph conventions used by this bundle.
 * [Definition Layer Frontmatter Profile](profile/definition-layer-frontmatter.md) - Draft normative schemas for primary artifacts, contextual references, and layer-specific metadata.
 
-# Business
+# Agent contracts
 
-* [Coherent product understanding](business/coherent-product-understanding.md) - The primary business outcome M21 exists to create.
-* [Fragmented product knowledge](business/problems/fragmented-product-knowledge.md) - The core problem of disconnected product context.
-* [Hidden change impact](business/problems/hidden-change-impact.md) - The problem of missed or noisy cross-disciplinary review.
-* [Product knowledge governance](business/capabilities/product-knowledge-governance.md) - Maintain one portable, reviewable product model.
-* [Cross-disciplinary impact governance](business/capabilities/cross-disciplinary-impact.md) - Direct meaningful changes to affected owners.
-* [Initial regulatory context](business/regulatory-context.md) - Known uncertainty around privacy, accessibility, and AI governance.
-
-# People
-
-* [Product builder](people/product-builder.md) - An individual turning an idea into an operating product.
-* [Multidisciplinary product team](people/product-team.md) - People working in different disciplines over one shared product model.
-
-# MVP
-
-* [MVP definition](product/mvp.md) - The capabilities and boundary of the first product.
 * [M21 agent](agents/m21-agent.md) - The AI thought partner that helps users evolve the graph.
 * [Develop a focused concept](agents/workflows/develop-concept.md) - Discovery, development, and challenge prompt contract.
 * [Assess semantic change impact](agents/workflows/assess-change-impact.md) - Contextual impact-analysis prompt contract.
 * [Validate product coherence](agents/workflows/validate-product-graph.md) - Semantic graph-validation prompt contract.
-
-## Capabilities
-
-* [SDLC definition flow](product/capabilities/lifecycle-workflows.md) - Use Business-to-Deployment depth as the primary working and AI-guidance lens.
-* [OKF project workspace](product/capabilities/project-workspace.md) - Create, open, navigate, and persist an OKF project.
-* [Non-linear knowledge graph](product/capabilities/knowledge-graph.md) - Work at any point in the product model and understand dependencies.
-* [AI-guided product discovery](product/capabilities/guided-discovery.md) - Develop incomplete ideas through contextual questions and proposals.
-* [Product definition](product/capabilities/product-definition.md) - Define the business and product without disconnecting them from delivery.
-* [Integrated product design](product/capabilities/product-design.md) - Develop experience, interaction, and visual design in the shared graph.
-* [Progressive architecture](product/capabilities/architecture.md) - Model systems, applications, and components with traceability.
-* [Decision management](product/capabilities/decision-management.md) - Preserve alternatives, rationale, and consequences.
-* [Change impact and review](product/capabilities/change-impact.md) - Assess directional impact and involve affected owners.
-* [Continuous graph validation](product/capabilities/graph-validation.md) - Detect gaps, conflicts, and architectural risks.
-* [Generated views](product/capabilities/generated-views.md) - Project the graph into useful documents and diagrams.
 
 # Software development definition flow
 
 * [SDLC definition-flow model](domain/sdlc-workflow.md) - Layers are many-to-many working lenses over canonical concepts.
 * [Purpose-built definition projections](domain/layer-projections.md) - Each layer presents shared knowledge through an interface designed for its work.
 * [Business](sdlc/business.md) - Define personas, business capabilities, problems, outcomes, and regulation.
-* [Product](sdlc/product.md) - Define how the product solves the business problem.
+* [Business Solution](sdlc/product.md) - Define the complete socio-technical response to accepted Business context.
 * [Design and visual language](sdlc/design.md) - Define experience, brand, tokens, patterns, and accessibility.
 * [System Design](sdlc/system.md) - Define conceptual responsibilities, data boundaries, flows, qualities, and external dependencies.
 * [Architecture](sdlc/architecture.md) - Choose the actual owned Application topology that realizes System Design.
@@ -135,6 +105,5 @@
 
 # Boundaries and risks
 
-* [MVP boundary](constraints/mvp-boundary.md) - What the first release intentionally excludes.
 * [Portable typed relationships](decisions/portable-typed-relationships.md) - How M21 adds graph semantics while remaining OKF-compatible.
 * [False impact propagation](risks/false-impact-propagation.md) - The risk of overwhelming users with indiscriminate change warnings.

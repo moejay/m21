@@ -16,8 +16,6 @@ relationships:
     target: /sdlc/application.md
   - type: depends-on
     target: /sdlc/code-design.md
-  - type: constrained-by
-    target: /constraints/mvp-boundary.md
 ---
 
 # Purpose

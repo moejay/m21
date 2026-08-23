@@ -7,10 +7,6 @@ sdlc: [deployment]
 relationships:
   - type: governs
     target: /architecture/systems/m21-workspace.md
-  - type: governs
-    target: /product/capabilities/project-workspace.md
-  - type: constrained-by
-    target: /constraints/mvp-boundary.md
 ---
 
 # Context

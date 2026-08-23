@@ -10,8 +10,6 @@ sdlc: [architecture]
 relationships:
   - type: informed-by
     target: /sdlc/system.md
-  - type: supports
-    target: /product/capabilities/architecture.md
 ---
 
 # Purpose

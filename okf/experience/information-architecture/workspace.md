@@ -7,8 +7,6 @@ sdlc: [design]
 design:
   section: information-architecture
 relationships:
-  - type: part-of
-    target: /product/capabilities/product-design.md
   - type: informed-by
     target: /experience/journeys/shape-idea.md
   - type: informed-by

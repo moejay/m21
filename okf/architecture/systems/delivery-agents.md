@@ -10,10 +10,6 @@ system:
 relationships:
   - type: depends-on
     target: /architecture/systems/view-generation-pipeline.md
-  - type: supports
-    target: /product/capabilities/architecture.md
-  - type: constrained-by
-    target: /constraints/mvp-boundary.md
 ---
 
 # Role

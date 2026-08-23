@@ -9,8 +9,6 @@ design:
 relationships:
   - type: supports
     target: /agents/m21-agent.md
-  - type: supports
-    target: /product/capabilities/change-impact.md
 ---
 
 # Principle

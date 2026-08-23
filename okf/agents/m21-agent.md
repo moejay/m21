@@ -4,19 +4,6 @@ title: M21 Agent
 description: The contextual thought partner that helps users evolve a coherent product graph without taking decision authority.
 tags: [mvp, ai, agent, prompts, orchestration]
 sdlc: [components, code-design, implementation, deployment]
-relationships:
-  - type: supports
-    target: /product/capabilities/guided-discovery.md
-  - type: supports
-    target: /product/capabilities/product-definition.md
-  - type: supports
-    target: /product/capabilities/product-design.md
-  - type: supports
-    target: /product/capabilities/architecture.md
-  - type: supports
-    target: /product/capabilities/change-impact.md
-  - type: supports
-    target: /product/capabilities/graph-validation.md
 ---
 
 # Role
